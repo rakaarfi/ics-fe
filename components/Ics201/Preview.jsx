@@ -1,134 +1,313 @@
 'use client';
 
-import React, { useRef } from 'react';
-import FormContainer from '../FormContainer';
+import axios from 'axios';
+import dayjs from 'dayjs';
+import dynamic from 'next/dynamic';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
-import { TableHead } from '@mui/material';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { useParams } from 'next/navigation';
+import React, { useEffect, useRef, useState } from 'react';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { Checkbox, FormControl, FormControlLabel, TableHead } from '@mui/material';
+
+import FormContainer from '../FormContainer';
+import { fetchData, readById } from '@/utils/api';
+import useFetchDynamicOptions from '../ImtRoster/useFetchDynamicOptions';
+
+const TimePicker = dynamic(
+    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
+    { ssr: false }
+);
+
+dayjs.extend(customParseFormat);
+
 
 export default function Preview() {
-    const componentRef = useRef();
+    const { id } = useParams();
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [formData, setFormData] = useState({
+        incident_id: null,
+        date_initiated: '',
+        time_initiated: null,
+        map_sketch: '',
+        situation_summary: '',
+        objectives: '',
+        actionsStrategiesTactics: [],
+        resourceSummary: [],
+        chartData: {},
+    });
+    const [incidentData, setIncidentData] = useState([]);
+    const [imageUrl, setImageUrl] = useState(null);
+    const { dynamicOptions } = useFetchDynamicOptions();
+    const [approvalData, setApprovalData] = useState({
+        is_approved: false,
+        date_approved: dayjs().format('YYYY-MM-DD'),
+        time_approved: dayjs().format('HH:mm'),
+    });
 
-    const handleExportPDF = async () => {
-        const headerSection = document.querySelector('.header-section'); // Section 1, 2, 3
-        const footerSection = document.querySelector('.footer-section'); // Section 6
-        const section4 = document.querySelector('.section-4'); // Section 4
-        const section5 = document.querySelector('.section-5'); // Section 5
-        const section7 = document.querySelector('.section-7'); // Section 7
-        const section8 = document.querySelector('.section-8'); // Section 8
-        const section9 = document.querySelector('.section-9'); // Section 9
-        const section10 = document.querySelector('.section-10'); // Section 10
+    const routeUrl = "ics-201/main";
+    const iframeRef = useRef(null);
 
-        const pdf = new jsPDF('p', 'mm', 'a4');
+    useEffect(() => {
+        if (formData.map_sketch) {
+            setImageUrl(`http://localhost:8000/upload/get-map-sketch/${formData.map_sketch}`);
+        } else {
+            setImageUrl(null);
+        }
+    }, [formData.map_sketch]);
 
-        // Fungsi untuk menambahkan header dan footer ke halaman
-        const addHeaderAndFooter = async (pdf) => {
-            // Render header
-            const headerCanvas = await html2canvas(headerSection);
-            const headerImgData = headerCanvas.toDataURL('image/png');
-            const headerImgHeight = (headerCanvas.height * 210) / headerCanvas.width;
+    useEffect(() => {
+        const iframe = iframeRef.current;
+        if (iframe && formData.chartData) {
+            console.log('Attempting to send data:', formData.chartData);
+            iframe.onload = () => {
+                iframe.contentWindow.postMessage(formData.chartData, '*');
+            };
+        }
+    }, [formData.chartData]);
 
-            // Render footer
-            const footerCanvas = await html2canvas(footerSection);
-            const footerImgData = footerCanvas.toDataURL('image/png');
-            const footerImgHeight = (footerCanvas.height * 210) / footerCanvas.width;
-
-            // Tambahkan header ke halaman
-            pdf.addImage(headerImgData, 'PNG', 0, 0, 210, headerImgHeight);
-
-            // Tambahkan footer ke halaman
-            pdf.addImage(footerImgData, 'PNG', 0, 297 - footerImgHeight, 210, footerImgHeight);
-
-            return { headerImgHeight, footerImgHeight };
+    useEffect(() => {
+        const fetchIncidentData = async () => {
+            try {
+                const data = await fetchData('incident-data');
+                setIncidentData(data);
+            } catch (error) {
+                console.error('Error fetching incident data:', error);
+            }
         };
 
-        // Fungsi untuk menambahkan konten ke halaman
-        const addContentToPage = async (pdf, section, yOffset) => {
-            const canvas = await html2canvas(section);
-            const imgData = canvas.toDataURL('image/png');
-            const imgHeight = (canvas.height * 210) / canvas.width;
+        fetchIncidentData();
+    }, []);
 
-            // Tambahkan konten ke halaman
-            pdf.addImage(imgData, 'PNG', 0, yOffset, 210, imgHeight);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch main data
+                const responseData = await readById({ routeUrl, id });
+                const timeInitiated = responseData.time_initiated ? responseData.time_initiated.trim() : null;
+                const parsedTime = dayjs(timeInitiated, 'HH:mm:ss', true);
 
-            return imgHeight;
+                const formattedData = {
+                    ...responseData,
+                    time_initiated: parsedTime.isValid() ? parsedTime.format('HH:mm') : null,
+                };
+
+                setData(formattedData);
+                setFormData(prevFormData => ({
+                    ...prevFormData,
+                    ...formattedData,
+                }));
+
+                // Fetch related data
+                const actionsData = await fetchActionsData(responseData.id);
+                const resourcesData = await fetchResourcesData(responseData.id);
+                const chartData = await fetchChartData(responseData.id);
+                const mapSketchData = await fetchMapSketchData(responseData.map_sketch);
+
+                // Update form data with related data
+                setFormData(prevFormData => ({
+                    ...prevFormData,
+                    actionsStrategiesTactics: actionsData,
+                    resourceSummary: resourcesData,
+                    chartData: chartData.length > 0 ? chartData[0] : {},
+                    map_sketch: mapSketchData
+                }));
+
+                // Check and add empty rows if necessary
+                if (actionsData.length === 0) {
+                    setFormData(prevFormData => ({
+                        ...prevFormData,
+                        actionsStrategiesTactics: [...prevFormData.actionsStrategiesTactics, { time_initiated: null, actions: "" }]
+                    }));
+                }
+
+                if (resourcesData.length === 0) {
+                    setFormData(prevFormData => ({
+                        ...prevFormData,
+                        resourceSummary: [...prevFormData.resourceSummary, { resource: "", resource_identified: "", date_ordered: "", time_ordered: null, eta: "", is_arrived: false, notes: "" }]
+                    }));
+                }
+
+            } catch (err) {
+                setError("Failed to fetch data");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (id) {
+            fetchData();
+        }
+    }, [id]);
+
+    useEffect(() => {
+        const fetchApprovalData = async (ics_201_id) => {
+            try {
+                const response = await axios.get(
+                    `http://127.0.0.1:8000/ics-201/approval/read-by-ics-201-id/${ics_201_id}`
+                );
+                if (response.data.length > 0) {
+                    setApprovalData(response.data[0]);
+                }
+            } catch (error) {
+                console.error('Error fetching approval data:', error);
+            }
         };
 
-        // Halaman 1: Section 4 dan 5
-        const { headerImgHeight, footerImgHeight } = await addHeaderAndFooter(pdf);
-        let yOffset = headerImgHeight;
+        if (id) {
+            fetchApprovalData(id);
+        }
+    }, [id]);
 
-        // Tambahkan Section 4
-        const section4Height = await addContentToPage(pdf, section4, yOffset);
-        yOffset += section4Height;
-
-        // Tambahkan Section 5
-        await addContentToPage(pdf, section5, yOffset);
-
-        // Halaman 2: Section 7 dan 8
-        pdf.addPage();
-        await addHeaderAndFooter(pdf);
-        yOffset = headerImgHeight;
-
-        // Tambahkan Section 7
-        const section7Height = await addContentToPage(pdf, section7, yOffset);
-        yOffset += section7Height;
-
-        // Tambahkan Section 8
-        await addContentToPage(pdf, section8, yOffset);
-
-        // Halaman 3: Section 9
-        pdf.addPage();
-        await addHeaderAndFooter(pdf);
-        yOffset = headerImgHeight;
-
-        // Tambahkan Section 9
-        await addContentToPage(pdf, section9, yOffset);
-
-        // Halaman 4: Section 10
-        pdf.addPage();
-        await addHeaderAndFooter(pdf);
-        yOffset = headerImgHeight;
-
-        // Tambahkan Section 10
-        await addContentToPage(pdf, section10, yOffset);
-
-        // Simpan PDF
-        pdf.save('preview.pdf');
+    const fetchActionsData = async (ics_201_id) => {
+        const response = await axios.get(`http://127.0.0.1:8000/ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
+        return response.data;
     };
+
+    const fetchResourcesData = async (ics_201_id) => {
+        const response = await axios.get(`http://127.0.0.1:8000/ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
+        return response.data;
+    };
+
+    const fetchChartData = async (ics_201_id) => {
+        const response = await axios.get(`http://127.0.0.1:8000/ics-201/chart/read-by-ics-id/${ics_201_id}`);
+        return response.data;
+    };
+
+    const fetchMapSketchData = async (filename) => {
+        if (filename) {
+            try {
+                const response = await axios.get(
+                    `http://127.0.0.1:8000/upload/get-map-sketch/${filename}`,
+                    { responseType: 'blob' }
+                );
+                return filename;
+            } catch (error) {
+                console.error('Error fetching map sketch:', error);
+                return null;
+            }
+        }
+        return null;
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            const payload = {
+                ics_201_id: data.id,
+                date_approved: approvalData.date_approved,
+                time_approved: approvalData.time_approved,
+                is_approved: approvalData.is_approved,
+            };
+
+            const response = await axios.post(
+                `http://127.0.0.1:8000/ics-201/approval/create/`,
+                payload
+            );
+
+            if (response.status === 200) {
+                alert("Approval submitted successfully!");
+            }
+        } catch (err) {
+            console.error("Error saving approval:", err);
+            alert("Error saving approval: " + err.message);
+        }
+    };
+
+    const getIncident = (incidentId) => {
+        const incident = incidentData.find(incident => incident.id === incidentId);
+        return incident || { name: 'Unknown Incident', no: 'Unknown Incident' };
+    };
+
+    const incidentDetails = getIncident(formData.incident_id);
+
+    const findNameById = (id, options = []) => {
+        if (!Array.isArray(options)) {
+            return "";
+        }
+        const foundOption = options.find(option => option.id === id);
+        return foundOption ? foundOption.name || "N/A" : "";
+    };
+
+    const handleExportButtonClick = async () => {
+        try {
+            const response = await axios.post(
+                `http://127.0.0.1:8000/export-docx/export_docx/${id}`,
+                {},
+                {
+                    responseType: 'blob', // Penting untuk menangani file biner
+                }
+            );
+
+            // Buat URL objek dari blob
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+
+            // Buat elemen <a> untuk memicu unduhan
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `ics_201_${id}.docx`); // Nama file yang akan diunduh
+            document.body.appendChild(link);
+            link.click();
+
+            // Hapus elemen <a> setelah unduhan selesai
+            link.parentNode.removeChild(link);
+        } catch (error) {
+            console.error('Error exporting document:', error);
+        }
+    };
+
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p className="text-red-500">{error}</p>;
+    if (!data) return <p>No data found</p>;
 
     return (
         <div>
-            <button
-                style={{ marginBottom: '20px' }}
-                onClick={handleExportPDF}
-            >
-                Export to PDF
-            </button>
             <FormContainer
                 title="Preview"
                 className="max-w-2xl mx-auto p-4 mb-8 bg-white rounded shadow-lg"
-                ref={componentRef}
             >
+                <div className="flex justify-end mb-4">
+                    <button
+                        className="bg-[#FF700A] hover:bg-[#FFA05C] text-white font-semibold py-2 px-6 rounded-md shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center gap-2"
+                        onClick={handleExportButtonClick}
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                        Export to Word
+                    </button>
+                </div>
                 {/* Header Section (Section 1, 2, 3) */}
                 <div className="header-section">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '3rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell sx={{ padding: '1rem' }}>
-                                    <strong>1. Incident Name:</strong>
+                                    <strong>1. Incident Name:</strong> {incidentDetails.name}
                                 </TableCell>
                                 <TableCell sx={{ padding: '1rem' }}>
-                                    <strong>2. Incident Number:</strong>
+                                    <strong>2. Incident Number:</strong> {incidentDetails.no}
                                 </TableCell>
                                 <TableCell sx={{ padding: '1rem' }}>
                                     <strong>3. Date/Time Initiated:</strong><br />
-                                    Date: ______ Time: ______
+                                    Date: {formData.date_initiated} Time: {formData.time_initiated}
                                 </TableCell>
                             </TableRow>
                         </TableBody>
@@ -145,9 +324,16 @@ export default function Preview() {
                                     <br />
                                     <div
                                         className="border border-gray-300"
-                                        style={{ height: '200px', marginTop: '10px', padding: '1rem' }}
+                                        style={{ height: '600px', marginTop: '10px', padding: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                                     >
-                                        {/* Insert map or sketch image here */}
+                                        {imageUrl && (
+                                            <img
+                                                src={imageUrl}
+                                                alt="Uploaded"
+                                                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                                className="shadow-md"
+                                            />
+                                        )}
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -167,7 +353,8 @@ export default function Preview() {
                                         className="border border-gray-300"
                                         style={{ height: '200px', marginTop: '10px', padding: '1rem' }}
                                     >
-                                        {/* Insert map or sketch image here */}
+                                        {/* Insert Situation Summary and Health and Safety Briefing here */}
+                                        {formData.situation_summary}
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -187,7 +374,8 @@ export default function Preview() {
                                         className="border border-gray-300"
                                         style={{ height: '200px', marginTop: '10px', padding: '1rem' }}
                                     >
-                                        {/* Insert map or sketch image here */}
+                                        {/* Insert Current and Planned Objectives here */}
+                                        {formData.objectives}
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -203,7 +391,7 @@ export default function Preview() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>8. Current and Planned Actions, Strategies, and Tactics:</strong>
                                     <br />
-                                    <Table sx={{ marginTop: '10px', border: '1px solid #ccc' }}>
+                                    <Table sx={{ marginTop: '10px', border: '1px solid #ccc', width: '100%' }}>
                                         {/* Table Head */}
                                         <TableHead>
                                             <TableRow>
@@ -214,12 +402,24 @@ export default function Preview() {
 
                                         {/* Table Body */}
                                         <TableBody>
-                                            {[...Array(10)].map((_, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}></TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}></TableCell>
+                                            {formData.actionsStrategiesTactics.length > 0 ? (
+                                                formData.actionsStrategiesTactics.map((action, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>
+                                                            {action.time_initiated || 'N/A'}
+                                                        </TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>
+                                                            {action.actions || 'N/A'}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={2} sx={{ border: '1px solid #ccc', textAlign: 'center', height: '24px' }}>
+                                                        No data available
+                                                    </TableCell>
                                                 </TableRow>
-                                            ))}
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableCell>
@@ -236,11 +436,22 @@ export default function Preview() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>9. Current Organization</strong>
                                     <br />
-                                    <div
+                                    {/* <div
                                         className="border border-gray-300"
-                                        style={{ height: '200px', marginTop: '10px', padding: '1rem' }}
-                                    >
-                                        {/* Insert map or sketch image here */}
+                                        style={{ height: '1000px', marginTop: '10px', padding: '1rem', width: '100%' }}
+                                    > */}
+                                    {/* Insert Current Organization here */}
+                                    {/* <ChartPreview chartData={formData.chartData} /> */}
+                                    {/* </div> */}
+                                    <div style={{ marginTop: '20px', width: '100%', height: '600px', border: '1px solid #ccc' }}>
+                                        <iframe
+                                            ref={iframeRef}
+                                            src="/chart-preview"
+                                            width="100%"
+                                            height="100%"
+                                            style={{ border: 'none' }}
+                                            title="Chart Preview"
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -271,16 +482,26 @@ export default function Preview() {
 
                                         {/* Table Body */}
                                         <TableBody>
-                                            {[...Array(10)].map((_, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}></TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}></TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}></TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}></TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}></TableCell>
-                                                    <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}></TableCell>
+                                            {formData.resourceSummary.length > 0 ? (
+                                                formData.resourceSummary.map((resource, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{resource.resource}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{resource.resource_identified}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>
+                                                            {resource.date_ordered ? `${resource.date_ordered} ${resource.time_ordered}` : ''}
+                                                        </TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{resource.eta}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{resource.is_arrived ? '✓' : '✗'}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{resource.notes}</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={6} sx={{ border: '1px solid #ccc', textAlign: 'center', height: '24px' }}>
+                                                        No data available
+                                                    </TableCell>
                                                 </TableRow>
-                                            ))}
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TableCell>
@@ -297,17 +518,22 @@ export default function Preview() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>6. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '150px', marginLeft: '1rem' }}>
-                                            <TextField label="Name" variant="standard" />
+                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            Name: {formData.chartData.incident_commander_id ?
+                                                findNameById(formData.chartData.incident_commander_id, dynamicOptions.incident_commander_id)
+                                                : "N/A"}
+                                        </div>
+                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            Position: Incident Commander
+                                        </div>
+                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            Signature: {approvalData.is_approved ? '✓' : '✗'}
                                         </div>
                                         <div style={{ width: '150px', marginLeft: '1rem' }}>
-                                            <TextField label="Position/Title" variant="standard" />
+                                            Date: {approvalData.date_approved}
                                         </div>
                                         <div style={{ width: '150px', marginLeft: '1rem' }}>
-                                            <TextField label="Signature" variant="standard" />
-                                        </div>
-                                        <div style={{ width: '150px', marginLeft: '1rem' }}>
-                                            <TextField label="Date/Time" variant="standard" />
+                                            Time: {approvalData.time_approved}
                                         </div>
                                     </div>
                                 </TableCell>
