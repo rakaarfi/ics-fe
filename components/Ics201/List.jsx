@@ -8,6 +8,10 @@ import Pagination from '../Pagination'
 import { useSearchParams } from 'next/navigation'
 import TableHeader from './TableHeader'
 import { fetchData, fetchPaginatedData, handleDelete } from '@/utils/api'
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
+
 
 export default function List() {
     const searchParams = useSearchParams();
@@ -21,6 +25,11 @@ export default function List() {
     const [search, setSearch] = useState(querySearch);
     const [error, setError] = useState(null);
     const [incidentData, setIncidentData] = useState([]);
+    const [approvalData, setApprovalData] = useState([]);
+    const [sortConfig, setSortConfig] = useState({
+        key: null,
+        direction: 'asc'
+    });
 
     const routeUrl = "ics-201/main";
     const responseKey = "read-paginated";
@@ -34,9 +43,67 @@ export default function List() {
         }
     };
 
+    const approval = async () => {
+        try {
+            const data = await fetchData('ics-201/approval');
+            setApprovalData(data);
+            console.log("Approval Data:", data);
+
+        } catch (error) {
+            console.error('Error fetching approval data:', error);
+        }
+    }
+
     const handlePageChange = (page) => {
         setCurrentPage(page);
     };
+
+    const isApproved = (itemId) => {
+        const approval = approvalData.find(
+            (approval) => approval.ics_201_id === itemId
+        );
+        return approval ? approval.is_approved : false;
+    };
+
+    const requestSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedData = React.useMemo(() => {
+        let sortableData = [...data];
+        if (sortConfig.key) {
+            sortableData.sort((a, b) => {
+                let valueA, valueB;
+
+                switch (sortConfig.key) {
+                    case 'incident':
+                        valueA = incidentData.find(incident => incident.id === a.incident_id)?.name || '';
+                        valueB = incidentData.find(incident => incident.id === b.incident_id)?.name || '';
+                        break;
+                    case 'approved':
+                        valueA = isApproved(a.id);
+                        valueB = isApproved(b.id);
+                        break;
+                    default:
+                        valueA = a[sortConfig.key];
+                        valueB = b[sortConfig.key];
+                }
+
+                if (valueA < valueB) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (valueA > valueB) {
+                    return sortConfig.direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableData;
+    }, [data, sortConfig, incidentData, approvalData]);
 
     useEffect(() => {
         fetchPaginatedData({
@@ -51,6 +118,7 @@ export default function List() {
             setError,
         });
         incident();
+        approval();
     }, [currentPage, search]);
 
     useEffect(() => {
@@ -62,7 +130,6 @@ export default function List() {
         const newUrl = `${window.location.pathname}?${params.toString()}`;
         window.history.replaceState({}, "", newUrl);
     }, [currentPage, search]);
-
 
     return (
         <FormContainer title="List ICS 201 Incident Briefing">
@@ -79,9 +146,12 @@ export default function List() {
             </div>
             <div className="overflow-x-auto">
                 <table className="table-auto w-full text-xs">
-                    <TableHeader />
+                    <TableHeader
+                        sortConfig={sortConfig}
+                        requestSort={requestSort}
+                    />
                     <tbody>
-                        {data.map((item, index) => {
+                        {sortedData.map((item, index) => {
                             const incidentName = incidentData.find(
                                 (incident) => String(incident.id) === String(item.incident_id)
                             )?.name || "Unknown Incident";
@@ -97,16 +167,24 @@ export default function List() {
                                         {item.date_initiated}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
-                                        {item.time_initiated}
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2">
-                                        {item.map_sketch}
+                                        {item.time_initiated ? dayjs(item.time_initiated, 'HH:mm:ss').format('HH:mm') : 'N/A'}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
                                         {item.situation_summary}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
                                         {item.objectives}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        {isApproved(item.id) ? (
+                                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                                Approved
+                                            </span>
+                                        ) : (
+                                            <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                                Not Approved
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
                                         <ButtonDetail href={`/dashboard/ics-201/detail/${item.id}`} />
