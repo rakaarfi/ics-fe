@@ -13,10 +13,10 @@ import Chart from './Chart';
 import Upload from './Upload';
 import FormContainer from '../FormContainer';
 import ResourceSummary from './ResourceSummary';
-import { fetchData, handleUpdate, readById } from '@/utils/api';
+import { fetchData, readById } from '@/utils/api';
 import ActionsStrategiesTactics from './ActionsStrategiesTactics';
 import { ButtonSaveChanges } from '../ButtonComponents';
-import TablePreview from './Test';
+import Link from 'next/link';
 
 dayjs.extend(customParseFormat);
 
@@ -477,44 +477,6 @@ export default function Detail() {
     if (error) return <p className="text-red-500">{error}</p>;
     if (!data) return <p>No data found</p>;
 
-    const parseTime = (timeStr) => {
-        if (!timeStr) return null;
-
-        // Jika waktu dalam format HH:mm:ss, potong bagian detik
-        if (timeStr.includes(':')) {
-            const today = dayjs().format('YYYY-MM-DD');
-            return dayjs(`${today} ${timeStr.split(':').slice(0, 2).join(':')}`); // Hanya ambil HH:mm
-        }
-        return null;
-    };
-
-    const handleExportButtonClick = async () => {
-        try {
-            const response = await axios.post(
-                `http://127.0.0.1:8000/export-docx/export_docx/${id}`,
-                {},
-                {
-                    responseType: 'blob', // Penting untuk menangani file biner
-                }
-            );
-
-            // Buat URL objek dari blob
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-
-            // Buat elemen <a> untuk memicu unduhan
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `ics_201_${id}.docx`); // Nama file yang akan diunduh
-            document.body.appendChild(link);
-            link.click();
-
-            // Hapus elemen <a> setelah unduhan selesai
-            link.parentNode.removeChild(link);
-        } catch (error) {
-            console.error('Error exporting document:', error);
-        }
-    };
-
     return (
         <FormContainer title="ICS 201 Incident Data">
             <form onSubmit={handleSubmit}>
@@ -699,12 +661,11 @@ export default function Detail() {
                     </tbody>
                 </table>
             </form>
-            <button
-                className="bg-[#FF700A] hover:bg-[#FFA05C] text-white font-bold py-1 px-3 rounded"
-                onClick={handleExportButtonClick}
-            >
-                Export to Doc
-            </button>
+            <div className='flex justify-end'>
+                <Link href={`/dashboard/ics-201/tobe-approved/${id}`} className="bg-[#61638d] hover:bg-[#393b63] text-white font-bold py-1 px-3 rounded">
+                    To Be Approved
+                </Link>
+            </div>
         </FormContainer>
     );
 }
