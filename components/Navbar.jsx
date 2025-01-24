@@ -17,7 +17,8 @@ export const Navbar = () => {
     const icsForms = [
         { name: "Incident Data", link: "/dashboard/incident-data/detail" },
         { name: "Operational Period", link: "/dashboard/operational-period/detail" },
-        { name: "ICS 201 Incident Briefing", link: "/dashboard/ics-201/detail" }
+        { name: "ICS 201 Incident Briefing", link: "/dashboard/ics-201/detail" },
+        { name: "Incident Action Plan (IAP)", link: "/dashboard/iap/" },
     ]
 
     return (
