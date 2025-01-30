@@ -104,6 +104,14 @@ export default function Input() {
                                     type="checkbox"
                                     // name="site_safety_plan_required"
                                     className="mx-2"
+                                    onChange={(e) => {
+                                        const approvedSiteInput = document.querySelector("#approved-site-input");
+                                        if (e.target.checked) {
+                                            approvedSiteInput.disabled = false;
+                                        } else {
+                                            approvedSiteInput.disabled = true;
+                                        }
+                                    }}
                                 />
                             </td>
                         </tr>
@@ -111,17 +119,18 @@ export default function Input() {
                             <td className="px-4 py-2 font-bold">
                                 Approved Site Safety Plan(s) Located at:
                                 <input
+                                    id="approved-site-input"
                                     type="text"
                                     className="w-full px-3 py-2 border rounded-md"
                                     // name="situation_summary"
                                     // value={formData.situation_summary}
                                     // onChange={handleChange}
                                     required
+                                    disabled
                                 />
                             </td>
                         </tr>
 
-                        {/* <!-- Baris untuk Incident Action Plan(s) --> */}
                         {/* <!-- Baris untuk Incident Action Plan(s) --> */}
                         <tr>
                             <td className="px-4 py-2 font-bold">
