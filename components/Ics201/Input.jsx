@@ -173,7 +173,7 @@ export default function Input() {
                 objectives: formData.objectives,
             };
 
-            console.log("Main Payload:", mainPayload); // Log the payload
+            // console.log("Main Payload:", mainPayload); // Log the payload
             const response = await axios.post('http://127.0.0.1:8000/ics-201/main/create/', mainPayload);
             const ics_201_id = response.data.id;
             setFormData(prevData => ({ ...prevData, ics_201_id: ics_201_id }));
@@ -186,7 +186,7 @@ export default function Input() {
                     ics_201_id: ics_201_id,
                 })),
             };
-            console.log("Actions Payload:", actionsPayload); // Log the payload
+            // console.log("Actions Payload:", actionsPayload); // Log the payload
             await axios.post('http://127.0.0.1:8000/ics-201/actions-strategies-tactics/create/', actionsPayload);
 
             // Submit ResourceSummary data
@@ -202,7 +202,7 @@ export default function Input() {
                     ics_201_id: ics_201_id,
                 })),
             };
-            console.log("Resources Payload:", resourcesPayload);
+            // console.log("Resources Payload:", resourcesPayload);
             await axios.post('http://127.0.0.1:8000/ics-201/resource-summary/create/', resourcesPayload);
 
             // Submit Chart data
@@ -210,7 +210,7 @@ export default function Input() {
                 ...formData.chartData,
                 ics_201_id: ics_201_id,
             };
-            console.log("Chart Payload:", chartPayload);
+            // console.log("Chart Payload:", chartPayload);
             await axios.post('http://127.0.0.1:8000/ics-201/chart/create/', chartPayload);
 
             alert("Data submitted successfully!");
