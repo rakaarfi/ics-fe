@@ -5,26 +5,26 @@ export const IAPNavbar = () => {
     const incidentActionPlan = [
         {
             name: "ICS 202",
-            link: "#",
+            link: "/dashboard/iap/ics-202/detail",
             subMenu: [
                 {
                     name: "Incident Objectives",
-                    link: "#",
+                    link: "/dashboard/iap/ics-202/detail",
                     subMenu: [
-                        { name: "Planning Section Chief", link: "#" },
+                        { name: "Planning Section Chief", link: "/dashboard/iap/ics-202/detail" },
                     ]
                 },
             ]
         },
         {
             name: "ICS 203",
-            link: "#",
+            link: "/dashboard/iap/ics-203/detail",
             subMenu: [
                 {
                     name: "Organization Assignment List",
-                    link: "#",
+                    link: "/dashboard/iap/ics-203/detail",
                     subMenu: [
-                        { name: "Resources Unit Leader", link: "#" },
+                        { name: "Resources Unit Leader", link: "/dashboard/iap/ics-203/detail" },
                     ]
                 },
             ]
