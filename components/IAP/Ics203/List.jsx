@@ -177,7 +177,7 @@ export default function List() {
     }, [currentPage, search]);
 
     return (
-        <FormContainer title="List ICS 203">
+        <FormContainer title="ICS 203 Organization Assignment List">
             <div className="flex flex-row justify-between items-center mb-4">
                 <InputButton
                     href="/dashboard/iap/ics-203/input"
