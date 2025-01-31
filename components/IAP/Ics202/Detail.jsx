@@ -203,7 +203,7 @@ export default function Detail() {
     }, []);
 
     return (
-        <FormContainer title="Input ICS 202">
+        <FormContainer title="ICS 202 Incident Objectives Detail">
             <form onSubmit={handleSubmit}>
                 <div className="mb-4 flex flex-row">
                     {/* Dropdown Incident */}
