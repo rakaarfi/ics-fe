@@ -46,7 +46,6 @@ export default function Input() {
     const handleOperationalPeriodChange = (e) => {
         const selectedValue = e.target.value;
 
-        // Pastikan nilai yang dikirimkan adalah integer atau null
         const operational_period_id = selectedValue ? parseInt(selectedValue, 10) : null;
         setFormData(prevState => ({
             ...prevState,
