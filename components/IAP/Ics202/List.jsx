@@ -175,7 +175,7 @@ export default function List() {
     }, [currentPage, search]);
 
     return (
-        <FormContainer title="List ICS 202">
+        <FormContainer title="ICS 202 Incident Objectives List">
             <div className="flex flex-row justify-between items-center mb-4">
                 <InputButton
                     href="/dashboard/iap/ics-202/input"
