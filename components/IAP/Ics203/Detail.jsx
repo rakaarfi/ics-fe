@@ -245,7 +245,7 @@ export default function Detail() {
     }, []);
 
     return (
-        <FormContainer title="ICS 203 Organization Assignment List">
+        <FormContainer title="ICS 203 Organization Assignment Detail">
             {error && <p className="text-red-500">{error}</p>}
             <div className="mb-4 flex flex-row">
                 <select
