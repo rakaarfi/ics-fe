@@ -85,13 +85,13 @@ export const IAPNavbar = () => {
         },
         {
             name: "ICS 208",
-            link: "#",
+            link: "/dashboard/iap/ics-208/detail",
             subMenu: [
                 {
                     name: "Safety Message/Plan",
-                    link: "#",
+                    link: "/dashboard/iap/ics-208/detail",
                     subMenu: [
-                        { name: "Safety Officer", link: "#" },
+                        { name: "Safety Officer", link: "/dashboard/iap/ics-208/detail" },
                     ]
                 }
             ]
