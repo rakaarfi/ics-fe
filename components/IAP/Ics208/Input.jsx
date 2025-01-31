@@ -198,8 +198,8 @@ export default function Input() {
                                     checked={formData.is_required || false}
                                 />
                             </td>
-                            <td className="px-4 pt-4 font-bold">
-                                <span>
+                            <td className="px-4 pt-4">
+                                <span className="font-bold">
                                     Site Safety Plan
                                 </span>
                                 <textarea
@@ -212,8 +212,8 @@ export default function Input() {
                                 >
                                 </textarea>
                             </td>
-                            <td className="px-4 pt-4 font-bold">
-                                <span>
+                            <td className="px-4 pt-4">
+                                <span className="font-bold">
                                     Additional Safety Message(s)
                                 </span>
                                 <textarea
