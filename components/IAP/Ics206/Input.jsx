@@ -2,45 +2,325 @@
 
 import { ButtonSubmit } from '@/components/ButtonComponents';
 import FormContainer from '@/components/FormContainer';
-import React from 'react'
+import axios from 'axios';
+import React, { useEffect, useState } from 'react'
+import MedicalAidStations from './MedicalAidStations';
+import Transportation from './Transportation';
+import Hospital from './Hospital';
+import dayjs from 'dayjs';
+
 
 export default function Input() {
+    const [formData, setFormData] = useState({
+        operational_period_id: null,
+        medicalAidStation: [
+            {
+                name: "",
+                location: "",
+                number: "",
+                is_paramedic: false,
+            },
+        ],
+        transportation: [
+            {
+                ambulance_sercvice: "",
+                location: "",
+                number: "",
+                is_als: false,
+                is_bls: false,
+            },
+        ],
+        hospital: [
+            {
+                name: "",
+                address: "",
+                number: "",
+                air_travel_time: "",
+                ground_travel_time: "",
+                is_trauma_center: false,
+                level_trauma_center: "",
+                is_burn_center: false,
+                is_helipad: false,
+            },
+        ],
+        special_medical_procedures: "",
+        is_utilized: false,
+    });
+    const [incidentData, setIncidentData] = useState([]);
+    const [operationalPeriodData, setOperationalPeriodData] = useState([]);
+    const [MULeaderData, setMULeaderData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleIncidentChange = (e) => {
+        const incident_id = parseInt(e.target.value, 10);
+        if (!incident_id) return;
+
+        setLoading(true);
+        setError(null);
+        setOperationalPeriodData([]);
+        setFormData((prevState) => ({
+            ...prevState,
+            incident_id,
+            operational_period_id: "",
+        }));
+
+        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+            .then((response) => {
+                setOperationalPeriodData(response.data);
+            })
+            .catch(() => setError('Failed to fetch operational period data'))
+            .finally(() => setLoading(false));
+    };
+
+
+    const handleOperationalPeriodChange = (e) => {
+        const operational_period_id = parseInt(e.target.value, 10);
+        setFormData(prevState => ({
+            ...prevState,
+            operational_period_id
+        }));
+    };
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData({
+            ...formData,
+            [name]: type === "checkbox" ? checked : value,
+        });
+    };
+
+    // Functions to handle changes in child components
+    const handleMedicalChange = (index, updates) => {
+        setFormData(prevData => {
+            const newMedicals = [...prevData.medicalAidStation];
+            newMedicals[index] = { ...newMedicals[index], ...updates };
+            return { ...prevData, medicalAidStation: newMedicals };
+        });
+    };
+
+    const handleTransportationChange = (index, updates) => {
+        setFormData(prevData => {
+            const newTransportations = [...prevData.transportation];
+            newTransportations[index] = { ...newTransportations[index], ...updates };
+            return { ...prevData, transportation: newTransportations };
+        });
+    };
+
+    const handleHospitalChange = (index, updates) => {
+        setFormData(prevData => {
+            const newHospitals = [...prevData.hospital];
+            newHospitals[index] = { ...newHospitals[index], ...updates };
+            return { ...prevData, hospital: newHospitals };
+        });
+    };
+
+    // Functions to add/remove rows in child components
+    const addMedicalsRow = () => {
+        setFormData(prevData => ({
+            ...prevData,
+            medicalAidStation: [...prevData.medicalAidStation, {
+                name: "",
+                location: "",
+                number: "",
+                is_paramedic: false,
+            },],
+        }));
+    };
+
+    const removeMedicalsRow = (index) => {
+        setFormData(prevData => ({
+            ...prevData,
+            medicalAidStation: prevData.medicalAidStation.filter((_, i) => i !== index),
+        }));
+    };
+
+    const addTransportationsRow = () => {
+        setFormData(prevData => ({
+            ...prevData,
+            transportation: [...prevData.transportation, {
+                ambulance_sercvice: "",
+                location: "",
+                number: "",
+                is_als: false,
+                is_bls: false,
+            },],
+        }));
+    };
+
+    const removeTransportationsRow = (index) => {
+        setFormData(prevData => ({
+            ...prevData,
+            transportation: prevData.transportation.filter((_, i) => i !== index),
+        }));
+    };
+
+    const addHospitalsRow = () => {
+        setFormData(prevData => ({
+            ...prevData,
+            hospital: [...prevData.hospital, {
+                name: "",
+                address: "",
+                number: "",
+                air_travel_time: "",
+                ground_travel_time: "",
+                is_trauma_center: false,
+                level_trauma_center: "",
+                is_burn_center: false,
+                is_helipad: false,
+            },],
+        }));
+    };
+
+    const removeHospitalsRow = (index) => {
+        setFormData(prevData => ({
+            ...prevData,
+            hospital: prevData.hospital.filter((_, i) => i !== index),
+        }));
+    };
+
+    // Handle Submit
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            // Validasi data sebelum mengirim
+            if (!formData.operational_period_id) {
+                alert("Please select an Operational Period.");
+                return;
+            }
+
+            const mainPayload = {
+                operational_period_id: formData.operational_period_id,
+                special_medical_procedures: formData.special_medical_procedures,
+                is_utilized: formData.is_utilized,
+            };
+            const response = await axios.post('http://127.0.0.1:8000/ics-206/main/create', mainPayload);
+            const ics_206_id = response.data.id;
+
+            const now = dayjs();
+            const preparedPayload = {
+                ics_206_id: ics_206_id,
+                medical_unit_leader_id: formData.medical_unit_leader_id,
+                date_prepared: now.format('YYYY-MM-DD'),
+                time_prepared: now.format('HH:mm'),
+                is_prepared: formData.is_prepared,
+            };
+            await axios.post('http://127.0.0.1:8000/ics-206/preparation/create/', preparedPayload);
+
+            const medicalPayloads = {
+                datas: formData.medicalAidStation.map(row => ({
+                    ics_206_id: ics_206_id,
+                    name: row.name,
+                    location: row.location,
+                    number: row.number,
+                    is_paramedic: row.is_paramedic,
+                }))
+            }
+            await axios.post('http://127.0.0.1:8000/ics-206/medical-aid-station/create/', medicalPayloads);
+
+            const transportationPayloads = {
+                datas: formData.transportation.map(row => ({
+                    ics_206_id: ics_206_id,
+                    ambulance_sercvice: row.ambulance_sercvice,
+                    location: row.location,
+                    number: row.number,
+                    is_als: row.is_als,
+                    is_bls: row.is_bls,
+                }))
+            }
+            await axios.post('http://127.0.0.1:8000/ics-206/transportation/create/', transportationPayloads);
+
+            const hospitalPayloads = {
+                datas: formData.hospital.map(row => ({
+                    ics_206_id: ics_206_id,
+                    name: row.name,
+                    address: row.address,
+                    number: row.number,
+                    air_travel_time: row.air_travel_time,
+                    ground_travel_time: row.ground_travel_time,
+                    is_trauma_center: row.is_trauma_center,
+                    level_trauma_center: row.level_trauma_center,
+                    is_burn_center: row.is_burn_center,
+                    is_helipad: row.is_helipad,
+                }))
+            }
+            await axios.post('http://127.0.0.1:8000/ics-206/hospitals/create/', hospitalPayloads);
+
+            alert('Data submitted successfully!');
+        } catch (error) {
+            console.error('Error submitting data:', error);
+            alert(`Failed to submit data: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+    const fetchIncidentData = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            setIncidentData(response.data);
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
+
+    const fetchMULeader = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/logistic-section/medical-unit-leader/read/');
+            setMULeaderData(response.data);
+            console.log("Medical Unit Leader Data:", response.data);
+        } catch (error) {
+            console.error('Error fetching Medical Unit Leader data:', error);
+            setError('Failed to fetch Medical Unit Leader data');
+        }
+    };
+
+    useEffect(() => {
+        fetchMULeader();
+    }, []);
+
     return (
         <FormContainer title="Input ICS 206" >
             <div className="mb-4 flex flex-row">
                 <select
-                    name="incident_id"
                     className="flex-1 block w-[400px] rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
-                // onChange={(e) => handleIncidentChange(parseInt(e.target.value, 10))}
-                // value={formData.incident_id || ""}
+                    value={formData.incident_id || ""}
+                    onChange={handleIncidentChange}
+                    required
                 >
-                    <option value={""} disabled>
+                    <option value="" disabled>
                         Select Incident
                     </option>
-                    {/* {incidentData.map((incident) => (
+                    {incidentData.map((incident) => (
                         <option key={incident.id} value={incident.id}>
                             {incident.name}
                         </option>
-                    ))} */}
+                    ))}
                 </select>
+
                 <select
-                    name="id"
                     className="flex-1 block w-[400px] rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
-                // onChange={(e) => handleIncidentChange(parseInt(e.target.value, 10))}
-                // value={formData.incident_id || ""}
+                    value={formData.operational_period_id || ""}
+                    onChange={handleOperationalPeriodChange}
+                    disabled={loading || !formData.incident_id}
+                    required
                 >
-                    <option value={""} disabled>
-                        Select Operational Period
+                    <option value="" disabled>
+                        {loading ? 'Loading...' : 'Select Operational Period'}
                     </option>
-                    {/* {incidentData.map((incident) => (
-                        <option key={incident.id} value={incident.id}>
-                            {incident.name}
+                    {operationalPeriodData.map((period) => (
+                        <option key={period.id} value={period.id}>
+                            {period.date_from} - {period.date_to}
                         </option>
-                    ))} */}
+                    ))}
                 </select>
             </div>
             <form
-            // onSubmit={handleSubmit}
+                onSubmit={handleSubmit}
             >
                 <table className="table-auto border-collapse w-full">
                     <tbody>
@@ -51,48 +331,12 @@ export default function Input() {
                         </tr>
                         <tr>
                             <td className="px-4 py-2" colSpan={10}>
-                                <table className="table-auto border-collapse w-full">
-                                    <thead>
-                                        <tr>
-                                            <th className="px-4 py-2 border">Name</th>
-                                            <th className="px-4 py-2 border">Location</th>
-                                            <th className="px-4 py-2 border">Contact Number(s)/Frequency</th>
-                                            <th className="px-4 py-2 border">Paramedics on Site?(Yes/No)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <MedicalAidStations
+                                    rowsMedicals={formData.medicalAidStation}
+                                    onAddRow={addMedicalsRow}
+                                    onRemoveRow={removeMedicalsRow}
+                                    onChangeRow={handleMedicalChange}
+                                />
                             </td>
                         </tr>
 
@@ -102,63 +346,12 @@ export default function Input() {
                         </tr>
                         <tr>
                             <td className="px-4 py-2" colSpan={10}>
-                                <table className="table-auto border-collapse w-full">
-                                    <thead>
-                                        <tr>
-                                            <th className="px-4 py-2 border">Ambulance Service</th>
-                                            <th className="px-4 py-2 border">Location</th>
-                                            <th className="px-4 py-2 border">Contact Number(s)/Frequency</th>
-                                            <th className="px-4 py-2 border" colSpan={2}>Level of Service</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <div className="flex items-center gap-2">
-                                                    <label>
-                                                        <input
-                                                            type="checkbox"
-                                                            className="mr-1"
-                                                        />
-                                                        ALS
-                                                    </label>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <div className="flex items-center gap-2">
-                                                    <label>
-                                                        <input
-                                                            type="checkbox"
-                                                            className="mr-1"
-                                                        />
-                                                        BLS
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <Transportation
+                                    rowsTransportations={formData.transportation}
+                                    onAddRow={addTransportationsRow}
+                                    onRemoveRow={removeTransportationsRow}
+                                    onChangeRow={handleTransportationChange}
+                                />
                             </td>
                         </tr>
 
@@ -168,88 +361,12 @@ export default function Input() {
                         </tr>
                         <tr>
                             <td className="px-4 py-2" colSpan={10}>
-                                <table className="table-auto border-collapse w-full">
-                                    <thead>
-                                        <tr>
-                                            <th className="px-4 py-2 border" rowSpan={2}>Name</th>
-                                            <th className="px-4 py-2 border" rowSpan={2}>Address</th>
-                                            <th className="px-4 py-2 border" rowSpan={2}>Contact Number(s)/Frequency</th>
-                                            <th className="px-4 py-2 border" colSpan={2}>Travel Time</th>
-                                            <th className="px-4 py-2 border" rowSpan={2}>Trauma Center</th>
-                                            <th className="px-4 py-2 border" rowSpan={2}>Burn Center</th>
-                                            <th className="px-4 py-2 border" rowSpan={2}>Helipad</th>
-                                        </tr>
-                                        <tr>
-                                            <th className="px-4 py-2 border">Air</th>
-                                            <th className="px-4 py-2 border">Ground</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 border rounded"
-                                                    />
-                                                    <span>Level</span>
-                                                    <input
-                                                        type="text"
-                                                        className="w-full px-2 py-1 border rounded"
-                                                        placeholder="Enter details"
-                                                    />
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 border rounded"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 border rounded"
-                                                />
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <Hospital
+                                    rowsHospitals={formData.hospital}
+                                    onAddRow={addHospitalsRow}
+                                    onRemoveRow={removeHospitalsRow}
+                                    onChangeRow={handleHospitalChange}
+                                />
                             </td>
                         </tr>
 
@@ -260,12 +377,12 @@ export default function Input() {
                         <tr>
                             <td className="px-4 py-2" colSpan={10}>
                                 <textarea
-                                    // name="situation_summary"
-                                    // value={formData.situation_summary}
+                                    name="special_medical_procedures"
+                                    value={formData.special_medical_procedures}
                                     className="w-full px-3 py-2 border rounded-md"
                                     rows="7"
                                     cols="50"
-                                    // onChange={handleChange}
+                                    onChange={handleChange}
                                     required
                                 />
                             </td>
@@ -276,11 +393,51 @@ export default function Input() {
                             <td className="px-4 pt-4 font-bold" colSpan={7}>
                                 <input
                                     type="checkbox"
+                                    name='is_utilized'
+                                    value={formData.is_utilized}
+                                    onChange={handleChange}
                                     className="w-4 h-4 border rounded"
                                 />
                                 <span className="ml-2">
                                     Check box if aviation Assets are utilized for rescue. If assets are used, coordinate with Air Operations.
                                 </span>
+                            </td>
+                        </tr>
+
+                        {/* Prepared by */}
+                        <tr>
+                            <td className="px-4 py-2">
+                                {/* Select untuk Medical Unit Leader */}
+                                <select
+                                    name="medical_unit_leader_id"
+                                    className="flex-1 block w-[400px] rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
+                                    value={formData.medical_unit_leader_id || ""}
+                                    onChange={(e) => setFormData(prev => ({
+                                        ...prev,
+                                        medical_unit_leader_id: e.target.value
+                                    }))}
+                                    required
+                                >
+                                    <option value="" disabled>
+                                        Select Prepared by Medical Unit Leader
+                                    </option>
+                                    {MULeaderData.map(leader => (
+                                        <option key={leader.id} value={leader.id}>
+                                            {leader.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="checkbox"
+                                    name="is_prepared"
+                                    checked={formData.is_prepared || false}
+                                    onChange={(e) => setFormData(prev => ({
+                                        ...prev,
+                                        is_prepared: e.target.checked
+                                    }))}
+                                    className="mr-2"
+                                />
+                                Signature
                             </td>
                         </tr>
 
