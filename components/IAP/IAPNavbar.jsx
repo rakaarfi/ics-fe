@@ -31,14 +31,14 @@ export const IAPNavbar = () => {
         },
         {
             name: "ICS 204",
-            link: "#",
+            link: "/dashboard/iap/ics-204/detail",
             subMenu: [
                 {
                     name: "Assignment List",
-                    link: "#",
+                    link: "/dashboard/iap/ics-204/detail",
                     subMenu: [
-                        { name: "Resources Unit Leader", link: "#" },
-                        { name: "Operation Section Chief", link: "#" },
+                        { name: "Resources Unit Leader", link: "/dashboard/iap/ics-204/detail" },
+                        { name: "Operation Section Chief", link: "/dashboard/iap/ics-204/detail" },
                     ]
                 },
             ]
