@@ -341,42 +341,6 @@ export default function Input() {
                             </td>
                         </tr>
 
-                        {/* <!-- Baris untuk Prepared By --> */}
-                        {/* <tr>
-                            <td className="px-4 py-2">Prepared By:</td>
-                            <td className="px-4 py-2">Name:</td>
-                            <td className="px-4 py-2">
-                                <input
-                                    type="text"
-                                    name="prepared_by_name"
-                                    className="w-full px-3 py-2 border rounded-md"
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </td>
-                            <td className="px-4 py-2">Position/Title:</td>
-                            <td className="px-4 py-2">
-                                <input
-                                    type="text"
-                                    name="prepared_by_position"
-                                    className="w-full px-3 py-2 border rounded-md"
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </td>
-                            <td className="px-4 py-2">Signature:</td>
-                            <td className="px-4 py-2">
-                                <input
-                                    type="checkbox"
-                                    name="is_signature"
-                                    className="w-5 h-5 border rounded-md"
-                                    checked={formData.is_signature}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </td>
-                        </tr> */}
-
                         {/* <!-- Baris untuk Current and Planned Objectives --> */}
                         <tr>
                             <td className="px-4 py-2" colSpan={7}>Current and Planned Objectives:</td>
