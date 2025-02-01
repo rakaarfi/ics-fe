@@ -83,93 +83,13 @@ export default function Detail() {
         }));
     };
 
-    const fetchIncidentData = async () => {
-        try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
-            setIncidentData(response.data);
-
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData({
+            ...formData,
+            [name]: type === "checkbox" ? checked : value,
+        });
     };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchRULeader = async () => {
-        try {
-            const response = await axios.get('http://127.0.0.1:8000/planning-section/resources-unit-leader/read/');
-            setRULeaderData(response.data);
-            // console.log("Resources Unit Leader Data:", response.data);
-        } catch (error) {
-            console.error('Error fetching Resources Unit Leader data:', error);
-            setError('Failed to fetch Resources Unit Leader data');
-        }
-    };
-
-    useEffect(() => {
-        fetchRULeader();
-    }, []);
-
-    const fetchOSChief = async () => {
-        try {
-            const response = await axios.get('http://127.0.0.1:8000/main-section/operation-section-chief/read/');
-            setOSChiefData(response.data);
-            // console.log("Operation Section Chief Data:", response.data);
-        } catch (error) {
-            console.error('Error fetching Operation Section Chief data:', error);
-            setError('Failed to fetch Operation Section Chief data');
-        }
-    };
-
-    useEffect(() => {
-        fetchOSChief();
-    }, []);
-
-    useEffect(() => {
-        if (formData.operation_section_chief_id) {
-            // Cari chief yang sesuai berdasarkan operation_section_chief_id
-            const selectedChief = OSChiefData.find(chief => chief.id === parseInt(formData.operation_section_chief_id, 10));
-            if (selectedChief) {
-                // Update operationSectionChiefNumber dengan mobile_phone dari chief yang dipilih
-                setOperationSectionChiefNumber(selectedChief.mobile_phone);
-            } else {
-                // Reset jika tidak ada chief yang dipilih
-                setOperationSectionChiefNumber("");
-            }
-        } else {
-            // Reset jika operation_section_chief_id kosong
-            setOperationSectionChiefNumber("");
-        }
-    }, [formData.operation_section_chief_id, OSChiefData]);
-
-    useEffect(() => {
-        if (formData.is_prepared_os_chief) {
-            // Jika OS Chief disiapkan, otomatis gunakan yang dipilih di Operations Personnel
-            setFormData(prev => ({
-                ...prev,
-                prepared_operation_section_chief_id: prev.operation_section_chief_id || ""
-            }));
-        } else {
-            // Jika hanya Resources Unit Leader yang prepared, kosongkan OS Chief di "Prepared by"
-            setFormData(prev => ({
-                ...prev,
-                prepared_operation_section_chief_id: ""
-            }));
-        }
-    }, [formData.is_prepared_os_chief, formData.operation_section_chief_id]);
-
-    useEffect(() => {
-        if (!formData.is_prepared_os_chief) {
-            // Jika Operation Section Chief tidak menjadi "Prepared by", hapus dari state
-            setFormData(prev => ({
-                ...prev,
-                operation_section_chief_id: null
-            }));
-        }
-    }, [formData.is_prepared_os_chief]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -257,22 +177,24 @@ export default function Detail() {
 
 
     const fetchPersonnelsData = async (ics_204_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-204/personnel-assigned/read-by-ics-id/${ics_204_id}`);
-        return response.data;
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/ics-204/personnel-assigned/read-by-ics-id/${ics_204_id}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching personnels data:', error);
+            throw error;
+        }
     };
 
     const fetchEquipmentsData = async (ics_204_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-204/equipment-assigned/read-by-ics-id/${ics_204_id}`);
-        console.log("Equipments Data:", response.data);
-        return response.data;
-    };
-
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData({
-            ...formData,
-            [name]: type === "checkbox" ? checked : value,
-        });
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/ics-204/equipment-assigned/read-by-ics-id/${ics_204_id}`);
+            console.log("Equipments Data:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching equipments data:', error);
+            throw error;
+        }
     };
 
     // Personnels
@@ -379,8 +301,8 @@ export default function Detail() {
             } else {
                 setError(null); // Reset error jika valid
             }
+            
             // Update main data
-
             const mainPayload = {
                 operational_period_id: formData.operational_period_id,
                 operation_section_chief_id: formData.operation_section_chief_id,
@@ -477,7 +399,6 @@ export default function Detail() {
         }
     };
 
-    // Similarly for Equipments
     const updateEquipments = async (equipmentsData) => {
         try {
             // Create new equipments (tanpa ID)
@@ -504,6 +425,94 @@ export default function Detail() {
             throw error;
         }
     };
+
+    const fetchIncidentData = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            setIncidentData(response.data);
+
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
+
+    const fetchRULeader = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/planning-section/resources-unit-leader/read/');
+            setRULeaderData(response.data);
+            // console.log("Resources Unit Leader Data:", response.data);
+        } catch (error) {
+            console.error('Error fetching Resources Unit Leader data:', error);
+            setError('Failed to fetch Resources Unit Leader data');
+        }
+    };
+
+    useEffect(() => {
+        fetchRULeader();
+    }, []);
+
+    const fetchOSChief = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/main-section/operation-section-chief/read/');
+            setOSChiefData(response.data);
+            // console.log("Operation Section Chief Data:", response.data);
+        } catch (error) {
+            console.error('Error fetching Operation Section Chief data:', error);
+            setError('Failed to fetch Operation Section Chief data');
+        }
+    };
+
+    useEffect(() => {
+        fetchOSChief();
+    }, []);
+
+    useEffect(() => {
+        if (formData.operation_section_chief_id) {
+            // Cari chief yang sesuai berdasarkan operation_section_chief_id
+            const selectedChief = OSChiefData.find(chief => chief.id === parseInt(formData.operation_section_chief_id, 10));
+            if (selectedChief) {
+                // Update operationSectionChiefNumber dengan mobile_phone dari chief yang dipilih
+                setOperationSectionChiefNumber(selectedChief.mobile_phone);
+            } else {
+                // Reset jika tidak ada chief yang dipilih
+                setOperationSectionChiefNumber("");
+            }
+        } else {
+            // Reset jika operation_section_chief_id kosong
+            setOperationSectionChiefNumber("");
+        }
+    }, [formData.operation_section_chief_id, OSChiefData]);
+
+    useEffect(() => {
+        if (formData.is_prepared_os_chief) {
+            // Jika OS Chief disiapkan, otomatis gunakan yang dipilih di Operations Personnel
+            setFormData(prev => ({
+                ...prev,
+                prepared_operation_section_chief_id: prev.operation_section_chief_id || ""
+            }));
+        } else {
+            // Jika hanya Resources Unit Leader yang prepared, kosongkan OS Chief di "Prepared by"
+            setFormData(prev => ({
+                ...prev,
+                prepared_operation_section_chief_id: ""
+            }));
+        }
+    }, [formData.is_prepared_os_chief, formData.operation_section_chief_id]);
+
+    useEffect(() => {
+        if (!formData.is_prepared_os_chief) {
+            // Jika Operation Section Chief tidak menjadi "Prepared by", hapus dari state
+            setFormData(prev => ({
+                ...prev,
+                operation_section_chief_id: null
+            }));
+        }
+    }, [formData.is_prepared_os_chief]);
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p className="text-red-500">{error}</p>;
