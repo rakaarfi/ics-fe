@@ -29,21 +29,12 @@ export default function ToBeApproved() {
     const { id } = useParams();
     const [data, setData] = useState(null);
     const [formData, setFormData] = useState({
-        operational_period_id: "",
-        objectives: "",
-        command_emphasis: "",
-        situational_awareness: "",
-        is_required: false,
-        safety_plan_location: "",
-        ics_203: false,
-        ics_204: false,
-        ics_205: false,
-        ics_205a: false,
-        ics_206: false,
-        ics_207: false,
-        ics_208: false,
-        map_chart: false,
-        weather_tides_currents: false,
+        operational_period_id: null,
+        medicalAidStation: [],
+        transportation: [],
+        hospital: [],
+        special_medical_procedures: "",
+        is_utilized: false,
     });
     const [incidentData, setIncidentData] = useState([]);
     const [safetyOfficerData, setSafetyOfficerData] = useState([]);
@@ -54,56 +45,130 @@ export default function ToBeApproved() {
         date_approved: dayjs().format('YYYY-MM-DD'),
         time_approved: dayjs().format('HH:mm'),
     });
-    const [PSChiefData, setPSChiefData] = useState([]);
     const [MULeaderData, setMULeaderData] = useState([]);
     const [preparationData, setPreparationData] = useState({
         is_prepared: false,
         date_prepared: dayjs().format('YYYY-MM-DD'),
         time_prepared: dayjs().format('HH:mm'),
     });
+    const [preparationID, setPreparationID] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const routeUrl = "ics-206/main";
+
+    const fetchMedicalsData = async (ics_206_id) => {
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/ics-206/medical-aid-station/read-by-ics-id/${ics_206_id}`);
+            console.log("Medical Aid Station Data:", response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching medical aid station data:", error);
+            throw error;
+        }
+    };
+
+    const fetchTransportationsData = async (ics_206_id) => {
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/ics-206/transportation/read-by-ics-id/${ics_206_id}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching transportation data:", error);
+            throw error;
+        }
+    };
+
+    const fetchHospitalsData = async (ics_206_id) => {
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/ics-206/hospitals/read-by-ics-id/${ics_206_id}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching hospital data:", error);
+            throw error;
+        }
+    };
 
     useEffect(() => {
         setLoading(true);
         setError(null);
 
         let operationalPeriodId = null;
+        const fetchData = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const responseData = await axios.get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
+                const mainData = responseData.data;
 
-        axios
-            .get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
-            .then((response) => {
-                setData(response.data);
-                setFormData(response.data);
-                operationalPeriodId = response.data.operational_period_id;
+                // Fetch additional data in parallel
+                const [operationalPeriodResponse, preparationResponse, medicalsData, transportationsData, hospitalsData] = await Promise.all([
+                    axios.get('http://127.0.0.1:8000/operational-period/read'),
+                    axios.get(`http://127.0.0.1:8000/ics-206/preparation/read-by-ics-206-id/${id}`),
+                    fetchMedicalsData(mainData.id),
+                    fetchTransportationsData(mainData.id),
+                    fetchHospitalsData(mainData.id),
+                ]);
 
-                // Ambil data operational period
-                return axios.get('http://127.0.0.1:8000/operational-period/read');
-            })
-            .then((response) => {
-                setOperationalPeriodData(response.data);
+                // Extracting data
+                const operationalPeriodData = operationalPeriodResponse.data;
+                const preparationData = preparationResponse.data.length > 0 ? preparationResponse.data[0] : null;
 
-                // Cari operational period dan incident terkait
-                const selectedOperationalPeriod = response.data.find(
-                    (period) => period.id === operationalPeriodId
-                );
+                // Find associated incident_id from operational period
+                const selectedOperationalPeriod = operationalPeriodData.find(period => period.id === mainData.operational_period_id);
+                const incidentId = selectedOperationalPeriod ? selectedOperationalPeriod.incident_id : null;
 
-                if (selectedOperationalPeriod) {
-                    setFormData((prevFormData) => ({
-                        ...prevFormData,
-                        incident_id: selectedOperationalPeriod.incident_id,
-                    }));
+                // Update FormData with fetched data
+                setFormData(prevFormData => ({
+                    ...prevFormData,
+                    ...mainData, // Spread all main data fields
+                    incident_id: incidentId,
+                    medicalAidStation: medicalsData.length > 0 ? medicalsData : [{
+                        name: "",
+                        location: "",
+                        number: "",
+                        is_paramedic: false,
+                    }],
+                    transportation: transportationsData.length > 0 ? transportationsData : [{
+                        ambulance_service: "",
+                        location: "",
+                        number: "",
+                        is_als: false,
+                        is_bls: false,
+                    }],
+                    hospital: hospitalsData.length > 0 ? hospitalsData : [{
+                        name: "",
+                        address: "",
+                        number: "",
+                        air_travel_time: "",
+                        ground_travel_time: "",
+                        is_trauma_center: false,
+                        level_trauma_center: "",
+                        is_burn_center: false,
+                        is_helipad: false,
+                    }],
+                    ...(preparationData && {
+                        is_prepared: preparationData.is_prepared,
+                        medical_unit_leader_id: preparationData.medical_unit_leader_id,
+                        date_prepared: preparationData.date_prepared,
+                        time_prepared: preparationData.time_prepared,
+                    }),
+                }));
+
+                // Set state
+                setOperationalPeriodData(operationalPeriodData);
+                if (preparationData) {
+                    setPreparationID(preparationData.id);
                 }
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-                setError('Failed to fetch data');
-            })
-            .finally(() => {
+            } catch (err) {
+                setError("Failed to fetch data");
+                console.error(err);
+            } finally {
                 setLoading(false);
-            });
+            }
+        }
+        if (id) {
+            fetchData();
+        }
     }, [id]);
 
     // Fetch preparation data
@@ -135,7 +200,6 @@ export default function ToBeApproved() {
         try {
             const response = await axios.get(`http://127.0.0.1:8000/logistic-section/medical-unit-leader/read/${leaderId}`);
             setMULeaderData(response.data);
-            console.log("Medical Unit Leader Data:", response.data);
         } catch (error) {
             console.error('Error fetching PS Chief data:', error);
         }
@@ -166,13 +230,13 @@ export default function ToBeApproved() {
         try {
             const now = dayjs();
             const payload = {
-                ics_202_id: formData.id,
+                ics_206_id: formData.id,
                 safety_officer_id: approvalData.safety_officer_id,
                 date_approved: now.format('YYYY-MM-DD'),
                 time_approved: now.format('HH:mm'),
                 is_approved: approvalData.is_approved,
             };
-            const response = await axios.post(`http://127.0.0.1:8000/ics-202/approval/create/`, payload);
+            const response = await axios.post(`http://127.0.0.1:8000/ics-206/approval/create/`, payload);
             console.log('Approval submitted successfully:', response.data);
             alert('Approval submitted successfully!');
         } catch (error) {
@@ -269,20 +333,44 @@ export default function ToBeApproved() {
                 </div>
 
                 {/* Section 3 */}
-                <div className="section-4">
+                <div className="section-10">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '10rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                    <strong>3. Medical Aid Stations</strong>:
+                                    <strong>3. Medical Aid Stations</strong>
                                     <br />
-                                    <div
-                                        className="border border-gray-300"
-                                        style={{ height: '200px', marginTop: '10px', padding: '1rem' }}
-                                    >
-                                        {/* Insert Medical Aid Stations here */}
-                                        {/* {formData.objectives} */}
-                                    </div>
+                                    <Table sx={{ marginTop: '10px', border: '1px solid #ccc' }}>
+                                        {/* Table Head */}
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Name</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Location</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Contact Number(s)/Frequency</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Paramedics on Site?</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+
+                                        {/* Table Body */}
+                                        <TableBody>
+                                            {formData.medicalAidStation && formData.medicalAidStation.length > 0 ? (
+                                                formData.medicalAidStation.map((medical, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{medical.name}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{medical.location}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{medical.number}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{medical.is_paramedic ? '✓' : '✗'}</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={6} sx={{ border: '1px solid #ccc', textAlign: 'center', height: '24px' }}>
+                                                        No data available
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
                                 </TableCell>
                             </TableRow>
                         </TableBody>
@@ -290,20 +378,45 @@ export default function ToBeApproved() {
                 </div>
 
                 {/* Section 4 */}
-                <div className="section-5">
+                <div className="section-10">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '10rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>4. Transportation</strong>
                                     <br />
-                                    <div
-                                        className="border border-gray-300"
-                                        style={{ height: '200px', marginTop: '10px', padding: '1rem' }}
-                                    >
-                                        {/* Insert Transportation here */}
-                                        {/* {formData.command_emphasis} */}
-                                    </div>
+                                    <Table sx={{ marginTop: '10px', border: '1px solid #ccc' }}>
+                                        {/* Table Head */}
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Ambulance Service</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Location</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Contact Number(s)/Frequency</TableCell>
+                                                <TableCell colSpan={2} sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Level of Service</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+
+                                        {/* Table Body */}
+                                        <TableBody>
+                                            {formData.transportation && formData.transportation.length > 0 ? (
+                                                formData.transportation.map((transportation, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{transportation.ambulance_service}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{transportation.location}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{transportation.number}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{transportation.is_als ? '✓' : '✗'} ALS</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{transportation.is_bls ? '✓' : '✗'} BLS</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={6} sx={{ border: '1px solid #ccc', textAlign: 'center', height: '24px' }}>
+                                                        No data available
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
                                 </TableCell>
                             </TableRow>
                         </TableBody>
@@ -311,20 +424,55 @@ export default function ToBeApproved() {
                 </div>
 
                 {/* Section 5 */}
-                <div className="section-7">
+                <div className="section-10">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '10rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>5. Hospitals</strong>
                                     <br />
-                                    <div
-                                        className="border border-gray-300"
-                                        style={{ height: '200px', marginTop: '10px', padding: '1rem' }}
-                                    >
-                                        {/* Insert Hospitals here */}
-                                        {/* {formData.situational_awareness} */}
-                                    </div>
+                                    <Table sx={{ marginTop: '10px', border: '1px solid #ccc' }}>
+                                        {/* Table Head */}
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell rowSpan={2} sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Name</TableCell>
+                                                <TableCell rowSpan={2} sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Address</TableCell>
+                                                <TableCell rowSpan={2} sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Contact Number(s)/Frequency</TableCell>
+                                                <TableCell colSpan={2} sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Travel Time</TableCell>
+                                                <TableCell rowSpan={2} sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Trauma Center</TableCell>
+                                                <TableCell rowSpan={2} sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Burn Center</TableCell>
+                                                <TableCell rowSpan={2} sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Helipad</TableCell>
+                                            </TableRow>
+                                            <TableRow>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Air</TableCell>
+                                                <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Ground</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+
+                                        {/* Table Body */}
+                                        <TableBody>
+                                            {formData.hospital && formData.hospital.length > 0 ? (
+                                                formData.hospital.map((hospital, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{hospital.name}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{hospital.address}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{hospital.number}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{hospital.air_travel_time}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{hospital.ground_travel_time}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{hospital.is_trauma_center ? '✓' : '✗'} Level {hospital.level_trauma_center}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{hospital.is_burn_center ? '✓' : '✗'}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{hospital.is_helipad ? '✓' : '✗'}</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={9} sx={{ border: '1px solid #ccc', textAlign: 'center', height: '24px' }}>
+                                                        No data available
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
                                 </TableCell>
                             </TableRow>
                         </TableBody>
@@ -432,6 +580,7 @@ export default function ToBeApproved() {
                                                 variant="standard"
                                                 label="Safety Officer"
                                                 displayEmpty
+                                                required
                                             >
                                                 <MenuItem value="" disabled>
                                                     <em>Select Safety Officer"</em>
@@ -459,42 +608,13 @@ export default function ToBeApproved() {
                                                                 ...prev,
                                                                 is_approved: e.target.checked
                                                             }))}
+                                                            required
                                                         />
                                                     }
                                                     label="Signature"
                                                 />
                                             </FormControl>
                                         </div>
-                                        {/* <div style={{ width: '150px', marginLeft: '1rem' }}>
-                                            <TextField
-                                                required
-                                                variant="standard"
-                                                type="date"
-                                                name="date_approved"
-                                                value={approvalData.date_approved}
-                                                onChange={(e) => setApprovalData(prev => ({
-                                                    ...prev,
-                                                    date_approved: e.target.value
-                                                }))}
-                                                InputLabelProps={{
-                                                    shrink: true,
-                                                }}
-                                            />
-                                        </div>
-                                        <div style={{ width: '150px', marginLeft: '1rem' }}>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                <TimePicker
-                                                    ampm={false}
-                                                    value={dayjs(approvalData.time_approved, 'HH:mm')}
-                                                    onChange={(newValue) => {
-                                                        setApprovalData(prev => ({
-                                                            ...prev,
-                                                            time_approved: newValue.format('HH:mm')
-                                                        }));
-                                                    }}
-                                                />
-                                            </LocalizationProvider>
-                                        </div> */}
                                     </div>
                                 </TableCell>
                             </TableRow>
