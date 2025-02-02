@@ -143,7 +143,7 @@ export default function Input() {
     }, []);
 
     return (
-        <FormContainer title="ICS 203 Organization Assignment List">
+        <FormContainer title="Input ICS 203 - Organization Assignment List">
             {error && <p className="text-red-500">{error}</p>}
             <div className="mb-4 flex flex-row">
                 <select
