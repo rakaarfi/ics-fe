@@ -23,7 +23,7 @@ export default function Input() {
         ],
         transportation: [
             {
-                ambulance_sercvice: "",
+                ambulance_service: "",
                 location: "",
                 number: "",
                 is_als: false,
@@ -139,7 +139,7 @@ export default function Input() {
         setFormData(prevData => ({
             ...prevData,
             transportation: [...prevData.transportation, {
-                ambulance_sercvice: "",
+                ambulance_service: "",
                 location: "",
                 number: "",
                 is_als: false,
@@ -222,7 +222,7 @@ export default function Input() {
             const transportationPayloads = {
                 datas: formData.transportation.map(row => ({
                     ics_206_id: ics_206_id,
-                    ambulance_sercvice: row.ambulance_sercvice,
+                    ambulance_service: row.ambulance_service,
                     location: row.location,
                     number: row.number,
                     is_als: row.is_als,
@@ -284,7 +284,7 @@ export default function Input() {
     }, []);
 
     return (
-        <FormContainer title="Input ICS 206" >
+        <FormContainer title="Input ICS 206 - Medical Plan" >
             <div className="mb-4 flex flex-row">
                 <select
                     className="flex-1 block w-[400px] rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
