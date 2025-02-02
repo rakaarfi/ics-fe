@@ -9,6 +9,7 @@ import Transportation from './Transportation';
 import Hospital from './Hospital';
 import dayjs from 'dayjs';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 
 
 export default function Detail() {
@@ -110,7 +111,7 @@ export default function Detail() {
                         is_paramedic: false,
                     }],
                     transportation: transportationsData.length > 0 ? transportationsData : [{
-                        ambulance_sercvice: "",
+                        ambulance_service: "",
                         location: "",
                         number: "",
                         is_als: false,
@@ -218,7 +219,7 @@ export default function Detail() {
         setFormData(prevData => ({
             ...prevData,
             transportation: [...prevData.transportation, {
-                ambulance_sercvice: "",
+                ambulance_service: "",
                 location: "",
                 number: "",
                 is_als: false,
@@ -455,7 +456,7 @@ export default function Detail() {
     }, []);
 
     return (
-        <FormContainer title="Input ICS 206" >
+        <FormContainer title="ICS 206 - Medical Plan Detail" >
             <div className="mb-4 flex flex-row">
                 <select
                     className="flex-1 block w-[400px] rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
@@ -621,6 +622,11 @@ export default function Detail() {
                     </tbody>
                 </table>
             </form >
+            <div className='flex justify-end'>
+                <Link href={`/dashboard/iap/ics-206/tobe-approved/${id}`} className="bg-[#61638d] hover:bg-[#393b63] text-white font-bold py-1 px-3 rounded">
+                    To Be Approved
+                </Link>
+            </div>
         </FormContainer >
     )
 }
