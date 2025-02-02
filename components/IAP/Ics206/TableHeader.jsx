@@ -10,7 +10,7 @@ export default function TableHeader({ sortConfig, requestSort }) {
         { key: 'transportation_name', label: 'Transportation' },
         { key: 'hospital_name', label: 'Hospital' },
         { key: 'special_medical_procedures', label: 'Special Medical Procedures' },
-        { key: 'is_approved', label: 'Is Approved' },
+        { key: 'approved', label: 'Is Approved' },
     ];
 
     const headerActions = "Actions";
