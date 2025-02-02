@@ -33,9 +33,9 @@ export default function Transportation({
                             <td className="px-4 py-2 border">
                                 <input
                                     type="text"
-                                    name='ambulance_sercvice'
+                                    name='ambulance_service'
                                     className="w-full px-2 py-1 border rounded"
-                                    value={row.ambulance_sercvice}
+                                    value={row.ambulance_service}
                                     onChange={(e) => handleTransportationChange(index, e)}
                                     placeholder="Enter details"
                                     required
