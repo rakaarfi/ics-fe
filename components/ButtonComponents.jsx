@@ -58,6 +58,15 @@ export const ButtonDetail = ({ href }) => (
     </Link>
 );
 
+export const ButtonPreview = ({ href }) => (
+    <Link
+        href={href}
+        className="bg-[#2a83e3] hover:bg-[#7ab4f1] text-white font-bold py-1 px-3 rounded"
+    >
+        Preview
+    </Link>
+);
+
 export const PlusButton = ({ onClick }) => (
     <button
         onClick={onClick}
