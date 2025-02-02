@@ -45,27 +45,27 @@ export const IAPNavbar = () => {
         },
         {
             name: "ICS 205",
-            link: "#",
+            link: "/dashboard/iap/ics-205/detail",
             subMenu: [
                 {
                     name: "Radio Communication Plan",
-                    link: "#",
+                    link: "/dashboard/iap/ics-205/detail",
                     subMenu: [
-                        { name: "Communication Unit Leader", link: "#" },
+                        { name: "Communication Unit Leader", link: "/dashboard/iap/ics-205/detail" },
                     ]
                 },
             ]
         },
         {
             name: "ICS 206",
-            link: "#",
+            link: "/dashboard/iap/ics-206/detail",
             subMenu: [
                 {
                     name: "Medical Plan",
-                    link: "#",
+                    link: "/dashboard/iap/ics-206/detail",
                     subMenu: [
-                        { name: "Medical Unit Leader", link: "#" },
-                        { name: "(review by Safety Officer)", link: "#" },
+                        { name: "Medical Unit Leader", link: "/dashboard/iap/ics-206/detail" },
+                        { name: "(review by Safety Officer)", link: "/dashboard/iap/ics-206/detail" },
                     ]
                 },
             ]
