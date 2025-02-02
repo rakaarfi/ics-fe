@@ -506,36 +506,6 @@ export default function ToBeApproved() {
                                                 />
                                             </FormControl>
                                         </div>
-                                        {/* <div style={{ width: '150px', marginLeft: '1rem' }}>
-                                            <TextField
-                                                required
-                                                variant="standard"
-                                                type="date"
-                                                name="date_approved"
-                                                value={approvalData.date_approved}
-                                                onChange={(e) => setApprovalData(prev => ({
-                                                    ...prev,
-                                                    date_approved: e.target.value
-                                                }))}
-                                                InputLabelProps={{
-                                                    shrink: true,
-                                                }}
-                                            />
-                                        </div>
-                                        <div style={{ width: '150px', marginLeft: '1rem' }}>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                <TimePicker
-                                                    ampm={false}
-                                                    value={dayjs(approvalData.time_approved, 'HH:mm')}
-                                                    onChange={(newValue) => {
-                                                        setApprovalData(prev => ({
-                                                            ...prev,
-                                                            time_approved: newValue.format('HH:mm')
-                                                        }));
-                                                    }}
-                                                />
-                                            </LocalizationProvider>
-                                        </div> */}
                                     </div>
                                 </TableCell>
                             </TableRow>
