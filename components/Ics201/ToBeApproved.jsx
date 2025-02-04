@@ -244,7 +244,7 @@ export default function ToBeApproved() {
     return (
         <div>
             <FormContainer
-                title="To Be Approved"
+                title="ICS 201 - To Be Approved"
                 className="max-w-2xl mx-auto p-4 mb-8 bg-white rounded shadow-lg"
             >
                 {/* Header Section (Section 1, 2, 3) */}
