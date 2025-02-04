@@ -330,13 +330,13 @@ export default function Preview({
                     </Table>
                 </div>
 
-                {/* Section 5 */}
+                {/* Section 4 */}
                 <div className="section-7">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '10rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                    <strong>5. Special Instructions
+                                    <strong>4. Special Instructions
                                     </strong>
                                     <br />
                                     <div
@@ -357,7 +357,7 @@ export default function Preview({
                     <TableBody>
                         <TableRow sx={{ height: '3rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                             <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                <strong>9. Prepared by:</strong>
+                                <strong>5. Prepared by:</strong>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
                                     <div style={{ width: '300px', marginLeft: '1rem' }}>
                                         {CULeaderData.find((CULeader) => CULeader.id === preparationID)?.name || "N/A"}
