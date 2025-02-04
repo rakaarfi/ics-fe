@@ -230,7 +230,7 @@ export default function Input() {
     };
 
     return (
-        <FormContainer title="Input ICS 201 Incident Briefing">
+        <FormContainer title="Input ICS 201 - Incident Briefing">
             <div className="mb-4">
                 <select
                     name="incident_id"
