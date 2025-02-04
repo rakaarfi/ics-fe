@@ -63,12 +63,8 @@ export default function Detail() {
             try {
                 // Fetch main data
                 const responseData = await readById({ routeUrl, id });
-                // console.log("Raw Time Initiated from Backend:", responseData.time_initiated);
                 const timeInitiated = responseData.time_initiated ? responseData.time_initiated.trim() : null;
-                // console.log("Before Parsing:", timeInitiated);
                 const parsedTime = dayjs(timeInitiated, 'HH:mm:ss', true);
-                // console.log("After Parsing:", parsedTime);
-                // console.log("Is Valid:", parsedTime.isValid());
 
                 const formattedData = {
                     ...responseData,
@@ -95,11 +91,6 @@ export default function Detail() {
                     chartData: chartData.length > 0 ? chartData[0] : {},
                     map_sketch: mapSketchData
                 }));
-
-                // console.log("Actions Data:", actionsData);
-                // console.log("Resources Data:", resourcesData);
-                // console.log("Chart Data:", chartData);
-                // console.log("Map Sketch Data:", mapSketchData);
 
                 // Check and add empty rows if necessary
                 if (actionsData.length === 0) {
@@ -291,11 +282,9 @@ export default function Detail() {
                 ...formData,
                 time_initiated: formData.time_initiated ? dayjs(formData.time_initiated).format('HH:mm') : null,
             };
-            // console.log("Form Data to be sent:", formattedData); // Log data before sending
 
             // Update main data
             const response = await axios.put(`http://127.0.0.1:8000/ics-201/main/update/${id}`, formData);
-            // console.log("Update response:", response.data);
 
             // Update actions strategies tactics
             if (formData.actionsStrategiesTactics?.length > 0) {
@@ -317,6 +306,19 @@ export default function Detail() {
                 await handleFileUpload(newFile);
             }
 
+            // Delete marked for deletion
+            if (formData.idsToDeleteActions.length > 0) {
+                await axios.delete(`http://127.0.0.1:8000/ics-201/actions-strategies-tactics/delete-many/`, {
+                    data: { ids: formData.idsToDeleteActions }
+                });
+            }
+
+            if (formData.idsToDeleteResources.length > 0) {
+                await axios.delete(`http://127.0.0.1:8000/ics-201/resource-summary/delete-many/`, {
+                    data: { ids: formData.idsToDeleteResources }
+                });
+            }
+
             alert("Changes saved successfully!");
         } catch (err) {
             console.error("Error saving changes:", err);
@@ -326,17 +328,14 @@ export default function Detail() {
 
     const updateActions = async (actionsData) => {
         try {
-            // Identify new actions (without id)
-            const newActions = actionsData.filter(action => !action.id);
-            // Identify existing actions (with id)
-            const existingActions = actionsData.filter(action => action.id);
-
             // Format time
             const formatTime = (timeStr) => {
                 if (!timeStr) return null;
                 return timeStr.split(':').slice(0, 2).join(':');
             };
 
+            // Identify new actions (without id)
+            const newActions = actionsData.filter(action => !action.id);
             // Prepare new actions to create
             if (newActions.length > 0) {
                 const newActionsWithId = newActions.map(action => ({
@@ -349,6 +348,8 @@ export default function Detail() {
                 });
             }
 
+            // Identify existing actions (with id)
+            const existingActions = actionsData.filter(action => action.id);
             // Update existing actions
             for (const action of existingActions) {
                 const updatedAction = {
@@ -362,25 +363,6 @@ export default function Detail() {
                     updatedAction
                 );
             }
-            console.log("formData.idsToDeleteActions:", formData.idsToDeleteActions);
-
-            // Delete actions marked for deletion
-            if (formData.idsToDeleteActions && formData.idsToDeleteActions.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-201/actions-strategies-tactics/delete-many/`, {
-                    data: { ids: formData.idsToDeleteActions }
-                });
-                setFormData(prevData => ({
-                    ...prevData,
-                    idsToDeleteActions: []
-                }));
-            }
-
-            // Refresh data
-            const updatedActions = await fetchActionsData(id);
-            setFormData(prev => ({
-                ...prev,
-                actionsStrategiesTactics: updatedActions
-            }));
 
         } catch (error) {
             console.error("Error updating actions:", error);
@@ -391,17 +373,14 @@ export default function Detail() {
     // Similarly for Resources
     const updateResources = async (resourcesData) => {
         try {
-            // Identify new resources (without id)
-            const newResources = resourcesData.filter(resource => !resource.id);
-            // Identify existing resources (with id)
-            const existingResources = resourcesData.filter(resource => resource.id);
-
             // Format time
             const formatTime = (timeStr) => {
                 if (!timeStr) return null;
                 return timeStr.split(':').slice(0, 2).join(':');
             };
 
+            // Identify new resources (without id)
+            const newResources = resourcesData.filter(resource => !resource.id);
             // Prepare new resources to create
             if (newResources.length > 0) {
                 const newResourcesWithId = newResources.map(resource => ({
@@ -419,6 +398,8 @@ export default function Detail() {
                 });
             }
 
+            // Identify existing resources (with id)
+            const existingResources = resourcesData.filter(resource => resource.id);
             // Update existing resources
             for (const resource of existingResources) {
                 const updatedResource = {
@@ -437,25 +418,6 @@ export default function Detail() {
                     updatedResource
                 );
             }
-            console.log("formData.idsToDeleteResources:", formData.idsToDeleteResources);
-
-            // Delete resources marked for deletion
-            if (formData.idsToDeleteResources && formData.idsToDeleteResources.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-201/resource-summary/delete-many/`, {
-                    data: { ids: formData.idsToDeleteResources } // Pass the payload here
-                });
-                setFormData(prevData => ({
-                    ...prevData,
-                    idsToDeleteResources: []
-                }));
-            }
-
-            // Refresh data
-            const updatedResources = await fetchResourcesData(id);
-            setFormData(prev => ({
-                ...prev,
-                resourceSummary: updatedResources
-            }));
 
         } catch (error) {
             console.error("Error updating resources:", error);
@@ -478,7 +440,7 @@ export default function Detail() {
     if (!data) return <p>No data found</p>;
 
     return (
-        <FormContainer title="ICS 201 Incident Data">
+        <FormContainer title="ICS 201 - Incident Briefing Detail">
             <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                     <select
