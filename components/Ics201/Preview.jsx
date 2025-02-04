@@ -240,7 +240,7 @@ export default function Preview() {
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/export-docx/export_docx/${id}`,
+                `http://127.0.0.1:8000/ics-201/export-docx/${id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
