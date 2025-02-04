@@ -6,7 +6,7 @@ import { fetchData, fetchPaginatedData, handleDelete } from '@/utils/api'
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import FormContainer from '@/components/FormContainer';
-import { ButtonDelete, ButtonDetail, InputButton } from '@/components/ButtonComponents';
+import { ButtonDelete, ButtonDetail, ButtonPreview, InputButton } from '@/components/ButtonComponents';
 import { SearchQuery } from '@/components/SearchQuery';
 import TableHeader from './TableHeader';
 import Pagination from '@/components/Pagination';
@@ -232,6 +232,9 @@ export default function List() {
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
                                         <ButtonDetail href={`/dashboard/iap/ics-204/detail/${item.id}`} />
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-4">
+                                        <ButtonPreview href={`/dashboard/iap/ics-204/preview/${item.id}`} />
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
                                         <ButtonDelete
