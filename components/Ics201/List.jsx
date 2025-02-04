@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import FormContainer from '../FormContainer'
-import { ButtonDelete, ButtonDetail, InputButton } from '../ButtonComponents'
+import { ButtonDelete, ButtonDetail, ButtonPreview, InputButton } from '../ButtonComponents'
 import { SearchQuery } from '../SearchQuery'
 import Pagination from '../Pagination'
 import { useSearchParams } from 'next/navigation'
@@ -132,11 +132,11 @@ export default function List() {
     }, [currentPage, search]);
 
     return (
-        <FormContainer title="List ICS 201 Incident Briefing">
+        <FormContainer title="ICS 201 - Incident Briefing List">
             <div className="flex flex-row justify-between items-center mb-4">
                 <InputButton
                     href="/dashboard/ics-201/input"
-                    text="Input Incident Briefing"
+                    text="Input ICS 201"
                 />
                 <SearchQuery
                     searchQuery={search}
@@ -187,7 +187,11 @@ export default function List() {
                                         )}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
-                                        <ButtonDetail href={`/dashboard/ics-201/detail/${item.id}`} />
+                                        {isApproved(item.id) ? (
+                                            <ButtonPreview href={`/dashboard/ics-201/preview/${item.id}`} />
+                                        ) : (
+                                            <ButtonDetail href={`/dashboard/ics-201/detail/${item.id}`} />
+                                        )}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
                                         <ButtonDelete
