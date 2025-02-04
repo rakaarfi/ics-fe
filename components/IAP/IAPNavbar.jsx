@@ -72,13 +72,13 @@ export const IAPNavbar = () => {
         },
         {
             name: "ICS 207",
-            link: "#",
+            link: "/dashboard/iap/ics-207",
             subMenu: [
                 {
                     name: "Incident Organization Chart",
-                    link: "#",
+                    link: "/dashboard/iap/ics-207",
                     subMenu: [
-                        { name: "Resources Unit Leader", link: "#" },
+                        { name: "Resources Unit Leader", link: "/dashboard/iap/ics-207" },
                     ]
                 },
             ]
