@@ -36,7 +36,7 @@ export default function TableHeader({ sortConfig, requestSort }) {
                         </div>
                     </th>
                 ))}
-                <th className="border border-gray-300 px-4 py-2" colSpan={2}>
+                <th className="border border-gray-300 px-4 py-2" colSpan={3}>
                     {headerActions}
                 </th>
             </tr>
