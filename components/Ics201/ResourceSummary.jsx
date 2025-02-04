@@ -40,19 +40,10 @@ export default function ResourceSummary({
         onChangeTime(formattedTime, index);
     };
 
-    // Fungsi untuk memformat waktu
-    // const formatTime = (timeStr) => {
-    //     if (!timeStr) return null;
-    //     // Jika timeStr sudah dalam format dayjs, gunakan langsung
-    //     if (dayjs.isDayjs(timeStr)) return timeStr;
-    //     // Jika timeStr adalah string, konversi ke dayjs
-    //     return dayjs(timeStr, 'HH:mm:ss');
-    // };
-
     const formatTime = (timeStr) => {
-            if (!timeStr) return null;
-            return dayjs(`2024-01-01 ${timeStr}`);
-        };
+        if (!timeStr) return null;
+        return dayjs(`2024-01-01 ${timeStr}`);
+    };
 
     return (
         <div>
@@ -140,7 +131,7 @@ export default function ResourceSummary({
                                     className="w-5 h-5 border rounded-md"
                                     onChange={(e) => handleResourceChange(index, e)}
                                     checked={row.is_arrived}
-                                    
+
                                 />
                             </td>
                             <td className="border px-4 py-2">
@@ -155,11 +146,29 @@ export default function ResourceSummary({
                             </td>
                             <td className="border px-4 py-2 text-center">
                                 {index === 0 ? (
-                                    <PlusButton onClick={onAddRow} />
+                                    <button
+                                        type='button'
+                                        onClick={onAddRow}
+                                        className="bg-[#548C2F] hover:bg-green-700 text-white font-bold w-10 h-10 flex items-center justify-center rounded"
+                                    >
+                                        +
+                                    </button>
                                 ) : (
                                     <div className="flex flex-row gap-2">
-                                        <PlusButton onClick={onAddRow} />
-                                        <MinusButton onClick={() => onRemoveRow(index)} />
+                                        <button
+                                            type='button'
+                                            onClick={onAddRow}
+                                            className="bg-[#548C2F] hover:bg-green-700 text-white font-bold w-10 h-10 flex items-center justify-center rounded"
+                                        >
+                                            +
+                                        </button>
+                                        <button
+                                            type='button'
+                                            onClick={() => onRemoveRow(index)}
+                                            className="bg-[#880D1E] hover:bg-red-700 text-white font-bold w-10 h-10 flex items-center justify-center rounded"
+                                        >
+                                            -
+                                        </button>
                                     </div>
                                 )}
                             </td>
