@@ -301,7 +301,7 @@ export default function Detail() {
             } else {
                 setError(null); // Reset error jika valid
             }
-            
+
             // Update main data
             const mainPayload = {
                 operational_period_id: formData.operational_period_id,
@@ -333,7 +333,11 @@ export default function Detail() {
                     time_prepared: now.format('HH:mm'),
                     is_prepared: formData.is_prepared_os_chief,
                 };
-                await axios.put(`http://127.0.0.1:8000/ics-204/preparation-os-chief/update/${preparationOSChiefID}`, preparedOSChiefPayload);
+                if (preparationOSChiefID) {
+                    await axios.put(`http://127.0.0.1:8000/ics-204/preparation-os-chief/update/${preparationOSChiefID}`, preparedOSChiefPayload);
+                } else {
+                    await axios.post(`http://127.0.0.1:8000/ics-204/preparation-os-chief/create/`, preparedOSChiefPayload);
+                }
             }
 
             // Payload untuk RU Leader
@@ -345,7 +349,11 @@ export default function Detail() {
                     time_prepared: now.format('HH:mm'),
                     is_prepared: formData.is_prepared_ru_leader,
                 };
-                await axios.put(`http://127.0.0.1:8000/ics-204/preparation-ru-leader/update/${preparationRULeaderID}`, preparedRULeaderPayload);
+                if (preparationRULeaderID) {
+                    await axios.put(`http://127.0.0.1:8000/ics-204/preparation-ru-leader/update/${preparationRULeaderID}`, preparedRULeaderPayload);
+                } else {
+                    await axios.post(`http://127.0.0.1:8000/ics-204/preparation-ru-leader/create/`, preparedRULeaderPayload);
+                }
             }
 
             // Update personnels and equipments
