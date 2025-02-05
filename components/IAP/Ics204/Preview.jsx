@@ -244,7 +244,7 @@ export default function Preview({
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-203/export-docx/${id}`,
+                `http://127.0.0.1:8000/ics-204/export-docx/${id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
@@ -257,7 +257,7 @@ export default function Preview({
             // Buat elemen <a> untuk memicu unduhan
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `ics_203_${id}.docx`); // Nama file yang akan diunduh
+            link.setAttribute('download', `ics_204_${id}.docx`); // Nama file yang akan diunduh
             document.body.appendChild(link);
             link.click();
 
