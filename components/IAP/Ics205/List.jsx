@@ -196,12 +196,6 @@ export default function List() {
                                         {operationalPeriodRange}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
-                                        {item.name}
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2">
-                                        {item.number}
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2">
                                         {item.special_instructions}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
