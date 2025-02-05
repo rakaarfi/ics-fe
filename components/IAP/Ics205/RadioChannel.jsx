@@ -68,7 +68,7 @@ export default function RadioChannel({
                             <td className="px-4 py-2 border">
                                 <select
                                     name='mode'
-                                    className="w-full px-2 py-1 border rounded"
+                                    className="px-2 py-1 border rounded"
                                     value={row.mode}
                                     onChange={(e) => handleRadioChange(index, e)}
                                     required
