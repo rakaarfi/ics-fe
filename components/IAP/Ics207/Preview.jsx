@@ -130,7 +130,7 @@ export default function Preview() {
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-207/export-docx/${id}`,
+                `http://127.0.0.1:8000/ics-207/export-docx/${selectedICS203Id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
@@ -143,7 +143,7 @@ export default function Preview() {
             // Buat elemen <a> untuk memicu unduhan
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `ics_203_${id}.docx`); // Nama file yang akan diunduh
+            link.setAttribute('download', `ics_207_${selectedICS203Id}.docx`); // Nama file yang akan diunduh
             document.body.appendChild(link);
             link.click();
 
@@ -157,7 +157,7 @@ export default function Preview() {
 
     return (
         <div>
-            <FormContainer title="Preview" className="max-w-2xl mx-auto p-4 mb-8 bg-white rounded shadow-lg">
+            <FormContainer title="ICS 207 - Incident Organization Chart Preview" className="max-w-2xl mx-auto p-4 mb-8 bg-white rounded shadow-lg">
                 <div className="flex justify-end mb-4">
                     <button
                         className="bg-[#FF700A] hover:bg-[#FFA05C] text-white font-semibold py-2 px-6 rounded-md shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center gap-2"
