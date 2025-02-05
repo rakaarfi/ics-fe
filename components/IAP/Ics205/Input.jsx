@@ -4,10 +4,13 @@ import { ButtonSubmit } from '@/components/ButtonComponents';
 import FormContainer from '@/components/FormContainer';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
+import RadioChannel from './RadioChannel';
+import dayjs from 'dayjs';
 
 export default function Input() {
     const [formData, setFormData] = useState({
         operational_period_id: null,
+        communication_unit_leader_id: null,
         special_instructions: "",
         radioChannel: [
             {
@@ -64,6 +67,91 @@ export default function Input() {
             ...formData,
             [name]: type === "checkbox" ? checked : value,
         });
+    };
+
+    // Functions to handle changes in child components
+    const handleRadioChannelChange = (index, updates) => {
+        setFormData(prevData => {
+            const newRadioChannels = [...prevData.radioChannel];
+            newRadioChannels[index] = { ...newRadioChannels[index], ...updates };
+            return { ...prevData, radioChannel: newRadioChannels };
+        });
+    };
+
+    // Functions to add/remove rows in child components
+    const addRadioChannelRow = () => {
+        setFormData(prevData => ({
+            ...prevData,
+            radioChannel: [...prevData.radioChannel, {
+                channel_number: "",
+                channel_name: "",
+                type_specification: "",
+                frequency: "",
+                mode: "",
+                functions: "",
+                assignment: "",
+                remarks: "",
+            }],
+        }));
+    };
+
+    const removeRadioChannelRow = (index) => {
+        setFormData(prevData => ({
+            ...prevData,
+            radioChannel: prevData.radioChannel.filter((_, i) => i !== index),
+        }));
+    };
+
+    // Handle Submit
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            // Validasi data sebelum mengirim
+            if (!formData.operational_period_id) {
+                alert("Please select an Operational Period.");
+                return;
+            }
+
+            const mainPayload = {
+                operational_period_id: formData.operational_period_id,
+                special_instructions: formData.special_instructions,
+            };
+
+            const response = await axios.post('http://127.0.0.1:8000/ics-205/main/create/', mainPayload);
+            const ics_205_id = response.data.id;
+
+            const now = dayjs();
+            const preparedPayload = {
+                ics_205_id: ics_205_id,
+                communication_unit_leader_id: formData.communication_unit_leader_id,
+                is_prepared: formData.is_prepared,
+                date_prepared: now.format('YYYY-MM-DD'),
+                time_prepared: now.format('HH:mm'),
+            };
+
+            await axios.post('http://127.0.0.1:8000/ics-205/preparation/create/', preparedPayload);
+
+            const radioChannelPayloads = {
+                datas: formData.radioChannel.map((row) => ({
+                    ics_205_id: ics_205_id,
+                    channel_number: row.channel_number,
+                    channel_name: row.channel_name,
+                    type_specification: row.type_specification,
+                    frequency: row.frequency,
+                    mode: row.mode,
+                    functions: row.functions,
+                    assignment: row.assignment,
+                    remarks: row.remarks
+                }))
+            }
+            await axios.post('http://127.0.0.1:8000/ics-205/radio-channel/create/', radioChannelPayloads);
+
+            console.log('Data submitted successfully:', response.data);
+            alert('Data submitted successfully');
+        } catch (error) {
+            console.error('Error saving data:', error);
+            alert('Failed to save data');
+        }
     };
 
     const fetchIncidentData = async () => {
@@ -132,7 +220,7 @@ export default function Input() {
                 </select>
             </div>
             <form
-            // onSubmit={handleSubmit}
+                onSubmit={handleSubmit}
             >
                 <table className="table-auto border-collapse w-full">
                     <tbody>
@@ -142,72 +230,12 @@ export default function Input() {
                         </tr>
                         <tr>
                             <td className="px-4 py-2" colSpan={10}>
-                                <table className="table-auto border-collapse w-full">
-                                    <thead>
-                                        <tr>
-                                            <th className="px-4 py-2 border">Channel Number</th>
-                                            <th className="px-4 py-2 border">Channel Name</th>
-                                            <th className="px-4 py-2 border">Radio Frequency</th>
-                                            <th className="px-4 py-2 border">Mode(Analog, Digital, Mixed)</th>
-                                            <th className="px-4 py-2 border">Function</th>
-                                            <th className="px-4 py-2 border">Assignment</th>
-                                            <th className="px-4 py-2 border">Remarks</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-2 py-1 border rounded"
-                                                    placeholder="Enter details"
-                                                />
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <RadioChannel
+                                    rowsRadios={formData.radioChannel}
+                                    onAddRow={addRadioChannelRow}
+                                    onRemoveRow={removeRadioChannelRow}
+                                    onChangeRow={handleRadioChannelChange}
+                                />
                             </td>
                         </tr>
 
@@ -251,15 +279,15 @@ export default function Input() {
                                     <option value="" disabled>
                                         Select Communcation Unit Leader
                                     </option>
-                                    {CULeaderData.map(chief => (
-                                        <option key={chief.id} value={chief.id}>
-                                            {chief.name}
+                                    {CULeaderData.map(leader => (
+                                        <option key={leader.id} value={leader.id}>
+                                            {leader.name}
                                         </option>
                                     ))}
                                 </select>
                                 <input
                                     type="checkbox"
-                                    name="is_prepared" // Nama field berbeda
+                                    name="is_prepared"
                                     checked={formData.is_prepared || false}
                                     onChange={(e) => setFormData(prev => ({
                                         ...prev,
