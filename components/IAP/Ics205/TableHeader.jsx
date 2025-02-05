@@ -6,8 +6,6 @@ export default function TableHeader({ sortConfig, requestSort }) {
         { key: 'id', label: 'No' },
         { key: 'incident_name', label: 'Incident Name' },
         { key: 'operational_period_range', label: 'Operational Period' },
-        { key: 'number', label: 'Channel Number' },
-        { key: 'name', label: 'Channel Name' },
         { key: 'special_instructions', label: 'Special Instructions' },
     ];
 
