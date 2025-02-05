@@ -245,7 +245,7 @@ export default function Input() {
                                     required
                                 >
                                     <option value="" disabled>
-                                        Select Planning Section Chief
+                                        Select Safety Officer
                                     </option>
                                     {safetyOfficerData.map(officer => (
                                         <option key={officer.id} value={officer.id}>
