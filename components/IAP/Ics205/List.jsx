@@ -199,10 +199,10 @@ export default function List() {
                                         {item.special_instructions}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
-                                        <ButtonDetail href={`/dashboard/iap/ics-204/detail/${item.id}`} />
+                                        <ButtonDetail href={`/dashboard/iap/ics-205/detail/${item.id}`} />
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
-                                        <ButtonPreview href={`/dashboard/iap/ics-204/preview/${item.id}`} />
+                                        <ButtonPreview href={`/dashboard/iap/ics-205/preview/${item.id}`} />
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
                                         <ButtonDelete
