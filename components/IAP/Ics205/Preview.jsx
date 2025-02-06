@@ -32,19 +32,9 @@ export default function Preview({
     const [data, setData] = useState(null);
     const [formData, setFormData] = useState({
         operational_period_id: null,
+        communication_unit_leader_id: null,
         special_instructions: "",
-        radioChannel: [
-            {
-                channel_number: "",
-                channel_name: "",
-                type_specification: "",
-                frequency: "",
-                mode: "",
-                functions: "",
-                assignment: "",
-                remarks: "",
-            },
-        ],
+        radioChannel: [],
     });
     const [incidentData, setIncidentData] = useState([]);
     const [operationalPeriodData, setOperationalPeriodData] = useState([]);
@@ -61,63 +51,84 @@ export default function Preview({
     const routeUrl = "ics-205/main";
 
     useEffect(() => {
-        setLoading(true);
-        setError(null);
+        const fetchData = async () => {
+            setLoading(true);
+            setError(null);
 
-        let operationalPeriodId = null;
+            try {
+                // Fetch main data
+                const responseData = await axios.get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`);
+                const mainData = responseData.data;
 
-        // Ambil data detail
-        axios
-            .get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
-            .then((response) => {
-                setFormData(response.data);
-                operationalPeriodId = response.data.operational_period_id;
+                // Fetch additional data in parallel
+                const [operationalPeriodResponse, preparationResponse, radioChannelsData] = await Promise.all([
+                    axios.get('http://127.0.0.1:8000/operational-period/read'),
+                    axios.get(`http://127.0.0.1:8000/ics-205/preparation/read-by-ics-205-id/${id}`),
+                    fetchRadioChannelsData(mainData.id),
+                ]);
 
-                return axios.get('http://127.0.0.1:8000/operational-period/read');
-            })
-            .then((response) => {
-                setOperationalPeriodData(response.data);
+                // Extracting data
+                const operationalPeriodData = operationalPeriodResponse.data;
+                const preparationData = preparationResponse.data.length > 0 ? preparationResponse.data[0] : null;
 
-                const selectedOperationalPeriod = response.data.find(
-                    (period) => period.id === operationalPeriodId
-                );
+                // Find associated incident_id from operational period
+                const selectedOperationalPeriod = operationalPeriodData.find(period => period.id === mainData.operational_period_id);
+                const incidentId = selectedOperationalPeriod ? selectedOperationalPeriod.incident_id : null;
 
-                if (selectedOperationalPeriod) {
-                    setFormData((prevFormData) => ({
-                        ...prevFormData,
-                        incident_id: selectedOperationalPeriod.incident_id,
-                    }));
+                // Update FormData with fetched data
+                setFormData(prevFormData => ({
+                    ...prevFormData,
+                    ...mainData, // Spread all main data fields
+                    incident_id: incidentId,
+                    radioChannel: radioChannelsData.length > 0 ? radioChannelsData : [
+                        {
+                            channel_number: "",
+                            channel_name: "",
+                            type_specification: "",
+                            frequency: "",
+                            mode: "",
+                            functions: "",
+                            assignment: "",
+                            remarks: "",
+                        },
+                    ],
+                    ...(preparationData && {
+                        is_prepared: preparationData.is_prepared,
+                        communication_unit_leader_id: preparationData.communication_unit_leader_id,
+                        date_prepared: preparationData.date_prepared,
+                        time_prepared: preparationData.time_prepared,
+                    }),
+                }));
+
+                // Set state
+                setOperationalPeriodData(operationalPeriodData);
+                if (preparationData) {
+                    setPreparationID(preparationData.id);
                 }
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-                setError('Failed to fetch data');
-            })
-            .finally(() => {
+
+            } catch (err) {
+                console.error("Error fetching data:", err);
+                setError("Failed to fetch data");
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
 
         if (id) {
-            axios.get(`http://127.0.0.1:8000/ics-205/preparation/read-by-ics-205-id/${id}`)
-                .then((response) => {
-                    if (response.data.length > 0) {
-                        setFormData((prevFormData) => ({
-                            ...prevFormData,
-                            is_prepared: response.data[0].is_prepared,
-                            communication_unit_leader_id: response.data[0].communication_unit_leader_id,
-                            date_prepared: response.data[0].date_prepared,
-                            time_prepared: response.data[0].time_prepared
-                        }));
-                        setPreparationID(response.data[0].id);
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error fetching Preparation data:', error);
-                    setError('Failed to fetch Preparation data');
-                });
+            fetchData();
         }
-
     }, [id]);
+
+    const fetchRadioChannelsData = async (ics_205_id) => {
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/ics-205/radio-channel/read-by-ics-id/${ics_205_id}`);
+            return response.data;
+        } catch (err) {
+            console.error("Error fetching radio channels:", err);
+            setError("Failed to fetch radio channels");
+            return [];
+        }
+    };
 
     // Fetch preparation data
     useEffect(() => {
@@ -302,17 +313,17 @@ export default function Preview({
                                         </TableHead>
 
                                         {/* Table Body */}
-                                        {/* <TableBody>
-                                            {formData.personnelAssigned && formData.personnelAssigned.length > 0 ? (
-                                                formData.personnelAssigned.map((personnelAssigned, index) => (
+                                        <TableBody>
+                                            {formData.radioChannel && formData.radioChannel.length > 0 ? (
+                                                formData.radioChannel.map((radioChannel, index) => (
                                                     <TableRow key={index}>
-                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{personnelAssigned.channel_number}</TableCell>
-                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{personnelAssigned.channel_name}</TableCell>
-                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{personnelAssigned.frequency}</TableCell>
-                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{personnelAssigned.mode}</TableCell>
-                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{personnelAssigned.functions}</TableCell>
-                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{personnelAssigned.assignment}</TableCell>
-                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{personnelAssigned.remarks}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{radioChannel.channel_number}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{radioChannel.channel_name}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{radioChannel.frequency}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{radioChannel.mode}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{radioChannel.functions}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{radioChannel.assignment}</TableCell>
+                                                        <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>{radioChannel.remarks}</TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : (
@@ -322,7 +333,7 @@ export default function Preview({
                                                     </TableCell>
                                                 </TableRow>
                                             )}
-                                        </TableBody> */}
+                                        </TableBody>
                                     </Table>
                                 </TableCell>
                             </TableRow>
