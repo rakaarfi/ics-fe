@@ -305,7 +305,11 @@ export default function Detail() {
                 time_prepared: now.format('HH:mm'),
                 is_prepared: formData.is_prepared,
             };
-            await axios.put(`http://127.0.0.1:8000/ics-206/preparation/update/${preparationID}`, preparedPayload);
+            if (preparationID) {
+                await axios.put(`http://127.0.0.1:8000/ics-206/preparation/update/${preparationID}`, preparedPayload);
+            } else {
+                await axios.post(`http://127.0.0.1:8000/ics-206/preparation/create/`, preparedPayload);
+            }
 
             // Update Medicals, Transportations and Hospitals
             await updateMedicals(formData.medicalAidStation)
