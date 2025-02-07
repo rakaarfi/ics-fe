@@ -435,10 +435,10 @@ export default function ToBeApproved() {
                                             Signature: {isPrepared ? '✓' : '✗'}
                                         </div>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
-                                            Date Prepared: {preparedDate}
+                                            Prepared Date: {preparedDate}
                                         </div>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
-                                            Time Prepared: {preparedTime}
+                                            Prepared Time: {preparedTime}
                                         </div>
                                     </div>
                                 </TableCell>
