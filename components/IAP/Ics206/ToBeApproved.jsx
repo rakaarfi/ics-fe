@@ -524,13 +524,13 @@ export default function ToBeApproved() {
                     </Table>
                 </div>
 
-                {/* Section 9 */}
+                {/* Section 8 */}
                 <div className="footer-section">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '3rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                    <strong>9. Prepared by:</strong>
+                                    <strong>8. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
                                             {MULeaderData?.name || 'Unknown'}
@@ -542,10 +542,10 @@ export default function ToBeApproved() {
                                             Signature: {isPrepared ? '✓' : '✗'}
                                         </div>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
-                                            Date Prepared: {preparedDate}
+                                            Prepared Date: {preparedDate}
                                         </div>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
-                                            Time Prepared: {preparedTime}
+                                            Prepared Time: {preparedTime}
                                         </div>
                                     </div>
                                 </TableCell>
@@ -554,14 +554,13 @@ export default function ToBeApproved() {
                     </Table>
                 </div>
 
-
-                {/* Footer Section (Section 10) */}
+                {/* Footer Section (Section 9) */}
                 <div className="footer-section">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '3rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                    <strong>10. Approved by:</strong>
+                                    <strong>9. Approved by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
                                             <Select
