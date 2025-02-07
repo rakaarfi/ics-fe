@@ -377,8 +377,7 @@ export default function Preview({
                 {/* Section 3 */}
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#e5e5e5', border: '4px solid black', padding: '16px' }}>
                     {/* Judul di atas */}
-                    <strong style={{ marginBottom: '10px', fontSize: '1.2rem' }}>3. Operations Personnel</strong>
-
+                    <strong style={{ fontSize: '15px', fontWeight: 'bold' }}>3. Operations Personnel</strong>
                     {/* Container untuk dua tabel */}
                     <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
                         {/* Tabel Pertama */}
