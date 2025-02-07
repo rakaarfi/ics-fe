@@ -552,13 +552,13 @@ export default function Preview() {
                     </Table>
                 </div>
 
-                {/* Section 9 */}
+                {/* Section 8 */}
                 <div className="footer-section">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '3rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                    <strong>9. Prepared by:</strong>
+                                    <strong>8. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
                                             {MULeaderData?.name || 'Unknown'}
@@ -582,13 +582,13 @@ export default function Preview() {
                     </Table>
                 </div>
 
-                {/* Section 10 */}
+                {/* Section 9 */}
                 <div className="footer-section">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '3rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                    <strong>10. Approved By:</strong>
+                                    <strong>9. Approved By:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
                                             {safetyOfficerData.find(officer => officer.id === approvalData.safety_officer_id)?.name || 'Unknown'}
