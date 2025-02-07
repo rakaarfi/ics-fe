@@ -263,7 +263,7 @@ export default function Preview({
                         <TableBody>
                             <TableRow sx={{ height: '10rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                    <strong>7. Site Safety Plan Required? {formData.is_required ? '✓' : '✗'}
+                                    <strong>4. Site Safety Plan Required? {formData.is_required ? '✓' : '✗'}
                                     </strong>
                                     <br />
                                     <br />
@@ -291,13 +291,13 @@ export default function Preview({
                     </Table>
                 </div>
 
-                {/* Section 9 */}
+                {/* Section 5 */}
                 <div className="footer-section">
                     <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                         <TableBody>
                             <TableRow sx={{ height: '3rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                    <strong>9. Prepared by:</strong>
+                                    <strong>5. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
                                             {safetyOfficerData.find((officer) => officer.id === formData.safety_officer_id)?.name || 'Unknown Safety Officer'}
