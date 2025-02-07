@@ -469,10 +469,10 @@ export default function Preview() {
                                             Signature: {isPrepared ? '✓' : '✗'}
                                         </div>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
-                                            Date Prepared: {preparedDate}
+                                            Prepared Date: {preparedDate}
                                         </div>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
-                                            Time Prepared: {preparedTime}
+                                            Prepared Time: {preparedTime}
                                         </div>
                                     </div>
                                 </TableCell>
@@ -486,7 +486,7 @@ export default function Preview() {
                     <TableBody>
                         <TableRow sx={{ height: '3rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                             <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                <strong>9. Prepared by:</strong>
+                                <strong>10. Approved by:</strong>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
                                     <div style={{ width: '300px', marginLeft: '1rem' }}>
                                         {ICData?.name || 'Unknown'}
@@ -498,10 +498,10 @@ export default function Preview() {
                                         Signature: {approvalData.is_approved ? '✓' : '✗'}
                                     </div>
                                     <div style={{ width: '300px', marginLeft: '1rem' }}>
-                                        Date Approved: {approvalData.date_approved}
+                                        Approved Date: {approvalData.date_approved}
                                     </div>
                                     <div style={{ width: '300px', marginLeft: '1rem' }}>
-                                        Time Approved: {approvalData.time_approved}
+                                        Approved Time: {approvalData.time_approved}
                                     </div>
                                 </div>
                             </TableCell>
