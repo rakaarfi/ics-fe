@@ -414,7 +414,7 @@ export default function Preview({
                         <TableBody>
                             <TableRow sx={{ height: '3rem', backgroundColor: '#e5e5e5', border: '4px solid black' }}>
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
-                                    <strong>9. Prepared by:</strong>
+                                    <strong>8. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                                         <div style={{ width: '300px', marginLeft: '1rem' }}>
                                             {RULeaderData.find((RULeader) => RULeader.id === preparationID)?.name || "N/A"}
