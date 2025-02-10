@@ -10,6 +10,7 @@ import FormContainer from '@/components/FormContainer';
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { set } from 'date-fns';
+import { Truculenta } from 'next/font/google';
 
 const TimePicker = dynamic(
     () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
@@ -23,9 +24,9 @@ export default function Input() {
         report_number: "",
         incident_commander_id: null,
         incident_source: "",
-        is_source_ctrl: false,
+        is_source_ctrl: true,
         materials_release: "",
-        is_material_ctrl: false,
+        is_material_ctrl: true,
         response_status: "",
         is_acc: false,
         acc_num: null,
@@ -120,11 +121,17 @@ export default function Input() {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+
         setFormData({
             ...formData,
-            [name]: type === "checkbox" ? checked : value,
+            [name]: type === "checkbox"
+                ? checked
+                : name === "is_source_ctrl" || name === "is_material_ctrl"
+                    ? value === "true"
+                    : value,
         });
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -377,7 +384,7 @@ export default function Input() {
                             </td>
                         </tr>
 
-                        {/* Baris Kedua - Section 3 & 4+5 */}
+                        {/* Baris Ketiga - Section 6 dan 7 */}
                         <tr>
                             {/* Location of Incident */}
                             <td className='px-4 py-2 border rounded-md'>
@@ -426,127 +433,922 @@ export default function Input() {
                 </table>
             )}
             <form onSubmit={handleSubmit}>
-                <table className="table-auto border-collapse w-full">
+                <table className="table-fixed border-collapse w-full my-5">
                     <tbody>
-                        {/* Objective(s) */}
                         <tr>
-                            <td className="px-4 py-2 font-bold" colSpan={7}>3. Objective(s)</td>
-                        </tr>
-                        <tr>
-                            <td className="px-4 py-2" colSpan={10}>
-                                <textarea
-                                    name="objectives"
-                                    value={formData.objectives}
-                                    className="w-full px-3 py-2 border rounded-md"
-                                    rows="7"
-                                    cols="50"
-                                    onChange={handleChange}
-                                    required
-                                />
+                            <td className="px-4 py-2 border rounded-md w-1/3" >
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                Report Version
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <div className="flex space-x-4">
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="report_version"
+                                                            value="Initial"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.report_version === "Initial"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Initial</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="report_version"
+                                                            value="Update"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.report_version === "Update"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Update</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="report_version"
+                                                            value="Final"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.report_version === "Final"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Final</span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+
+                            <td className="px-4 py-2 border rounded-md  w-1/3" >
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                Report Number
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.report_number} onChange={handleChange} />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+
+                            <td className="px-4 py-2 border rounded-md  w-1/3" >
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                Incident Commander
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.incident_commander_id} onChange={handleChange} />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
 
-                        {/* Operational Period Command Emphasis */}
                         <tr>
-                            <td className="px-4 py-2 font-bold" colSpan={7}>4. Operational Period Command Emphasis</td>
-                        </tr>
-                        <tr>
-                            <td className="px-4 py-2" colSpan={10}>
-                                <textarea
-                                    name="command_emphasis"
-                                    value={formData.command_emphasis}
-                                    className="w-full px-3 py-2 border rounded-md"
-                                    rows="7"
-                                    cols="50"
-                                    onChange={handleChange}
-                                    required
-                                />
+                            <td className="px-4 py-2 border rounded-md" colSpan={2}>
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                Source of Incident
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.incident_source} onChange={handleChange} />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+
+                            <td className="px-4 py-2 border rounded-md" >
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                Controlled/Uncontrolled
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <div className="flex space-x-4">
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="is_source_ctrl"
+                                                            value="true"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.is_source_ctrl === true}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Controlled</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="is_source_ctrl"
+                                                            value="false"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.is_source_ctrl === false}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Uncontrolled</span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
 
-                        {/* General Situational Awareness */}
                         <tr>
-                            <td className="px-4 py-2" colSpan={7}>General Situational Awareness</td>
-                        </tr>
-                        <tr>
-                            <td className="px-4 py-2" colSpan={10}>
-                                <textarea
-                                    name="situational_awareness"
-                                    value={formData.situational_awareness}
-                                    className="w-full px-3 py-2 border rounded-md"
-                                    rows="7"
-                                    cols="50"
-                                    onChange={handleChange}
-                                    required
-                                />
+                            <td className="px-4 py-2 border rounded-md" colSpan={2}>
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                Materials Release
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.materials_release} onChange={handleChange} />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+
+                            <td className="px-4 py-2 border rounded-md" >
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                Controlled/Uncontrolled
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <div className="flex space-x-4">
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="is_material_ctrl"
+                                                            value="true"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.is_material_ctrl === true}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Controlled</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="is_material_ctrl"
+                                                            value="false"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.is_material_ctrl === false}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Uncontrolled</span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
 
-                        {/* Site Safety Plan */}
                         <tr>
-                            <td className="px-4 py-2 font-bold">
-                                5. Site Safety Plan Required? (Yes/No)
-                                <input
-                                    type="checkbox"
-                                    name="is_required"
-                                    checked={formData.is_required}
-                                    onChange={handleChange}
-                                    className="mx-2"
-                                />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="px-4 py-2">
-                                Approved Site Safety Plan(s) Located at:
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="px-4 py-2 font-bold">
-                                <input
-                                    id="approved-site-input"
-                                    type="text"
-                                    name="safety_plan_location"
-                                    value={formData.safety_plan_location}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border rounded-md"
-                                    required
-                                    disabled={!formData.is_required}
-                                />
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                Status Response
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.response_status} onChange={handleChange} />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
 
-                        {/* Incident Action Plan(s) */}
                         <tr>
-                            <td className="px-4 py-2 font-bold">
-                                6. Incident Action Plan (the items checked below are included in this Incident Action Plan)
+                            {/* Impact to Personnel */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300" colSpan={10}>
+                                                Impact to Personnel
+                                            </td>
+                                        </tr>
+
+                                        {/* Accounted For */}
+                                        <tr>
+                                            {/* <td className="px-4 py-2 border rounded-md">Accounted for</td> */}
+                                            <td className="px-4 py-2 border rounded-md whitespace-nowrap">
+                                                <input type="checkbox" className="mr-2" checked={formData.is_acc} onChange={handleChange} />
+                                                <strong>Accounted for</strong>
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Number</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.acc_num} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md text-center" colSpan={2}>
+                                                <input type="checkbox" className="mr-2" checked={formData.is_acc_mustered} onChange={handleChange} />
+                                                Mustered
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md text-center" colSpan={2}>
+                                                <input type="checkbox" className="mr-2" checked={formData.is_acc_sheltered} onChange={handleChange} />
+                                                Sheltered
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md text-center" colSpan={2}>
+                                                <input type="checkbox" className="mr-2" checked={formData.is_acc_evacuated} onChange={handleChange} />
+                                                Evacuated
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+
+                                            </td>
+                                        </tr>
+
+                                        {/* Unaccounted For */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md whitespace-nowrap">
+                                                <input type="checkbox" className="mr-2" checked={formData.is_unacc} onChange={handleChange} />
+                                                <strong>Unaccounted for</strong>
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Number</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.unacc_num} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Employee</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.unacc_emp} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Contractor</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.unacc_con} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Other</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.unacc_oth} onChange={handleChange} />
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+
+                                            </td>
+                                        </tr>
+
+                                        {/* Injured */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="checkbox" className="mr-2" checked={formData.is_injured} onChange={handleChange} />
+                                                <strong>Injured</strong>
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Number</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.inj_num} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Employee</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.inj_emp} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Contractor</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.inj_con} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Other</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.inj_oth} onChange={handleChange} />
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+
+                                            </td>
+                                        </tr>
+
+                                        {/* Dead */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="checkbox" className="mr-2" checked={formData.is_dead} onChange={handleChange} />
+                                                <strong>Dead</strong>
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Number</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.dead_num} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Employee</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.dead_emp} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Contractor</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.dead_con} onChange={handleChange} />
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">Other</td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input type="text" className="w-full text-center border rounded-md" value={formData.dead_oth} onChange={handleChange} />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
+
                         <tr>
-                            <td className="px-4 py-2">
-                                <div className="grid grid-cols-3 gap-4">
-                                    {[
-                                        { label: "ICS 203", name: "ics_203" },
-                                        { label: "ICS 205A", name: "ics_205a" },
-                                        { label: "ICS 208", name: "ics_208" },
-                                        { label: "ICS 204", name: "ics_204" },
-                                        { label: "ICS 206", name: "ics_206" },
-                                        { label: "Map/Chart", name: "map_chart" },
-                                        { label: "ICS 205", name: "ics_205" },
-                                        { label: "ICS 207", name: "ics_207" },
-                                        { label: "Weather Forecast/Tides/Currents", name: "weather_tides_currents" },
-                                    ].map((item, index) => (
-                                        <div key={index} className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name={item.name}
-                                                checked={formData[item.name]}
-                                                onChange={handleChange}
-                                                className="mx-2"
-                                            />
-                                            <label>{item.label}</label>
-                                        </div>
-                                    ))}
-                                </div>
+                            {/* Impact on Env */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Impact on Environment</strong>
+                                                <div className="flex space-x-4 ml-32">
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="env_impact"
+                                                            value="None"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.env_impact === "None"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>None</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="env_impact"
+                                                            value="Minor"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.env_impact === "Minor"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Minor</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="env_impact"
+                                                            value="Major"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.env_impact === "Major"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Major</span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-100" colSpan={10}>
+                                                Description Impact on Environment
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="env_desc"
+                                                    value={formData.env_desc}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Impact on Community */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Impact on Community</strong>
+                                                <div className="flex space-x-4 ml-32">
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="comm_impact"
+                                                            value="None"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.comm_impact === "None"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>None</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="comm_impact"
+                                                            value="Minor"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.comm_impact === "Minor"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Minor</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="comm_impact"
+                                                            value="Major"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.comm_impact === "Major"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Major</span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-100" colSpan={10}>
+                                                Description Impact on Community
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="comm_desc"
+                                                    value={formData.comm_desc}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Impact on Operations */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Impact on Operations</strong>
+                                                <div className="flex space-x-4 ml-32">
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="ops_impact"
+                                                            value="None"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.ops_impact === "None"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>None</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="ops_impact"
+                                                            value="Minor"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.ops_impact === "Minor"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Minor</span>
+                                                    </label>
+
+                                                    <label className="flex items-center space-x-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="ops_impact"
+                                                            value="Major"
+                                                            className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                            checked={formData.ops_impact === "Major"}
+                                                            onChange={handleChange}
+                                                        />
+                                                        <span>Major</span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-100" colSpan={10}>
+                                                Description Impact on Operations
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.ops_desc}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Significant Event for the Time Period Reported */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Significant Event for the Time Period Reported</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.events_period}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Incident Objectives for Next Operational Period */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Incident Objectives for Next Operational Period</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.obj_next_period}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Planned Action for Next Operational Period */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Planned Action for Next Operational Period</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.actions_next_period}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Significant Resources Needed */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Significant Resources Needed</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.res_needed}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td className="px-4 py-2 border rounded-md w-1/2" colSpan={2}>
+                                <table className="w-full table-fixed">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                <strong>Anticipated Incident Management Completion Date</strong>
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input
+                                                    type="date"
+                                                    className="w-full text-center border rounded-md"
+                                                    value={formData.est_completion_date}
+                                                    onChange={handleChange}
+                                                />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+
+                            <td className="px-4 py-2 border rounded-md w-1/2">
+                                <table className="w-full table-fixed">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                <strong>Estimated Incident Costs to Date</strong>
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input
+                                                    type="text"
+                                                    className="w-full text-center border rounded-md"
+                                                    value={formData.cost_to_date}
+                                                    onChange={handleChange}
+                                                />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td className="px-4 py-2 border rounded-md w-1/2" colSpan={2}>
+                                <table className="w-full table-fixed">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                <strong>Projected Significant Resource Demobilization Start Date</strong>
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input
+                                                    type="date"
+                                                    className="w-full text-center border rounded-md"
+                                                    value={formData.est_res_democ_start}
+                                                    onChange={handleChange}
+                                                />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+
+                            <td className="px-4 py-2 border rounded-md w-1/2">
+                                <table className="w-full table-fixed">
+                                    <tbody>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300">
+                                                <strong>Projected Final Incident Cost Estimate</strong>
+                                            </td>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <input
+                                                    type="text"
+                                                    className="w-full text-center border rounded-md"
+                                                    value={formData.final_cost_est}
+                                                    onChange={handleChange}
+                                                />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Contact with/from Government Agencies */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Contact with/from Government Agencies</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.gov_contact}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Contact with/from Media */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Contact with/from Media</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.media_contact}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Contact with/from Next-of-Kin */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Contact with/from Next-of-Kin</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.kin_contact}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Contact with/from Shareholders */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Contact with/from Shareholders</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.shareholder_contact}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            {/* Contact with/from NGOs */}
+                            <td className="px-4 py-2 border rounded-md" colSpan={3}>
+                                <table className="w-full">
+                                    <tbody>
+                                        {/* Header */}
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md bg-gray-300 flex items-center justify-start" colSpan={10}>
+                                                <strong>Contact with/from NGOs</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 border rounded-md">
+                                                <textarea
+                                                    name="ops_desc"
+                                                    value={formData.ngo_contact}
+                                                    rows="7"
+                                                    cols="50"
+                                                    onChange={handleChange}
+                                                    className="w-full px-3 py-2 border rounded-md"
+                                                >
+                                                </textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
 
