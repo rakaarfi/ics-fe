@@ -2,24 +2,14 @@
 
 import axios from 'axios';
 import dayjs from 'dayjs';
-import dynamic from 'next/dynamic';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { Checkbox, FormControl, FormControlLabel, MenuItem, Select, TableHead } from '@mui/material';
 import FormContainer from '@/components/FormContainer';
-
-const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
-    { ssr: false }
-);
 
 dayjs.extend(customParseFormat);
 
@@ -45,7 +35,6 @@ export default function Preview() {
         weather_tides_currents: false,
     });
     const [incidentData, setIncidentData] = useState([]);
-    // const [incidentCommanderData, setIncidentCommanderData] = useState([]);
     const [operationalPeriodData, setOperationalPeriodData] = useState([]);
     const [ICData, setICData] = useState([]);
     const [approvalData, setApprovalData] = useState({
@@ -62,7 +51,8 @@ export default function Preview() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
+    
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-202/main";
 
     useEffect(() => {
@@ -72,14 +62,14 @@ export default function Preview() {
         let operationalPeriodId = null;
 
         axios
-            .get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
+            .get(`${apiUrl}${routeUrl}/read/${id}`)
             .then((response) => {
                 setData(response.data);
                 setFormData(response.data);
                 operationalPeriodId = response.data.operational_period_id;
 
                 // Ambil data operational period
-                return axios.get('http://127.0.0.1:8000/operational-period/read');
+                return axios.get(`${apiUrl}operational-period/read`);
             })
             .then((response) => {
                 setOperationalPeriodData(response.data);
@@ -110,7 +100,7 @@ export default function Preview() {
         const fetchPreparationData = async () => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-202/preparation/read-by-ics-202-id/${id}`
+                    `${apiUrl}ics-202/preparation/read-by-ics-202-id/${id}`
                 );
                 if (response.data.length > 0) {
                     setPreparationData(response.data);
@@ -132,7 +122,7 @@ export default function Preview() {
 
     const fetchPSChief = async (chiefId) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/planning-section/planning-section-chief/read/${chiefId}`);
+            const response = await axios.get(`${apiUrl}planning-section/planning-section-chief/read/${chiefId}`);
             setPSChiefData(response.data);
         } catch (error) {
             console.error('Error fetching PS Chief data:', error);
@@ -142,7 +132,7 @@ export default function Preview() {
 
     const fetchIC = async (incindentId) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/main-section/incident-commander/read/${incindentId}`);
+            const response = await axios.get(`${apiUrl}main-section/incident-commander/read/${incindentId}`);
             setICData(response.data);
         } catch (error) {
             console.error('Error fetching IC data:', error);
@@ -157,7 +147,7 @@ export default function Preview() {
         const fetchApprovalData = async (ics_202_id) => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-202/approval/read-by-ics-202-id/${ics_202_id}`
+                    `${apiUrl}ics-202/approval/read-by-ics-202-id/${ics_202_id}`
                 );
                 if (response.data.length > 0) {
                     setApprovalData(response.data[0]);
@@ -176,7 +166,7 @@ export default function Preview() {
     useEffect(() => {
         const fetchIncidentData = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+                const response = await axios.get(`${apiUrl}incident-data/read`);
                 setIncidentData(response.data);
             } catch (error) {
                 setError('Failed to fetch incident data');
@@ -200,7 +190,7 @@ export default function Preview() {
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-202/export-docx/${id}`,
+                `${apiUrl}ics-202/export-docx/${id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
@@ -459,19 +449,19 @@ export default function Preview() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>9. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             {PSChiefData?.name || 'Unknown'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Planning Section Chief
                                         </div>
-                                        <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Signature: {isPrepared ? '✓' : '✗'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Date: {preparedDate}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Time: {preparedTime}
                                         </div>
                                     </div>
@@ -488,19 +478,19 @@ export default function Preview() {
                             <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                 <strong>10. Approved by:</strong>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                    <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         {ICData?.name || 'Unknown'}
                                     </div>
-                                    <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         Position: Incident Commander
                                     </div>
-                                    <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         Signature: {approvalData.is_approved ? '✓' : '✗'}
                                     </div>
-                                    <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         Approved Date: {approvalData.date_approved}
                                     </div>
-                                    <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         Approved Time: {approvalData.time_approved}
                                     </div>
                                 </div>
