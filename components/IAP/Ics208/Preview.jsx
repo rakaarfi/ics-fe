@@ -1,30 +1,14 @@
 'use client';
 
 import axios from 'axios';
-import dayjs from 'dayjs';
-import dynamic from 'next/dynamic';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { Checkbox, FormControl, FormControlLabel, MenuItem, Select, TableHead } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import FormContainer from '@/components/FormContainer';
-import { set } from 'date-fns';
-import useFetchDynamicOptions from '@/components/ImtRoster/useFetchDynamicOptions';
-import { MainSection, PlanningSection, LogisticSection, FinanceSection, OperationSectionList, boldItems } from '@/components/ImtRoster/inputFields';
 
-const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
-    { ssr: false }
-);
-
-dayjs.extend(customParseFormat);
 
 
 export default function Preview({
@@ -38,6 +22,7 @@ export default function Preview({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-208/main";
 
     useEffect(() => {
@@ -48,12 +33,12 @@ export default function Preview({
 
         // Ambil data detail
         axios
-            .get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
+            .get(`${apiUrl}${routeUrl}/read/${id}`)
             .then((response) => {
                 setFormData(response.data);
                 operationalPeriodId = response.data.operational_period_id;
 
-                return axios.get('http://127.0.0.1:8000/operational-period/read');
+                return axios.get(`${apiUrl}operational-period/read`);
             })
             .then((response) => {
                 setOperationalPeriodData(response.data);
@@ -78,7 +63,7 @@ export default function Preview({
             });
 
         if (id) {
-            axios.get(`http://127.0.0.1:8000/ics-208/preparation/read-by-ics-208-id/${id}`)
+            axios.get(`${apiUrl}ics-208/preparation/read-by-ics-208-id/${id}`)
                 .then((response) => {
                     if (response.data.length > 0) {
                         setFormData((prevFormData) => ({
@@ -101,7 +86,7 @@ export default function Preview({
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
 
         } catch (error) {
@@ -116,7 +101,7 @@ export default function Preview({
 
     const fetchSafetyOfficer = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/main-section/safety-officer/read/');
+            const response = await axios.get(`${apiUrl}main-section/safety-officer/read/`);
             setSafetyOfficerData(response.data);
             console.log("Planning Section Chief Data:", response.data);
         } catch (error) {
@@ -141,7 +126,7 @@ export default function Preview({
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-208/export-docx/${id}`,
+                `${apiUrl}ics-208/export-docx/${id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
@@ -299,19 +284,19 @@ export default function Preview({
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>5. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             {safetyOfficerData.find((officer) => officer.id === formData.safety_officer_id)?.name || 'Unknown Safety Officer'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Safety Officer
                                         </div>
-                                        <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Signature: {formData.is_prepared ? '✓' : '✗'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Date: {formData.date_prepared}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Time: {formData.time_prepared}
                                         </div>
                                     </div>
