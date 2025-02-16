@@ -59,6 +59,7 @@ export default function Detail() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-203/main";
 
     useEffect(() => {
@@ -69,12 +70,12 @@ export default function Detail() {
 
         // Ambil data detail
         axios
-            .get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
+            .get(`${apiUrl}${routeUrl}/read/${id}`)
             .then((response) => {
                 setFormData(response.data);
                 operationalPeriodId = response.data.operational_period_id;
 
-                return axios.get('http://127.0.0.1:8000/operational-period/read');
+                return axios.get(`${apiUrl}operational-period/read`);
             })
             .then((response) => {
                 setOperationalPeriodData(response.data);
@@ -99,7 +100,7 @@ export default function Detail() {
             });
 
         if (id) {
-            axios.get(`http://127.0.0.1:8000/ics-203/preparation/read-by-ics-203-id/${id}`)
+            axios.get(`${apiUrl}ics-203/preparation/read-by-ics-203-id/${id}`)
                 .then((response) => {
                     if (response.data.length > 0) {
                         setFormData((prevFormData) => ({
@@ -133,7 +134,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -196,7 +197,7 @@ export default function Detail() {
                 cost_unit_leader_id: formData.cost_unit_leader_id,
                 time_unit_leader_id: formData.time_unit_leader_id,
             };
-            const response = await axios.put(`http://127.0.0.1:8000/ics-203/main/update/${id}`, mainPayload);
+            const response = await axios.put(`${apiUrl}ics-203/main/update/${id}`, mainPayload);
             const ics_203_id = response.data.id;
 
             const now = dayjs();
@@ -208,9 +209,9 @@ export default function Detail() {
                 is_prepared: formData.is_prepared,
             };
             if (preparationID) {
-                await axios.put(`http://127.0.0.1:8000/ics-203/preparation/update/${preparationID}`, preparedPayload)
+                await axios.put(`${apiUrl}ics-203/preparation/update/${preparationID}`, preparedPayload)
             } else {
-                await axios.post('http://127.0.0.1:8000/ics-203/preparation/create', preparedPayload);
+                await axios.post(`${apiUrl}ics-203/preparation/create`, preparedPayload);
             }
             alert("Data submitted successfully!");
         } catch (error) {
@@ -221,7 +222,7 @@ export default function Detail() {
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
 
         } catch (error) {
@@ -236,7 +237,7 @@ export default function Detail() {
 
     const fetchRULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/planning-section/resources-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
             setRULeaderData(response.data);
         } catch (error) {
             console.error('Error fetching Planning Section Chief data:', error);
