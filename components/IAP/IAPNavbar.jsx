@@ -148,6 +148,13 @@ export const IAPNavbar = () => {
                     </div>
                 </div>
             </div>
+            <div className='flex justify-center my-10'>
+                <Link href='/dashboard'>
+                    <button className='bg-[#1a202c] hover:bg-[#2d3748] text-white font-bold py-2 px-4 rounded-full'>
+                        Back to Main Menu
+                    </button>
+                </Link>
+            </div>
         </nav>
     );
 };
