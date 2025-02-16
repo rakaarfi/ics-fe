@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { NavSection } from './NavSection';
 import styled from 'styled-components';
 
@@ -85,6 +86,11 @@ export const InputNavbar = () => {
                     <NavSection data={logistic_section} boldItems={boldItems} />
                     <NavSection data={finance_section} boldItems={boldItems} />
                 </ScrollableNav>
+                <Link href='/dashboard'>
+                    <button className='bg-[#1a202c] hover:bg-[#2d3748] text-white font-bold py-2 px-4 rounded-full'>
+                        Back to Main Menu
+                    </button>
+                </Link>
             </div>
         </nav>
     );
