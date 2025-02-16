@@ -7,7 +7,6 @@ import PersonnelAssigned from './PersonnelAssigned';
 import EquipmentAssigned from './EquipmentAssigned';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { add } from 'date-fns';
 
 
 export default function Input() {
@@ -57,6 +56,8 @@ export default function Input() {
     const [operationSectionChiefNumber, setOperationSectionChiefNumber] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    
+    const apiUrl = 'http://127.0.0.1:8000/'
 
     const handleIncidentChange = (e) => {
         const incident_id = parseInt(e.target.value, 10);
@@ -71,7 +72,7 @@ export default function Input() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -198,7 +199,7 @@ export default function Input() {
                 communication_mode: formData.communication_mode,
                 mobile_phone: formData.mobile_phone,
             };
-            const response = await axios.post('http://127.0.0.1:8000/ics-204/main/create', mainPayload);
+            const response = await axios.post(`${apiUrl}ics-204/main/create`, mainPayload);
             const ics_204_id = response.data.id;
 
             const now = dayjs();
@@ -211,7 +212,7 @@ export default function Input() {
                     time_prepared: now.format('HH:mm'),
                     is_prepared: formData.is_prepared_os_chief,
                 };
-                await axios.post('http://127.0.0.1:8000/ics-204/preparation-os-chief/create/', preparedOSChiefPayload);
+                await axios.post(`${apiUrl}ics-204/preparation-os-chief/create/`, preparedOSChiefPayload);
             }
 
             // Payload untuk RU Leader
@@ -223,7 +224,7 @@ export default function Input() {
                     time_prepared: now.format('HH:mm'),
                     is_prepared: formData.is_prepared_ru_leader,
                 };
-                await axios.post('http://127.0.0.1:8000/ics-204/preparation-ru-leader/create/', preparedRULeaderPayload);
+                await axios.post(`${apiUrl}ics-204/preparation-ru-leader/create/`, preparedRULeaderPayload);
             }
 
             const personnelPayloads = {
@@ -235,7 +236,7 @@ export default function Input() {
                     equipment_tools_remarks: row.equipment_tools_remarks,
                 }))
             }
-            await axios.post('http://127.0.0.1:8000/ics-204/personnel-assigned/create/', personnelPayloads);
+            await axios.post(`${apiUrl}ics-204/personnel-assigned/create/`, personnelPayloads);
 
             const equipmentsPayloads = {
                 datas: formData.equipmentAssigned.map(row => ({
@@ -248,7 +249,7 @@ export default function Input() {
                     remarks: row.remarks,
                 }))
             }
-            await axios.post('http://127.0.0.1:8000/ics-204/equipment-assigned/create/', equipmentsPayloads);
+            await axios.post(`${apiUrl}ics-204/equipment-assigned/create/`, equipmentsPayloads);
 
             alert('Data submitted successfully!');
         } catch (error) {
@@ -259,7 +260,7 @@ export default function Input() {
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
         } catch (error) {
             console.error('Error fetching incident data:', error);
@@ -273,7 +274,7 @@ export default function Input() {
 
     const fetchRULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/planning-section/resources-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
             setRULeaderData(response.data);
             console.log("Resources Unit Leader Data:", response.data);
         } catch (error) {
@@ -288,7 +289,7 @@ export default function Input() {
 
     const fetchOSChief = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/main-section/operation-section-chief/read/');
+            const response = await axios.get(`${apiUrl}main-section/operation-section-chief/read/`);
             setOSChiefData(response.data);
             console.log("Operation Section Chief Data:", response.data);
         } catch (error) {
