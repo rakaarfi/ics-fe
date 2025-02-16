@@ -15,6 +15,8 @@ export default function Input() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
+    
     const handleIncidentChange = (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
@@ -28,7 +30,7 @@ export default function Input() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -75,7 +77,7 @@ export default function Input() {
                 site_safety_plan: formData.site_safety_plan,
                 additional_comments: formData.additional_comments,
             };
-            const response = await axios.post('http://127.0.0.1:8000/ics-208/main/create', mainPayload);
+            const response = await axios.post(`${apiUrl}ics-208/main/create`, mainPayload);
             const ics_208_id = response.data.id;
 
             const now = dayjs();
@@ -86,7 +88,7 @@ export default function Input() {
                 time_prepared: now.format('HH:mm'),
                 is_prepared: formData.is_prepared,
             };
-            await axios.post('http://127.0.0.1:8000/ics-208/preparation/create/', preparedPayload);
+            await axios.post(`${apiUrl}ics-208/preparation/create/`, preparedPayload);
 
             alert('Data submitted successfully!');
         } catch (error) {
@@ -97,7 +99,7 @@ export default function Input() {
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
             console.log("Incident Data:", response.data);
 
@@ -113,7 +115,7 @@ export default function Input() {
 
     const fetchSafetyOfficer = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/main-section/safety-officer/read/');
+            const response = await axios.get(`${apiUrl}main-section/safety-officer/read/`);
             setSafetyOfficerData(response.data);
             console.log("Planning Section Chief Data:", response.data);
         } catch (error) {
