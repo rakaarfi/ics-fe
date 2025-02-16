@@ -44,6 +44,8 @@ export default function Input() {
     const [selectedIncident, setSelectedIncident] = useState(null);
     const [isClient, setIsClient] = useState(false);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
+    
     useEffect(() => {
         setIsClient(true);
     }, []);
@@ -174,7 +176,7 @@ export default function Input() {
             };
 
             // console.log("Main Payload:", mainPayload); // Log the payload
-            const response = await axios.post('http://127.0.0.1:8000/ics-201/main/create/', mainPayload);
+            const response = await axios.post(`${apiUrl}ics-201/main/create/`, mainPayload);
             const ics_201_id = response.data.id;
             setFormData(prevData => ({ ...prevData, ics_201_id: ics_201_id }));
 
@@ -187,7 +189,7 @@ export default function Input() {
                 })),
             };
             // console.log("Actions Payload:", actionsPayload); // Log the payload
-            await axios.post('http://127.0.0.1:8000/ics-201/actions-strategies-tactics/create/', actionsPayload);
+            await axios.post(`${apiUrl}ics-201/actions-strategies-tactics/create/`, actionsPayload);
 
             // Submit ResourceSummary data
             const resourcesPayload = {
@@ -203,7 +205,7 @@ export default function Input() {
                 })),
             };
             // console.log("Resources Payload:", resourcesPayload);
-            await axios.post('http://127.0.0.1:8000/ics-201/resource-summary/create/', resourcesPayload);
+            await axios.post(`${apiUrl}ics-201/resource-summary/create/`, resourcesPayload);
 
             // Submit Chart data
             const chartPayload = {
@@ -211,7 +213,7 @@ export default function Input() {
                 ics_201_id: ics_201_id,
             };
             // console.log("Chart Payload:", chartPayload);
-            await axios.post('http://127.0.0.1:8000/ics-201/chart/create/', chartPayload);
+            await axios.post(`${apiUrl}ics-201/chart/create/`, chartPayload);
 
             alert("Data submitted successfully!");
         } catch (error) {
@@ -378,10 +380,26 @@ export default function Input() {
                         {/* <!-- Baris untuk Chart --> */}
                         <tr>
                             <td className="px-4 py-2" colSpan={7}>
-                                <Chart
-                                    chartData={formData.chartData}
-                                    onChange={handleChartDataChange}
-                                />
+                                <div
+                                    className="border border-gray-300 rounded-md p-3"
+                                    style={{
+                                        maxHeight: '800px',
+                                        maxWidth: '1150px',
+                                        overflowX: 'scroll',
+                                        position: 'relative'
+                                    }}
+                                >
+                                    <div style={{
+                                        minWidth: 'max-content',
+                                        paddingLeft: '100px',
+                                        paddingRight: '100px'
+                                    }}>
+                                        <Chart
+                                            chartData={formData.chartData}
+                                            onChange={handleChartDataChange}
+                                        />
+                                    </div>
+                                </div>
                             </td>
                         </tr>
 
