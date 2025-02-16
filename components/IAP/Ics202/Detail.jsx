@@ -41,6 +41,7 @@ export default function Detail() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-202/main";
 
     useEffect(() => {
@@ -51,13 +52,13 @@ export default function Detail() {
 
         // Ambil data detail
         axios
-            .get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
+            .get(`${apiUrl}${routeUrl}/read/${id}`)
             .then((response) => {
                 setData(response.data);
                 setFormData(response.data);
                 operationalPeriodId = response.data.operational_period_id;
 
-                return axios.get('http://127.0.0.1:8000/operational-period/read');
+                return axios.get(`${apiUrl}operational-period/read`);
             })
             .then((response) => {
                 setOperationalPeriodData(response.data);
@@ -82,7 +83,7 @@ export default function Detail() {
             });
 
         if (id) {
-            axios.get(`http://127.0.0.1:8000/ics-202/preparation/read-by-ics-202-id/${id}`)
+            axios.get(`${apiUrl}ics-202/preparation/read-by-ics-202-id/${id}`)
                 .then((response) => {
                     setPreparationData(response.data[0]);
                     setPreparationID(response.data[0].id);
@@ -109,7 +110,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -155,7 +156,7 @@ export default function Detail() {
                 map_chart: formData.map_chart,
                 weather_tides_currents: formData.weather_tides_currents,
             };
-            const response = await axios.put(`http://127.0.0.1:8000/ics-202/main/update/${id}`, mainPayload);
+            const response = await axios.put(`${apiUrl}ics-202/main/update/${id}`, mainPayload);
             const ics_202_id = response.data.id;
 
             const now = dayjs();
@@ -167,9 +168,9 @@ export default function Detail() {
                 is_prepared: preparationData.is_prepared
             };
             if (preparationID) {
-                await axios.put(`http://127.0.0.1:8000/ics-202/preparation/update/${preparationID}`, preparedPayload);
+                await axios.put(`${apiUrl}ics-202/preparation/update/${preparationID}`, preparedPayload);
             } else {
-                await axios.post('http://127.0.0.1:8000/ics-202/preparation/create', preparedPayload);
+                await axios.post(`${apiUrl}ics-202/preparation/create`, preparedPayload);
             }
             alert("Changes saved successfully!");
         } catch (error) {
@@ -180,7 +181,7 @@ export default function Detail() {
     
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
         } catch (error) {
             console.error('Error fetching incident data:', error);
@@ -194,7 +195,7 @@ export default function Detail() {
 
     const fetchPSChief = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/planning-section/planning-section-chief/read/');
+            const response = await axios.get(`${apiUrl}planning-section/planning-section-chief/read/`);
             setPSChiefData(response.data);
         } catch (error) {
             console.error('Error fetching Planning Section Chief data:', error);
