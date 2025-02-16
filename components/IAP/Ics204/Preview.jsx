@@ -18,7 +18,6 @@ dayjs.extend(customParseFormat);
 export default function Preview({
 }) {
     const { id } = useParams();
-    const [data, setData] = useState(null);
     const [formData, setFormData] = useState({
         operational_period_id: null,
         operation_section_chief_id: null, // Untuk Operations Personnel
