@@ -7,22 +7,13 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { Checkbox, FormControl, FormControlLabel, MenuItem, Select, TableHead } from '@mui/material';
+import { TableHead } from '@mui/material';
 import FormContainer from '@/components/FormContainer';
-import { set } from 'date-fns';
 import useFetchDynamicOptions from '@/components/ImtRoster/useFetchDynamicOptions';
 import { MainSection, PlanningSection, LogisticSection, FinanceSection, OperationSectionList, boldItems } from '@/components/ImtRoster/inputFields';
-
-const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
-    { ssr: false }
-);
 
 dayjs.extend(customParseFormat);
 
@@ -79,6 +70,7 @@ export default function Preview({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-203/main";
 
     useEffect(() => {
@@ -89,12 +81,12 @@ export default function Preview({
 
         // Ambil data detail
         axios
-            .get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
+            .get(`${apiUrl}${routeUrl}/read/${id}`)
             .then((response) => {
                 setFormData(response.data);
                 operationalPeriodId = response.data.operational_period_id;
 
-                return axios.get('http://127.0.0.1:8000/operational-period/read');
+                return axios.get(`${apiUrl}operational-period/read`);
             })
             .then((response) => {
                 setOperationalPeriodData(response.data);
@@ -119,7 +111,7 @@ export default function Preview({
             });
 
         if (id) {
-            axios.get(`http://127.0.0.1:8000/ics-203/preparation/read-by-ics-203-id/${id}`)
+            axios.get(`${apiUrl}ics-203/preparation/read-by-ics-203-id/${id}`)
                 .then((response) => {
                     if (response.data.length > 0) {
                         setFormData((prevFormData) => ({
@@ -145,7 +137,7 @@ export default function Preview({
         const fetchPreparationData = async () => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-203/preparation/read-by-ics-203-id/${id}`
+                    `${apiUrl}ics-203/preparation/read-by-ics-203-id/${id}`
                 );
                 if (response.data.length > 0) {
                     setPreparationData(response.data);
@@ -160,7 +152,7 @@ export default function Preview({
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
 
         } catch (error) {
@@ -175,7 +167,7 @@ export default function Preview({
 
     const fetchRULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/planning-section/resources-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
             setRULeaderData(response.data);
             console.log("Resources Unit Leader Data:", response.data);
 
@@ -205,7 +197,7 @@ export default function Preview({
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-203/export-docx/${id}`,
+                `${apiUrl}ics-203/export-docx/${id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
@@ -416,19 +408,19 @@ export default function Preview({
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>8. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             {RULeaderData.find((RULeader) => RULeader.id === preparationID)?.name || "N/A"}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Resources Unit Leader
                                         </div>
-                                        <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Signature: {isPrepared ? '✓' : '✗'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Date: {preparedDate}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Time: {preparedTime}
                                         </div>
                                     </div>
