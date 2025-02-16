@@ -1,21 +1,10 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-
 import axios from 'axios';
 import { ButtonSubmit } from '@/components/ButtonComponents';
 import FormContainer from '@/components/FormContainer';
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import { set } from 'date-fns';
-import { Truculenta } from 'next/font/google';
-
-const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
-    { ssr: false }
-);
 
 export default function Input() {
     const [formData, setFormData] = useState({
@@ -81,6 +70,8 @@ export default function Input() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
+    
     const handleIncidentChange = (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
@@ -100,7 +91,7 @@ export default function Input() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -198,7 +189,7 @@ export default function Input() {
                 comm_rep_contact: formData.comm_rep_contact,
                 ngo_contact: formData.ngo_contact,
             };
-            const response = await axios.post('http://127.0.0.1:8000/ics-209/main/create', mainPayload);
+            const response = await axios.post(`${apiUrl}ics-209/main/create`, mainPayload);
             const ics_209_id = response.data.id;
 
             const now = dayjs();
@@ -209,7 +200,7 @@ export default function Input() {
                 time_prepared: now.format('HH:mm'),
                 is_prepared: formData.is_prepared,
             };
-            await axios.post('http://127.0.0.1:8000/ics-209/preparation/create/', preparedPayload);
+            await axios.post(`${apiUrl}ics-209/preparation/create/`, preparedPayload);
 
             alert('Data submitted successfully!');
         } catch (error) {
@@ -220,7 +211,7 @@ export default function Input() {
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
         } catch (error) {
             console.error('Error fetching incident data:', error);
@@ -234,7 +225,7 @@ export default function Input() {
 
     const fetchSULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/planning-section/situation-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}planning-section/situation-unit-leader/read/`);
             setSULeaderData(response.data);
             console.log("Situation Unit Leader Data:", response.data);
         } catch (error) {
