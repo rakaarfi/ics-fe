@@ -51,6 +51,8 @@ export default function Input() {
     const [MULeaderData, setMULeaderData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    
+    const apiUrl = 'http://127.0.0.1:8000/'
 
     const handleIncidentChange = (e) => {
         const incident_id = parseInt(e.target.value, 10);
@@ -65,7 +67,7 @@ export default function Input() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -195,7 +197,7 @@ export default function Input() {
                 special_medical_procedures: formData.special_medical_procedures,
                 is_utilized: formData.is_utilized,
             };
-            const response = await axios.post('http://127.0.0.1:8000/ics-206/main/create', mainPayload);
+            const response = await axios.post(`${apiUrl}ics-206/main/create`, mainPayload);
             const ics_206_id = response.data.id;
 
             const now = dayjs();
@@ -206,7 +208,7 @@ export default function Input() {
                 time_prepared: now.format('HH:mm'),
                 is_prepared: formData.is_prepared,
             };
-            await axios.post('http://127.0.0.1:8000/ics-206/preparation/create/', preparedPayload);
+            await axios.post(`${apiUrl}ics-206/preparation/create/`, preparedPayload);
 
             const medicalPayloads = {
                 datas: formData.medicalAidStation.map(row => ({
@@ -217,7 +219,7 @@ export default function Input() {
                     is_paramedic: row.is_paramedic,
                 }))
             }
-            await axios.post('http://127.0.0.1:8000/ics-206/medical-aid-station/create/', medicalPayloads);
+            await axios.post(`${apiUrl}ics-206/medical-aid-station/create/`, medicalPayloads);
 
             const transportationPayloads = {
                 datas: formData.transportation.map(row => ({
@@ -229,7 +231,7 @@ export default function Input() {
                     is_bls: row.is_bls,
                 }))
             }
-            await axios.post('http://127.0.0.1:8000/ics-206/transportation/create/', transportationPayloads);
+            await axios.post(`${apiUrl}ics-206/transportation/create/`, transportationPayloads);
 
             const hospitalPayloads = {
                 datas: formData.hospital.map(row => ({
@@ -245,7 +247,7 @@ export default function Input() {
                     is_helipad: row.is_helipad,
                 }))
             }
-            await axios.post('http://127.0.0.1:8000/ics-206/hospitals/create/', hospitalPayloads);
+            await axios.post(`${apiUrl}ics-206/hospitals/create/`, hospitalPayloads);
 
             alert('Data submitted successfully!');
         } catch (error) {
@@ -256,7 +258,7 @@ export default function Input() {
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
         } catch (error) {
             console.error('Error fetching incident data:', error);
@@ -270,7 +272,7 @@ export default function Input() {
 
     const fetchMULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/logistic-section/medical-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}logistic-section/medical-unit-leader/read/`);
             setMULeaderData(response.data);
             console.log("Medical Unit Leader Data:", response.data);
         } catch (error) {
