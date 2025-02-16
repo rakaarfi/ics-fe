@@ -7,19 +7,11 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { Checkbox, FormControl, FormControlLabel, MenuItem, Select, TableHead } from '@mui/material';
+import { Checkbox, FormControl, FormControlLabel, MenuItem, Select } from '@mui/material';
 import FormContainer from '@/components/FormContainer';
-
-const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
-    { ssr: false }
-);
 
 dayjs.extend(customParseFormat);
 
@@ -62,6 +54,7 @@ export default function ToBeApproved() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-202/main";
 
     useEffect(() => {
@@ -71,14 +64,14 @@ export default function ToBeApproved() {
         let operationalPeriodId = null;
 
         axios
-            .get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
+            .get(`${apiUrl}${routeUrl}/read/${id}`)
             .then((response) => {
                 setData(response.data);
                 setFormData(response.data);
                 operationalPeriodId = response.data.operational_period_id;
 
                 // Ambil data operational period
-                return axios.get('http://127.0.0.1:8000/operational-period/read');
+                return axios.get(`${apiUrl}operational-period/read`);
             })
             .then((response) => {
                 setOperationalPeriodData(response.data);
@@ -109,7 +102,7 @@ export default function ToBeApproved() {
         const fetchPreparationData = async () => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-202/preparation/read-by-ics-202-id/${id}`
+                    `${apiUrl}ics-202/preparation/read-by-ics-202-id/${id}`
                 );
                 if (response.data.length > 0) {
                     setPreparationData(response.data);
@@ -131,7 +124,7 @@ export default function ToBeApproved() {
 
     const fetchPSChief = async (chiefId) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/planning-section/planning-section-chief/read/${chiefId}`);
+            const response = await axios.get(`${apiUrl}planning-section/planning-section-chief/read/${chiefId}`);
             setPSChiefData(response.data);
         } catch (error) {
             console.error('Error fetching PS Chief data:', error);
@@ -143,7 +136,7 @@ export default function ToBeApproved() {
         const fetchApprovalData = async (ics_202_id) => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-202/approval/read-by-ics-202-id/${ics_202_id}`
+                    `${apiUrl}ics-202/approval/read-by-ics-202-id/${ics_202_id}`
                 );
                 if (response.data.length > 0) {
                     setApprovalData(response.data[0]);
@@ -170,7 +163,7 @@ export default function ToBeApproved() {
                 time_approved: now.format('HH:mm'),
                 is_approved: approvalData.is_approved,
             };
-            const response = await axios.post(`http://127.0.0.1:8000/ics-202/approval/create/`, payload);
+            const response = await axios.post(`${apiUrl}ics-202/approval/create/`, payload);
             console.log('Approval submitted successfully:', response.data);
             alert('Approval submitted successfully!');
         } catch (error) {
@@ -184,7 +177,7 @@ export default function ToBeApproved() {
     useEffect(() => {
         const fetchIncidentData = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+                const response = await axios.get(`${apiUrl}incident-data/read`);
                 setIncidentData(response.data);
             } catch (error) {
                 setError('Failed to fetch incident data');
@@ -208,7 +201,7 @@ export default function ToBeApproved() {
 
     const fetchIncidentCommander = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/main-section/incident-commander/read/');
+            const response = await axios.get(`${apiUrl}main-section/incident-commander/read/`);
             setIncidentCommanderData(response.data);
             console.log("Incident Commander Data:", response.data);
         } catch (error) {
@@ -425,19 +418,19 @@ export default function ToBeApproved() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>9. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             {PSChiefData?.name || 'Unknown'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Planning Section Chief
                                         </div>
-                                        <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Signature: {isPrepared ? '✓' : '✗'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Date: {preparedDate}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Time: {preparedTime}
                                         </div>
                                     </div>
@@ -456,7 +449,7 @@ export default function ToBeApproved() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>10. Approved by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             <Select
                                                 name='incident_commander_id'
                                                 className="flex-1 block rounded-md px-3 py-1.5 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
@@ -485,10 +478,10 @@ export default function ToBeApproved() {
                                             </Select>
                                         </div>
 
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Incident Commander
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             <FormControl>
                                                 {/* Checkbox Signature */}
                                                 <FormControlLabel
