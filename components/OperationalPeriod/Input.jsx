@@ -20,6 +20,8 @@ export default function Input() {
     const addNewRow = () => setRows([...rows, { date_from: "", time_from: "", date_to: "", time_to: "", remarks: "" }]);
     const removeRow = (index) => setRows(rows.filter((_, i) => i !== index));
 
+    const apiUrl = 'http://127.0.0.1:8000/'
+
     useEffect(() => {
         const fetchIncidentData = async () => {
             try {
@@ -69,7 +71,7 @@ export default function Input() {
                 ...row,
                 incident_id: selectedIncident.id,
             }))
-            await axios.post('http://127.0.0.1:8000/operational-period/create/', {
+            await axios.post(`${apiUrl}operational-period/create/`, {
                 periods: payload
             })
             alert("Data submitted successfully!");
