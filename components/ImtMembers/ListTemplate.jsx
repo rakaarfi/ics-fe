@@ -149,7 +149,21 @@ export default function ListTemplate({ routeUrl, responseKey, headerText }) {
                                         <td className="border border-gray-300 px-4 py-2">{item.join_date}</td>
                                         <td className="border border-gray-300 px-4 py-2">{item.exit_date}</td>
                                         <td className="border border-gray-300 px-2 py-4 text-center">
-                                            <ButtonEdit onClick={() => setActiveRow(item.id)} />
+                                            <ButtonEdit
+                                                onClick={() => {
+                                                    setActiveRow(item.id);
+
+                                                    setUpdateFormData({
+                                                        name: item.name,
+                                                        nf_name: item.nf_name,
+                                                        role: item.role,
+                                                        office_phone: item.office_phone,
+                                                        mobile_phone: item.mobile_phone,
+                                                        join_date: item.join_date,
+                                                        exit_date: item.exit_date,
+                                                    });
+                                                }}
+                                            />
                                         </td>
                                         <td className="border border-gray-300 px-2 py-4 text-center">
                                             <ButtonDelete
