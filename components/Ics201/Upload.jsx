@@ -14,6 +14,8 @@ export default function Upload({ onFileUpload, onDeleteFile, currentFile, id }) 
 
     const [timestamp, setTimestamp] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
+
     useEffect(() => {
         setTimestamp(Date.now()); // Hanya dijalankan di client
     }, []);
@@ -33,7 +35,7 @@ export default function Upload({ onFileUpload, onDeleteFile, currentFile, id }) 
     useEffect(() => {
         if (currentFile) {
             setFilename(currentFile);
-            setImageUrl(`http://localhost:8000/upload/get-map-sketch/${currentFile}`);
+            setImageUrl(`${apiUrl}file/get/${currentFile}`);
         } else {
             setImageUrl(null); // Set imageUrl ke null jika tidak ada currentFile
         }
@@ -63,7 +65,7 @@ export default function Upload({ onFileUpload, onDeleteFile, currentFile, id }) 
 
         try {
             const response = await axios.post(
-                "http://localhost:8000/upload/upload-map-sketch/",
+                `${apiUrl}file/upload/`,
                 formData,
                 {
                     headers: {
@@ -96,10 +98,10 @@ export default function Upload({ onFileUpload, onDeleteFile, currentFile, id }) 
         }
 
         try {
-            const response = await axios.delete(`http://localhost:8000/upload/delete-map-sketch/${filename}`);
+            const response = await axios.delete(`${apiUrl}file/delete/${filename}`);
             if (response.status === 200) {
                 // // Update the map_sketch field in the database
-                // await axios.put(`http://localhost:8000/ics-201/main/update/${id}`, {
+                // await axios.put(`${apiUrl}ics-201/main/update/${id}`, {
                 //     map_sketch: null,
                 // });
 
@@ -141,7 +143,7 @@ export default function Upload({ onFileUpload, onDeleteFile, currentFile, id }) 
 
         try {
             const response = await axios.get(
-                `http://localhost:8000/upload/get-map-sketch/${filename}`,
+                `${apiUrl}file/get/${filename}`,
                 { responseType: "blob" }
             );
 
