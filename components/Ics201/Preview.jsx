@@ -2,27 +2,18 @@
 
 import axios from 'axios';
 import dayjs from 'dayjs';
-import dynamic from 'next/dynamic';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { Checkbox, FormControl, FormControlLabel, TableHead } from '@mui/material';
+import { TableHead } from '@mui/material';
 
 import FormContainer from '../FormContainer';
 import { fetchData, readById } from '@/utils/api';
 import useFetchDynamicOptions from '../ImtRoster/useFetchDynamicOptions';
-
-const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
-    { ssr: false }
-);
 
 dayjs.extend(customParseFormat);
 
@@ -52,12 +43,13 @@ export default function Preview() {
         time_approved: dayjs().format('HH:mm'),
     });
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-201/main";
     const iframeRef = useRef(null);
 
     useEffect(() => {
         if (formData.map_sketch) {
-            setImageUrl(`http://localhost:8000/upload/get-map-sketch/${formData.map_sketch}`);
+            setImageUrl(`${apiUrl}file/get/${formData.map_sketch}`);
         } else {
             setImageUrl(null);
         }
@@ -151,7 +143,7 @@ export default function Preview() {
         const fetchApprovalData = async (ics_201_id) => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-201/approval/read-by-ics-201-id/${ics_201_id}`
+                    `${apiUrl}ics-201/approval/read-by-ics-201-id/${ics_201_id}`
                 );
                 if (response.data.length > 0) {
                     setApprovalData(response.data[0]);
@@ -167,17 +159,17 @@ export default function Preview() {
     }, [id]);
 
     const fetchActionsData = async (ics_201_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
+        const response = await axios.get(`${apiUrl}ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
         return response.data;
     };
 
     const fetchResourcesData = async (ics_201_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
+        const response = await axios.get(`${apiUrl}ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
         return response.data;
     };
 
     const fetchChartData = async (ics_201_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-201/chart/read-by-ics-id/${ics_201_id}`);
+        const response = await axios.get(`${apiUrl}ics-201/chart/read-by-ics-id/${ics_201_id}`);
         return response.data;
     };
 
@@ -185,7 +177,7 @@ export default function Preview() {
         if (filename) {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/upload/get-map-sketch/${filename}`,
+                    `${apiUrl}file/get/${filename}`,
                     { responseType: 'blob' }
                 );
                 return filename;
@@ -209,7 +201,7 @@ export default function Preview() {
             };
 
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-201/approval/create/`,
+                `${apiUrl}ics-201/approval/create/`,
                 payload
             );
 
@@ -240,7 +232,7 @@ export default function Preview() {
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-201/export-docx/${id}`,
+                `${apiUrl}ics-201/export-docx/${id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
@@ -518,21 +510,21 @@ export default function Preview() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>6. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Name: {formData.chartData.incident_commander_id ?
                                                 findNameById(formData.chartData.incident_commander_id, dynamicOptions.incident_commander_id)
                                                 : "N/A"}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Incident Commander
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Signature: {approvalData.is_approved ? '✓' : '✗'}
                                         </div>
-                                        <div style={{ width: '150px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Date: {approvalData.date_approved}
                                         </div>
-                                        <div style={{ width: '150px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Time: {approvalData.time_approved}
                                         </div>
                                     </div>
