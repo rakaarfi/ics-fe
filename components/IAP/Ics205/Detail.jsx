@@ -6,7 +6,6 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import RadioChannel from './RadioChannel';
 import dayjs from 'dayjs';
-import { id } from 'date-fns/locale';
 import { useParams } from 'next/navigation';
 
 export default function Detail() {
@@ -25,6 +24,7 @@ export default function Detail() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-205/main";
 
     useEffect(() => {
@@ -34,13 +34,13 @@ export default function Detail() {
 
             try {
                 // Fetch main data
-                const responseData = await axios.get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`);
+                const responseData = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
                 const mainData = responseData.data;
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationResponse, radioChannelsData] = await Promise.all([
-                    axios.get('http://127.0.0.1:8000/operational-period/read'),
-                    axios.get(`http://127.0.0.1:8000/ics-205/preparation/read-by-ics-205-id/${id}`),
+                    axios.get(`${apiUrl}operational-period/read`),
+                    axios.get(`${apiUrl}ics-205/preparation/read-by-ics-205-id/${id}`),
                     fetchRadioChannelsData(mainData.id),
                 ]);
 
@@ -98,7 +98,7 @@ export default function Detail() {
 
     const fetchRadioChannelsData = async (ics_205_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-205/radio-channel/read-by-ics-id/${ics_205_id}`);
+            const response = await axios.get(`${apiUrl}ics-205/radio-channel/read-by-ics-id/${ics_205_id}`);
             return response.data;
         } catch (err) {
             console.error("Error fetching radio channels:", err);
@@ -120,7 +120,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -203,7 +203,7 @@ export default function Detail() {
 
             // Kalau tidak mau overwrite maka tinggal create saja. tapi dengan fetch data lama
 
-            const response = await axios.put(`http://127.0.0.1:8000/ics-205/main/update/${id}/`, mainPayload);
+            const response = await axios.put(`${apiUrl}ics-205/main/update/${id}/`, mainPayload);
             const ics_205_id = response.data.id;
 
             const now = dayjs();
@@ -215,9 +215,9 @@ export default function Detail() {
                 time_prepared: now.format('HH:mm'),
             };
             if (preparationID) {
-                await axios.put(`http://127.0.0.1:8000/ics-205/preparation/update/${preparationID}/`, preparedPayload);
+                await axios.put(`${apiUrl}ics-205/preparation/update/${preparationID}/`, preparedPayload);
             } else {
-                await axios.post('http://127.0.0.1:8000/ics-205/preparation/create/', preparedPayload);
+                await axios.post(`${apiUrl}ics-205/preparation/create/`, preparedPayload);
             }
 
             // Update radio channels
@@ -225,7 +225,7 @@ export default function Detail() {
 
             // Delete marked radios
             if (formData.idsToDeleteRadioChannels.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-205/radio-channel/delete-many/`, {
+                await axios.delete(`${apiUrl}ics-205/radio-channel/delete-many/`, {
                     data: {
                         ids: formData.idsToDeleteRadioChannels
                     }
@@ -245,7 +245,7 @@ export default function Detail() {
             // Create new Radios (without id)
             const newRadioChannels = radioChannelsData.filter(radio => !radio.id);
             if (newRadioChannels.length > 0) {
-                await axios.post('http://127.0.0.1:8000/ics-205/radio-channel/create/', {
+                await axios.post(`${apiUrl}ics-205/radio-channel/create/`, {
                     datas: newRadioChannels.map(radio => ({
                         ics_205_id: id,
                         ...radio
@@ -257,7 +257,7 @@ export default function Detail() {
             const existingRadioChannels = radioChannelsData.filter(radio => radio.id);
             for (const radio of existingRadioChannels) {
                 await axios.put(
-                    `http://127.0.0.1:8000/ics-205/radio-channel/update/${radio.id}`,
+                    `${apiUrl}ics-205/radio-channel/update/${radio.id}`,
                     { ...radio, ics_205_id: id }
                 );
             }
@@ -269,7 +269,7 @@ export default function Detail() {
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
         } catch (error) {
             console.error('Error fetching incident data:', error);
@@ -283,7 +283,7 @@ export default function Detail() {
 
     const fetchCULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/logistic-section/communication-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}logistic-section/communication-unit-leader/read/`);
             setCULeaderData(response.data);
             console.log("Communication Unit Leader Data:", response.data);
         } catch (error) {
