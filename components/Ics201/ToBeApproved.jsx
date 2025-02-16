@@ -51,13 +51,14 @@ export default function ToBeApproved() {
         date_approved: dayjs().format('YYYY-MM-DD'),
         time_approved: dayjs().format('HH:mm'),
     });
-
+    
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-201/main";
     const iframeRef = useRef(null);
 
     useEffect(() => {
         if (formData.map_sketch) {
-            setImageUrl(`http://localhost:8000/upload/get-map-sketch/${formData.map_sketch}`);
+            setImageUrl(`${apiUrl}file/get/${formData.map_sketch}`);
         } else {
             setImageUrl(null);
         }
@@ -151,7 +152,7 @@ export default function ToBeApproved() {
         const fetchApprovalData = async (ics_201_id) => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-201/approval/read-by-ics-201-id/${ics_201_id}`
+                    `${apiUrl}ics-201/approval/read-by-ics-201-id/${ics_201_id}`
                 );
                 if (response.data.length > 0) {
                     setApprovalData(response.data[0]);
@@ -167,17 +168,17 @@ export default function ToBeApproved() {
     }, [id]);
 
     const fetchActionsData = async (ics_201_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
+        const response = await axios.get(`${apiUrl}ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
         return response.data;
     };
 
     const fetchResourcesData = async (ics_201_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
+        const response = await axios.get(`${apiUrl}ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
         return response.data;
     };
 
     const fetchChartData = async (ics_201_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-201/chart/read-by-ics-id/${ics_201_id}`);
+        const response = await axios.get(`${apiUrl}ics-201/chart/read-by-ics-id/${ics_201_id}`);
         return response.data;
     };
 
@@ -185,7 +186,7 @@ export default function ToBeApproved() {
         if (filename) {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/upload/get-map-sketch/${filename}`,
+                    `${apiUrl}file/get/${filename}`,
                     { responseType: 'blob' }
                 );
                 return filename;
@@ -209,7 +210,7 @@ export default function ToBeApproved() {
             };
 
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-201/approval/create/`,
+                `${apiUrl}ics-201/approval/create/`,
                 payload
             );
 
@@ -471,15 +472,15 @@ export default function ToBeApproved() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>6. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Name: {formData.chartData.incident_commander_id ?
                                                 findNameById(formData.chartData.incident_commander_id, dynamicOptions.incident_commander_id)
                                                 : "N/A"}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Incident Commander
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             <FormControl>
                                                 {/* Checkbox Signature */}
                                                 <FormControlLabel
@@ -497,7 +498,7 @@ export default function ToBeApproved() {
                                                 />
                                             </FormControl>
                                         </div>
-                                        <div style={{ width: '150px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             <TextField
                                                 required
                                                 variant="standard"
@@ -513,7 +514,7 @@ export default function ToBeApproved() {
                                                 }}
                                             />
                                         </div>
-                                        <div style={{ width: '150px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                                 <TimePicker
                                                     ampm={false}
