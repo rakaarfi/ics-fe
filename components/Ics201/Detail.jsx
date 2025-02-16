@@ -43,6 +43,7 @@ export default function Detail() {
     const [incidentData, setIncidentData] = useState([]);
     const [newFile, setNewFile] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-201/main";
 
     useEffect(() => {
@@ -120,17 +121,17 @@ export default function Detail() {
     }, [id]);
 
     const fetchActionsData = async (ics_201_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
+        const response = await axios.get(`${apiUrl}ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
         return response.data;
     };
 
     const fetchResourcesData = async (ics_201_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
+        const response = await axios.get(`${apiUrl}ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
         return response.data;
     };
 
     const fetchChartData = async (ics_201_id) => {
-        const response = await axios.get(`http://127.0.0.1:8000/ics-201/chart/read-by-ics-id/${ics_201_id}`);
+        const response = await axios.get(`${apiUrl}ics-201/chart/read-by-ics-id/${ics_201_id}`);
         return response.data;
     };
 
@@ -138,7 +139,7 @@ export default function Detail() {
         if (filename) {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/upload/get-map-sketch/${filename}`,
+                    `${apiUrl}file/get/${filename}`,
                     { responseType: 'blob' }
                 );
                 return filename;
@@ -161,7 +162,7 @@ export default function Detail() {
 
     const handleFileUpload = async (filename) => {
         try {
-            await axios.put(`http://localhost:8000/ics-201/main/update/${id}`, {
+            await axios.put(`${apiUrl}ics-201/main/update/${id}`, {
                 map_sketch: filename,
             });
 
@@ -284,7 +285,7 @@ export default function Detail() {
             };
 
             // Update main data
-            const response = await axios.put(`http://127.0.0.1:8000/ics-201/main/update/${id}`, formData);
+            const response = await axios.put(`${apiUrl}ics-201/main/update/${id}`, formData);
 
             // Update actions strategies tactics
             if (formData.actionsStrategiesTactics?.length > 0) {
@@ -308,13 +309,13 @@ export default function Detail() {
 
             // Delete marked for deletion
             if (formData.idsToDeleteActions.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-201/actions-strategies-tactics/delete-many/`, {
+                await axios.delete(`${apiUrl}ics-201/actions-strategies-tactics/delete-many/`, {
                     data: { ids: formData.idsToDeleteActions }
                 });
             }
 
             if (formData.idsToDeleteResources.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-201/resource-summary/delete-many/`, {
+                await axios.delete(`${apiUrl}ics-201/resource-summary/delete-many/`, {
                     data: { ids: formData.idsToDeleteResources }
                 });
             }
@@ -343,7 +344,7 @@ export default function Detail() {
                     time_initiated: formatTime(action.time_initiated),
                     actions: action.actions || ''
                 }));
-                await axios.post(`http://127.0.0.1:8000/ics-201/actions-strategies-tactics/create/`, {
+                await axios.post(`${apiUrl}ics-201/actions-strategies-tactics/create/`, {
                     datas: newActionsWithId
                 });
             }
@@ -359,7 +360,7 @@ export default function Detail() {
                     ics_201_id: id
                 };
                 await axios.put(
-                    `http://127.0.0.1:8000/ics-201/actions-strategies-tactics/update/${action.id}`,
+                    `${apiUrl}ics-201/actions-strategies-tactics/update/${action.id}`,
                     updatedAction
                 );
             }
@@ -393,7 +394,7 @@ export default function Detail() {
                     is_arrived: resource.is_arrived || false,
                     notes: resource.notes || ''
                 }));
-                await axios.post(`http://127.0.0.1:8000/ics-201/resource-summary/create/`, {
+                await axios.post(`${apiUrl}ics-201/resource-summary/create/`, {
                     datas: newResourcesWithId
                 });
             }
@@ -414,7 +415,7 @@ export default function Detail() {
                     notes: resource.notes || ''
                 };
                 await axios.put(
-                    `http://127.0.0.1:8000/ics-201/resource-summary/update/${resource.id}`,
+                    `${apiUrl}ics-201/resource-summary/update/${resource.id}`,
                     updatedResource
                 );
             }
@@ -428,10 +429,10 @@ export default function Detail() {
     const updateChart = async (chartData) => {
         if (chartData.id) {
             // Update existing chart
-            await axios.put(`http://127.0.0.1:8000/ics-201/chart/update/${chartData.id}`, chartData);
+            await axios.put(`${apiUrl}ics-201/chart/update/${chartData.id}`, chartData);
         } else {
             // Create new chart
-            await axios.post(`http://127.0.0.1:8000/ics-201/chart/create/`, chartData);
+            await axios.post(`${apiUrl}ics-201/chart/create/`, chartData);
         }
     };
 
@@ -590,11 +591,27 @@ export default function Detail() {
 
                         {/* <!-- Baris untuk Chart --> */}
                         <tr>
-                            <td className="px-4 py-2" colSpan={7}>
-                                <Chart
-                                    chartData={formData.chartData}
-                                    onChange={handleChartDataChange}
-                                />
+                        <td className="px-4 py-2" colSpan={7}>
+                                <div
+                                    className="border border-gray-300 rounded-md p-3"
+                                    style={{
+                                        maxHeight: '800px',
+                                        maxWidth: '1150px',
+                                        overflowX: 'scroll',
+                                        position: 'relative'
+                                    }}
+                                >
+                                    <div style={{
+                                        minWidth: 'max-content',
+                                        paddingLeft: '100px',
+                                        paddingRight: '100px'
+                                    }}>
+                                        <Chart
+                                            chartData={formData.chartData}
+                                            onChange={handleChartDataChange}
+                                        />
+                                    </div>
+                                </div>
                             </td>
                         </tr>
 
