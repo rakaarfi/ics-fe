@@ -18,6 +18,8 @@ export default function Detail() {
     const [formData, setFormData] = useState({});
     const { dynamicOptions, errorDynamicOptions } = useFetchDynamicOptions();
 
+    const apiUrl = 'http://127.0.0.1:8000/'
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -25,7 +27,7 @@ export default function Detail() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://127.0.0.1:8000/roster-table/${id}/`);
+                const response = await axios.get(`${apiUrl}roster-table/${id}/`);
                 setData(response.data);
             } catch (err) {
                 console.error("Error fetching data:", err.message);
