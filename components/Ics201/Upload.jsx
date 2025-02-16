@@ -301,6 +301,7 @@ export default function Upload({ onFileUpload, onDeleteFile, currentFile, id }) 
                     )}
                     {filename && (
                         <button
+                            type="button"
                             onClick={handleRemoveFile}
                             disabled={isLoading}
                             className="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-300"
