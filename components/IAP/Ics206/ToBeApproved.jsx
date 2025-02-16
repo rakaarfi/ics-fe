@@ -7,27 +7,17 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Checkbox, FormControl, FormControlLabel, MenuItem, Select, TableHead } from '@mui/material';
 import FormContainer from '@/components/FormContainer';
-import { set } from 'date-fns';
-
-const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
-    { ssr: false }
-);
 
 dayjs.extend(customParseFormat);
 
 
 export default function ToBeApproved() {
     const { id } = useParams();
-    const [data, setData] = useState(null);
     const [formData, setFormData] = useState({
         operational_period_id: null,
         medicalAidStation: [],
@@ -55,11 +45,12 @@ export default function ToBeApproved() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-206/main";
 
     const fetchMedicalsData = async (ics_206_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-206/medical-aid-station/read-by-ics-id/${ics_206_id}`);
+            const response = await axios.get(`${apiUrl}ics-206/medical-aid-station/read-by-ics-id/${ics_206_id}`);
             console.log("Medical Aid Station Data:", response.data);
             return response.data;
         } catch (error) {
@@ -70,7 +61,7 @@ export default function ToBeApproved() {
 
     const fetchTransportationsData = async (ics_206_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-206/transportation/read-by-ics-id/${ics_206_id}`);
+            const response = await axios.get(`${apiUrl}ics-206/transportation/read-by-ics-id/${ics_206_id}`);
             return response.data;
         } catch (error) {
             console.error("Error fetching transportation data:", error);
@@ -80,7 +71,7 @@ export default function ToBeApproved() {
 
     const fetchHospitalsData = async (ics_206_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-206/hospitals/read-by-ics-id/${ics_206_id}`);
+            const response = await axios.get(`${apiUrl}ics-206/hospitals/read-by-ics-id/${ics_206_id}`);
             return response.data;
         } catch (error) {
             console.error("Error fetching hospital data:", error);
@@ -97,13 +88,13 @@ export default function ToBeApproved() {
             setLoading(true);
             setError(null);
             try {
-                const responseData = await axios.get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`)
+                const responseData = await axios.get(`${apiUrl}${routeUrl}/read/${id}`)
                 const mainData = responseData.data;
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationResponse, medicalsData, transportationsData, hospitalsData] = await Promise.all([
-                    axios.get('http://127.0.0.1:8000/operational-period/read'),
-                    axios.get(`http://127.0.0.1:8000/ics-206/preparation/read-by-ics-206-id/${id}`),
+                    axios.get(`${apiUrl}operational-period/read`),
+                    axios.get(`${apiUrl}ics-206/preparation/read-by-ics-206-id/${id}`),
                     fetchMedicalsData(mainData.id),
                     fetchTransportationsData(mainData.id),
                     fetchHospitalsData(mainData.id),
@@ -176,7 +167,7 @@ export default function ToBeApproved() {
         const fetchPreparationData = async () => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-206/preparation/read-by-ics-206-id/${id}`
+                    `${apiUrl}ics-206/preparation/read-by-ics-206-id/${id}`
                 );
                 if (response.data.length > 0) {
                     setPreparationData(response.data);
@@ -198,7 +189,7 @@ export default function ToBeApproved() {
 
     const fetchMULeader = async (leaderId) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/logistic-section/medical-unit-leader/read/${leaderId}`);
+            const response = await axios.get(`${apiUrl}logistic-section/medical-unit-leader/read/${leaderId}`);
             setMULeaderData(response.data);
         } catch (error) {
             console.error('Error fetching PS Chief data:', error);
@@ -209,7 +200,7 @@ export default function ToBeApproved() {
         const fetchApprovalData = async (ics_206_id) => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-206/approval/read-by-ics-206-id/${ics_206_id}`
+                    `${apiUrl}ics-206/approval/read-by-ics-206-id/${ics_206_id}`
                 );
                 if (response.data.length > 0) {
                     setApprovalData(response.data[0]);
@@ -236,7 +227,7 @@ export default function ToBeApproved() {
                 time_approved: now.format('HH:mm'),
                 is_approved: approvalData.is_approved,
             };
-            const response = await axios.post(`http://127.0.0.1:8000/ics-206/approval/create/`, payload);
+            const response = await axios.post(`${apiUrl}ics-206/approval/create/`, payload);
             console.log('Approval submitted successfully:', response.data);
             alert('Approval submitted successfully!');
         } catch (error) {
@@ -250,7 +241,7 @@ export default function ToBeApproved() {
     useEffect(() => {
         const fetchIncidentData = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+                const response = await axios.get(`${apiUrl}incident-data/read`);
                 setIncidentData(response.data);
             } catch (error) {
                 setError('Failed to fetch incident data');
@@ -274,7 +265,7 @@ export default function ToBeApproved() {
 
     const fetchSafetyOfficer = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/main-section/safety-officer/read/');
+            const response = await axios.get(`${apiUrl}main-section/safety-officer/read/`);
             setSafetyOfficerData(response.data);
         } catch (error) {
             console.error('Error fetching Safety Officer data:', error);
@@ -532,19 +523,19 @@ export default function ToBeApproved() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>8. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             {MULeaderData?.name || 'Unknown'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Medical Unit Leader
                                         </div>
-                                        <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Signature: {isPrepared ? '✓' : '✗'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Date: {preparedDate}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Time: {preparedTime}
                                         </div>
                                     </div>
@@ -562,7 +553,7 @@ export default function ToBeApproved() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>9. Approved by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             <Select
                                                 name='safety_officer_id'
                                                 className="flex-1 block rounded-md px-3 py-1.5 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
@@ -592,10 +583,10 @@ export default function ToBeApproved() {
                                             </Select>
                                         </div>
 
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Safety Officer
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             <FormControl>
                                                 {/* Checkbox Signature */}
                                                 <FormControlLabel
