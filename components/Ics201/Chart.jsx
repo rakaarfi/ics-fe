@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import useFetchDynamicOptions from "../ImtRoster/useFetchDynamicOptions";
 import { boldItems, firstSection, secondSection, thirdSection, planningSection, logisticSection, financeSection } from "./inputChartFields";
 
@@ -70,7 +70,7 @@ const Chart = ({ chartData, onChange, initialData = {} }) => {
                                 <div className="border-t-2 absolute h-8 border-gray-400 top-0"
                                     style={{ left: '50%', right: '135px' }}></div>
                                 <div className="flex justify-center items-center"
-                                    style={{ left: '-12%', right: '100%' }}>
+                                    style={{ left: '0%', right: '100%' }}>
                                     <div className="border-l-2 absolute h-6 border-gray-400 top-0"
                                         style={{ left: '9%', right: '0px' }}></div>
                                     <div className="border-l-2 absolute h-6 border-gray-400 top-0"
