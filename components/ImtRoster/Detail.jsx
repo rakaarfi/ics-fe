@@ -52,11 +52,6 @@ export default function Detail() {
     if (error || errorDynamicOptions) return <p className="text-red-500">{error || errorDynamicOptions}</p>;
     if (!data) return <p>No data found</p>;
 
-    // const findIdByName = (name, options) => {
-    //     const foundOption = options.find(option => option.name === name);
-    //     return foundOption ? foundOption.id : "";
-    // };
-
     return (
         <FormContainer title="Roster Detail" error={error}>
             <RosterForm
