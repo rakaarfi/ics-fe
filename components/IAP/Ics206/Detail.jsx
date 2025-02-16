@@ -32,6 +32,7 @@ export default function Detail() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-206/main";
 
     const handleIncidentChange = (e) => {
@@ -47,7 +48,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -79,13 +80,13 @@ export default function Detail() {
 
             try {
                 // Fetch main data
-                const responseData = await axios.get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`);
+                const responseData = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
                 const mainData = responseData.data;
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationResponse, medicalsData, transportationsData, hospitalsData] = await Promise.all([
-                    axios.get('http://127.0.0.1:8000/operational-period/read'),
-                    axios.get(`http://127.0.0.1:8000/ics-206/preparation/read-by-ics-206-id/${id}`),
+                    axios.get(`${apiUrl}operational-period/read`),
+                    axios.get(`${apiUrl}ics-206/preparation/read-by-ics-206-id/${id}`),
                     fetchMedicalsData(mainData.id),
                     fetchTransportationsData(mainData.id),
                     fetchHospitalsData(mainData.id),
@@ -157,7 +158,7 @@ export default function Detail() {
 
     const fetchMedicalsData = async (ics_206_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-206/medical-aid-station/read-by-ics-id/${ics_206_id}`);
+            const response = await axios.get(`${apiUrl}ics-206/medical-aid-station/read-by-ics-id/${ics_206_id}`);
             return response.data;
         } catch (error) {
             console.error("Error fetching medical aid station data:", error);
@@ -167,7 +168,7 @@ export default function Detail() {
 
     const fetchTransportationsData = async (ics_206_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-206/transportation/read-by-ics-id/${ics_206_id}`);
+            const response = await axios.get(`${apiUrl}ics-206/transportation/read-by-ics-id/${ics_206_id}`);
             return response.data;
         } catch (error) {
             console.error("Error fetching transportation data:", error);
@@ -177,7 +178,7 @@ export default function Detail() {
 
     const fetchHospitalsData = async (ics_206_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-206/hospitals/read-by-ics-id/${ics_206_id}`);
+            const response = await axios.get(`${apiUrl}ics-206/hospitals/read-by-ics-id/${ics_206_id}`);
             return response.data;
         } catch (error) {
             console.error("Error fetching hospital data:", error);
@@ -294,7 +295,7 @@ export default function Detail() {
                 special_medical_procedures: formData.special_medical_procedures,
                 is_utilized: formData.is_utilized,
             };
-            const response = await axios.put(`http://127.0.0.1:8000/ics-206/main/update/${id}`, mainPayload);
+            const response = await axios.put(`${apiUrl}ics-206/main/update/${id}`, mainPayload);
             const ics_206_id = response.data.id;
 
             const now = dayjs();
@@ -306,9 +307,9 @@ export default function Detail() {
                 is_prepared: formData.is_prepared,
             };
             if (preparationID) {
-                await axios.put(`http://127.0.0.1:8000/ics-206/preparation/update/${preparationID}`, preparedPayload);
+                await axios.put(`${apiUrl}ics-206/preparation/update/${preparationID}`, preparedPayload);
             } else {
-                await axios.post(`http://127.0.0.1:8000/ics-206/preparation/create/`, preparedPayload);
+                await axios.post(`${apiUrl}ics-206/preparation/create/`, preparedPayload);
             }
 
             // Update Medicals, Transportations and Hospitals
@@ -318,7 +319,7 @@ export default function Detail() {
 
             // Delete marked Medicals, Transportations and Hospitals
             if (formData.idsToDeleteMedicals.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-206/medical-aid-station/delete-many/`, {
+                await axios.delete(`${apiUrl}ics-206/medical-aid-station/delete-many/`, {
                     data: {
                         ids: formData.idsToDeleteMedicals
                     }
@@ -326,7 +327,7 @@ export default function Detail() {
             }
 
             if (formData.idsToDeleteTransportations.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-206/transportation/delete-many/`, {
+                await axios.delete(`${apiUrl}ics-206/transportation/delete-many/`, {
                     data: {
                         ids: formData.idsToDeleteTransportations
                     }
@@ -334,7 +335,7 @@ export default function Detail() {
             }
 
             if (formData.idsToDeleteHospitals.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-206/hospitals/delete-many/`, {
+                await axios.delete(`${apiUrl}ics-206/hospitals/delete-many/`, {
                     data: {
                         ids: formData.idsToDeleteHospitals
                     }
@@ -353,7 +354,7 @@ export default function Detail() {
             // Create new medicals (tanpa ID)
             const newMedicals = medicalsData.filter(m => !m.id);
             if (newMedicals.length > 0) {
-                await axios.post(`http://127.0.0.1:8000/ics-206/medical-aid-station/create/`, {
+                await axios.post(`${apiUrl}ics-206/medical-aid-station/create/`, {
                     datas: newMedicals.map(m => ({
                         ics_206_id: id,
                         ...m,
@@ -365,7 +366,7 @@ export default function Detail() {
             const existingMedicals = medicalsData.filter(m => m.id);
             for (const medical of existingMedicals) {
                 await axios.put(
-                    `http://127.0.0.1:8000/ics-206/medical-aid-station/update/${medical.id}`,
+                    `${apiUrl}ics-206/medical-aid-station/update/${medical.id}`,
                     medical
                 );
             }
@@ -380,7 +381,7 @@ export default function Detail() {
             // Create new transportations (tanpa ID)
             const newTransportations = transportationsData.filter(t => !t.id);
             if (newTransportations.length > 0) {
-                await axios.post(`http://127.0.0.1:8000/ics-206/transportation/create/`, {
+                await axios.post(`${apiUrl}ics-206/transportation/create/`, {
                     datas: newTransportations.map(t => ({
                         ics_206_id: id,
                         ...t
@@ -392,7 +393,7 @@ export default function Detail() {
             const existingTransportations = transportationsData.filter(t => t.id);
             for (const transportation of existingTransportations) {
                 await axios.put(
-                    `http://127.0.0.1:8000/ics-206/transportation/update/${transportation.id}`,
+                    `${apiUrl}ics-206/transportation/update/${transportation.id}`,
                     transportation
                 );
             }
@@ -407,7 +408,7 @@ export default function Detail() {
             // Create new hospitals (tanpa ID)
             const newHospitals = hospitalsData.filter(h => !h.id);
             if (newHospitals.length > 0) {
-                await axios.post(`http://127.0.0.1:8000/ics-206/hospitals/create/`, {
+                await axios.post(`${apiUrl}ics-206/hospitals/create/`, {
                     datas: newHospitals.map(h => ({
                         ics_206_id: id,
                         ...h
@@ -419,7 +420,7 @@ export default function Detail() {
             const existingHospitals = hospitalsData.filter(h => h.id);
             for (const hospital of existingHospitals) {
                 await axios.put(
-                    `http://127.0.0.1:8000/ics-206/hospitals/update/${hospital.id}`,
+                    `${apiUrl}ics-206/hospitals/update/${hospital.id}`,
                     hospital
                 );
             }
@@ -432,7 +433,7 @@ export default function Detail() {
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
         } catch (error) {
             console.error('Error fetching incident data:', error);
@@ -446,7 +447,7 @@ export default function Detail() {
 
     const fetchMULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/logistic-section/medical-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}logistic-section/medical-unit-leader/read/`);
             setMULeaderData(response.data);
             console.log("Medical Unit Leader Data:", response.data);
         } catch (error) {
