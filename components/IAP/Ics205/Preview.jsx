@@ -2,26 +2,15 @@
 
 import axios from 'axios';
 import dayjs from 'dayjs';
-import dynamic from 'next/dynamic';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { Checkbox, FormControl, FormControlLabel, MenuItem, Select, TableHead } from '@mui/material';
+import { TableHead } from '@mui/material';
 import FormContainer from '@/components/FormContainer';
-import { set } from 'date-fns';
-import { MainSection, PlanningSection, LogisticSection, FinanceSection, OperationSectionList, boldItems } from '@/components/ImtRoster/inputFields';
-
-const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
-    { ssr: false }
-);
 
 dayjs.extend(customParseFormat);
 
@@ -29,7 +18,6 @@ dayjs.extend(customParseFormat);
 export default function Preview({
 }) {
     const { id } = useParams();
-    const [data, setData] = useState(null);
     const [formData, setFormData] = useState({
         operational_period_id: null,
         communication_unit_leader_id: null,
@@ -48,6 +36,7 @@ export default function Preview({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-205/main";
 
     useEffect(() => {
@@ -57,13 +46,13 @@ export default function Preview({
 
             try {
                 // Fetch main data
-                const responseData = await axios.get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`);
+                const responseData = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
                 const mainData = responseData.data;
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationResponse, radioChannelsData] = await Promise.all([
-                    axios.get('http://127.0.0.1:8000/operational-period/read'),
-                    axios.get(`http://127.0.0.1:8000/ics-205/preparation/read-by-ics-205-id/${id}`),
+                    axios.get(`${apiUrl}operational-period/read`),
+                    axios.get(`${apiUrl}ics-205/preparation/read-by-ics-205-id/${id}`),
                     fetchRadioChannelsData(mainData.id),
                 ]);
 
@@ -121,7 +110,7 @@ export default function Preview({
 
     const fetchRadioChannelsData = async (ics_205_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-205/radio-channel/read-by-ics-id/${ics_205_id}`);
+            const response = await axios.get(`${apiUrl}ics-205/radio-channel/read-by-ics-id/${ics_205_id}`);
             return response.data;
         } catch (err) {
             console.error("Error fetching radio channels:", err);
@@ -135,7 +124,7 @@ export default function Preview({
         const fetchPreparationData = async () => {
             try {
                 const response = await axios.get(
-                    `http://127.0.0.1:8000/ics-205/preparation/read-by-ics-205-id/${id}`
+                    `${apiUrl}ics-205/preparation/read-by-ics-205-id/${id}`
                 );
                 if (response.data.length > 0) {
                     setPreparationData(response.data);
@@ -150,7 +139,7 @@ export default function Preview({
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
 
         } catch (error) {
@@ -165,7 +154,7 @@ export default function Preview({
 
     const fetchCULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/logistic-section/communication-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}logistic-section/communication-unit-leader/read/`);
             setCULeaderData(response.data);
             console.log("Communication Unit Leader Data:", response.data);
 
@@ -195,7 +184,7 @@ export default function Preview({
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-205/export-docx/${id}`,
+                `${apiUrl}ics-205/export-docx/${id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
@@ -370,19 +359,19 @@ export default function Preview({
                             <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                 <strong>5. Prepared by:</strong>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                    <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         {CULeaderData.find((CULeader) => CULeader.id === preparationID)?.name || "N/A"}
                                     </div>
-                                    <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         Position: Communication Unit Leader
                                     </div>
-                                    <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         Signature: {isPrepared ? '✓' : '✗'}
                                     </div>
-                                    <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         Prepared Date: {preparedDate}
                                     </div>
-                                    <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                    <div style={{ marginLeft: '5rem' }}>
                                         Prepared Time: {preparedTime}
                                     </div>
                                 </div>
