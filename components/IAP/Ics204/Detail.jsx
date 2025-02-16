@@ -52,6 +52,7 @@ export default function Detail() {
     const [preparationOSChiefID, setPreparationOSChiefID] = useState(null);
     const [preparationRULeaderID, setPreparationRULeaderID] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-204/main";
 
     const handleIncidentChange = (e) => {
@@ -67,7 +68,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -98,15 +99,15 @@ export default function Detail() {
 
             try {
                 // Fetch main data
-                const responseData = await axios.get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`);
+                const responseData = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
                 const mainData = responseData.data;
                 console.log("Main Data:", mainData);
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationOSChiefResponse, preparationRULeaderResponse, personnelsData, equipmentsData] = await Promise.all([
-                    axios.get('http://127.0.0.1:8000/operational-period/read'),
-                    axios.get(`http://127.0.0.1:8000/ics-204/preparation-os-chief/read-by-ics-204-id/${id}`),
-                    axios.get(`http://127.0.0.1:8000/ics-204/preparation-ru-leader/read-by-ics-204-id/${id}`),
+                    axios.get(`${apiUrl}operational-period/read`),
+                    axios.get(`${apiUrl}ics-204/preparation-os-chief/read-by-ics-204-id/${id}`),
+                    axios.get(`${apiUrl}ics-204/preparation-ru-leader/read-by-ics-204-id/${id}`),
                     fetchPersonnelsData(mainData.id),
                     fetchEquipmentsData(mainData.id),
                 ]);
@@ -178,7 +179,7 @@ export default function Detail() {
 
     const fetchPersonnelsData = async (ics_204_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-204/personnel-assigned/read-by-ics-id/${ics_204_id}`);
+            const response = await axios.get(`${apiUrl}ics-204/personnel-assigned/read-by-ics-id/${ics_204_id}`);
             return response.data;
         } catch (error) {
             console.error('Error fetching personnels data:', error);
@@ -188,7 +189,7 @@ export default function Detail() {
 
     const fetchEquipmentsData = async (ics_204_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-204/equipment-assigned/read-by-ics-id/${ics_204_id}`);
+            const response = await axios.get(`${apiUrl}ics-204/equipment-assigned/read-by-ics-id/${ics_204_id}`);
             console.log("Equipments Data:", response.data);
             return response.data;
         } catch (error) {
@@ -320,7 +321,7 @@ export default function Detail() {
                 communication_mode: formData.communication_mode,
                 mobile_phone: formData.mobile_phone,
             };
-            const response = await axios.put(`http://127.0.0.1:8000/ics-204/main/update/${id}`, mainPayload);
+            const response = await axios.put(`${apiUrl}ics-204/main/update/${id}`, mainPayload);
             const ics_204_id = response.data.id;
 
             const now = dayjs();
@@ -334,9 +335,9 @@ export default function Detail() {
                     is_prepared: formData.is_prepared_os_chief,
                 };
                 if (preparationOSChiefID) {
-                    await axios.put(`http://127.0.0.1:8000/ics-204/preparation-os-chief/update/${preparationOSChiefID}`, preparedOSChiefPayload);
+                    await axios.put(`${apiUrl}ics-204/preparation-os-chief/update/${preparationOSChiefID}`, preparedOSChiefPayload);
                 } else {
-                    await axios.post(`http://127.0.0.1:8000/ics-204/preparation-os-chief/create/`, preparedOSChiefPayload);
+                    await axios.post(`${apiUrl}ics-204/preparation-os-chief/create/`, preparedOSChiefPayload);
                 }
             }
 
@@ -350,9 +351,9 @@ export default function Detail() {
                     is_prepared: formData.is_prepared_ru_leader,
                 };
                 if (preparationRULeaderID) {
-                    await axios.put(`http://127.0.0.1:8000/ics-204/preparation-ru-leader/update/${preparationRULeaderID}`, preparedRULeaderPayload);
+                    await axios.put(`${apiUrl}ics-204/preparation-ru-leader/update/${preparationRULeaderID}`, preparedRULeaderPayload);
                 } else {
-                    await axios.post(`http://127.0.0.1:8000/ics-204/preparation-ru-leader/create/`, preparedRULeaderPayload);
+                    await axios.post(`${apiUrl}ics-204/preparation-ru-leader/create/`, preparedRULeaderPayload);
                 }
             }
 
@@ -362,13 +363,13 @@ export default function Detail() {
 
             // Delete marked personnels and equipments
             if (formData.idsToDeletePersonnels.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-204/personnel-assigned/delete-many/`, {
+                await axios.delete(`${apiUrl}ics-204/personnel-assigned/delete-many/`, {
                     data: { ids: formData.idsToDeletePersonnels }
                 });
             }
 
             if (formData.idsToDeleteEquipments.length > 0) {
-                await axios.delete(`http://127.0.0.1:8000/ics-204/equipment-assigned/delete-many/`, {
+                await axios.delete(`${apiUrl}ics-204/equipment-assigned/delete-many/`, {
                     data: { ids: formData.idsToDeleteEquipments }
                 });
             }
@@ -385,7 +386,7 @@ export default function Detail() {
             // Create new personnels (tanpa ID)
             const newPersonnels = personnelsData.filter(p => !p.id);
             if (newPersonnels.length > 0) {
-                await axios.post(`http://127.0.0.1:8000/ics-204/personnel-assigned/create/`, {
+                await axios.post(`${apiUrl}ics-204/personnel-assigned/create/`, {
                     datas: newPersonnels.map(p => ({
                         ics_204_id: id,
                         ...p
@@ -397,7 +398,7 @@ export default function Detail() {
             const existingPersonnels = personnelsData.filter(p => p.id);
             for (const personnel of existingPersonnels) {
                 await axios.put(
-                    `http://127.0.0.1:8000/ics-204/personnel-assigned/update/${personnel.id}`,
+                    `${apiUrl}ics-204/personnel-assigned/update/${personnel.id}`,
                     { ...personnel, ics_204_id: id }
                 );
             }
@@ -412,7 +413,7 @@ export default function Detail() {
             // Create new equipments (tanpa ID)
             const newEquipments = equipmentsData.filter(e => !e.id);
             if (newEquipments.length > 0) {
-                await axios.post(`http://127.0.0.1:8000/ics-204/equipment-assigned/create/`, {
+                await axios.post(`${apiUrl}ics-204/equipment-assigned/create/`, {
                     datas: newEquipments.map(e => ({
                         ics_204_id: id,
                         ...e
@@ -424,7 +425,7 @@ export default function Detail() {
             const existingEquipments = equipmentsData.filter(e => e.id);
             for (const equipment of existingEquipments) {
                 await axios.put(
-                    `http://127.0.0.1:8000/ics-204/equipment-assigned/update/${equipment.id}`,
+                    `${apiUrl}ics-204/equipment-assigned/update/${equipment.id}`,
                     { ...equipment, ics_204_id: id }
                 );
             }
@@ -436,7 +437,7 @@ export default function Detail() {
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
 
         } catch (error) {
@@ -451,7 +452,7 @@ export default function Detail() {
 
     const fetchRULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/planning-section/resources-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
             setRULeaderData(response.data);
             // console.log("Resources Unit Leader Data:", response.data);
         } catch (error) {
@@ -466,7 +467,7 @@ export default function Detail() {
 
     const fetchOSChief = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/main-section/operation-section-chief/read/');
+            const response = await axios.get(`${apiUrl}main-section/operation-section-chief/read/`);
             setOSChiefData(response.data);
             // console.log("Operation Section Chief Data:", response.data);
         } catch (error) {
