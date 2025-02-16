@@ -30,6 +30,8 @@ export default function Input() {
     const [CULeaderData, setCULeaderData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    
+    const apiUrl = 'http://127.0.0.1:8000/'
 
     const handleIncidentChange = (e) => {
         const incident_id = parseInt(e.target.value, 10);
@@ -44,7 +46,7 @@ export default function Input() {
             operational_period_id: "",
         }));
 
-        axios.get(`http://127.0.0.1:8000/operational-period/read-by-incident/${incident_id}`)
+        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -117,7 +119,7 @@ export default function Input() {
                 special_instructions: formData.special_instructions,
             };
 
-            const response = await axios.post('http://127.0.0.1:8000/ics-205/main/create/', mainPayload);
+            const response = await axios.post(`${apiUrl}ics-205/main/create/`, mainPayload);
             const ics_205_id = response.data.id;
 
             const now = dayjs();
@@ -129,7 +131,7 @@ export default function Input() {
                 time_prepared: now.format('HH:mm'),
             };
 
-            await axios.post('http://127.0.0.1:8000/ics-205/preparation/create/', preparedPayload);
+            await axios.post(`${apiUrl}ics-205/preparation/create/`, preparedPayload);
 
             const radioChannelPayloads = {
                 datas: formData.radioChannel.map((row) => ({
@@ -144,7 +146,7 @@ export default function Input() {
                     remarks: row.remarks
                 }))
             }
-            await axios.post('http://127.0.0.1:8000/ics-205/radio-channel/create/', radioChannelPayloads);
+            await axios.post(`${apiUrl}ics-205/radio-channel/create/`, radioChannelPayloads);
 
             console.log('Data submitted successfully:', response.data);
             alert('Data submitted successfully');
@@ -156,7 +158,7 @@ export default function Input() {
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
         } catch (error) {
             console.error('Error fetching incident data:', error);
@@ -170,7 +172,7 @@ export default function Input() {
 
     const fetchCULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/logistic-section/communication-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}logistic-section/communication-unit-leader/read/`);
             setCULeaderData(response.data);
             console.log("Communication Unit Leader Data:", response.data);
         } catch (error) {
