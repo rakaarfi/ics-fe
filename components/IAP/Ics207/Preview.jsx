@@ -1,19 +1,13 @@
 'use client';
 
 import axios from 'axios';
-import dayjs from 'dayjs';
-import dynamic from 'next/dynamic';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import React, { useEffect, useRef, useState } from 'react';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
 import FormContainer from '@/components/FormContainer';
 
-const TimePicker = dynamic(() => import('@mui/x-date-pickers').then((mod) => mod.TimePicker), { ssr: false });
-
-dayjs.extend(customParseFormat);
 
 export default function Preview() {
     const [ICS203Data, setICS203Data] = useState([]);
@@ -24,15 +18,16 @@ export default function Preview() {
     const [RULeaderData, setRULeaderData] = useState([]);
     const iframeRef = useRef(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-203/main";
 
     useEffect(() => {
         const fetchICS203Data = async () => {
             try {
-                const response = await axios.get(`http://127.0.0.1:8000/${routeUrl}/read/`);
+                const response = await axios.get(`${apiUrl}${routeUrl}/read/`);
                 const ics203List = await Promise.all(response.data.map(async (item) => {
-                    const operationalPeriodResponse = await axios.get(`http://127.0.0.1:8000/operational-period/read/${item.operational_period_id}`);
-                    const incidentResponse = await axios.get(`http://127.0.0.1:8000/incident-data/read/${operationalPeriodResponse.data.incident_id}`);
+                    const operationalPeriodResponse = await axios.get(`${apiUrl}operational-period/read/${item.operational_period_id}`);
+                    const incidentResponse = await axios.get(`${apiUrl}incident-data/read/${operationalPeriodResponse.data.incident_id}`);
                     return {
                         id: item.id,
                         operational_period_id: item.operational_period_id,
@@ -81,7 +76,7 @@ export default function Preview() {
     useEffect(() => {
         const fetchRULeader = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/planning-section/resources-unit-leader/read/');
+                const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
                 setRULeaderData(response.data);
             } catch (error) {
                 console.error('Error fetching Resources Unit Leader data:', error);
@@ -99,7 +94,7 @@ export default function Preview() {
             if (!selectedItem) return;
             setSelectedICS203(selectedItem);
 
-            const preparationResponse = await axios.get(`http://127.0.0.1:8000/ics-203/preparation/read-by-ics-203-id/${ics203Id}`);
+            const preparationResponse = await axios.get(`${apiUrl}ics-203/preparation/read-by-ics-203-id/${ics203Id}`);
             setPreparationData(preparationResponse.data.length > 0 ? preparationResponse.data[0] : null);
 
             setChartData(selectedItem);
@@ -130,7 +125,7 @@ export default function Preview() {
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-207/export-docx/${selectedICS203Id}`,
+                `${apiUrl}ics-207/export-docx/${selectedICS203Id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
@@ -269,19 +264,19 @@ export default function Preview() {
                                 <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                     <strong>4. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             {RULeaderData.find((RULeader) => RULeader.id === preparationData?.resources_unit_leader_id)?.name || "N/A"}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Position: Resources Unit Leader
                                         </div>
-                                        <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Signature: {preparationData?.is_prepared ? '✓' : '✗'}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Date: {preparationData?.date_prepared || "-"}
                                         </div>
-                                        <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                        <div style={{ marginLeft: '5rem' }}>
                                             Prepared Time: {preparationData?.time_prepared || "-"}
                                         </div>
                                     </div>
