@@ -7,10 +7,10 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import FormContainer from '@/components/FormContainer';
-import { Checkbox, FormControl, FormControlLabel, MenuItem, Select, TableHead, InputLabel, TextField } from '@mui/material';
+import { TableHead } from '@mui/material';
 
 dayjs.extend(customParseFormat);
 
@@ -64,6 +64,7 @@ export default function Preview({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-204/main";
 
     useEffect(() => {
@@ -73,14 +74,14 @@ export default function Preview({
 
             try {
                 // Fetch main data
-                const responseData = await axios.get(`http://127.0.0.1:8000/${routeUrl}/read/${id}`);
+                const responseData = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
                 const mainData = responseData.data;
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationOSChiefResponse, preparationRULeaderResponse, personnelsData, equipmentsData] = await Promise.all([
-                    axios.get('http://127.0.0.1:8000/operational-period/read'),
-                    axios.get(`http://127.0.0.1:8000/ics-204/preparation-os-chief/read-by-ics-204-id/${id}`),
-                    axios.get(`http://127.0.0.1:8000/ics-204/preparation-ru-leader/read-by-ics-204-id/${id}`),
+                    axios.get(`${apiUrl}operational-period/read`),
+                    axios.get(`${apiUrl}ics-204/preparation-os-chief/read-by-ics-204-id/${id}`),
+                    axios.get(`${apiUrl}ics-204/preparation-ru-leader/read-by-ics-204-id/${id}`),
                     fetchPersonnelsData(mainData.id),
                     fetchEquipmentsData(mainData.id),
                 ]);
@@ -158,7 +159,7 @@ export default function Preview({
 
     const fetchPersonnelsData = async (ics_204_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-204/personnel-assigned/read-by-ics-id/${ics_204_id}`);
+            const response = await axios.get(`${apiUrl}ics-204/personnel-assigned/read-by-ics-id/${ics_204_id}`);
             return response.data;
         } catch (error) {
             console.error('Error fetching personnels data:', error);
@@ -168,7 +169,7 @@ export default function Preview({
 
     const fetchEquipmentsData = async (ics_204_id) => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/ics-204/equipment-assigned/read-by-ics-id/${ics_204_id}`);
+            const response = await axios.get(`${apiUrl}ics-204/equipment-assigned/read-by-ics-id/${ics_204_id}`);
             console.log("Equipments Data:", response.data);
             return response.data;
         } catch (error) {
@@ -179,7 +180,7 @@ export default function Preview({
 
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/incident-data/read');
+            const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
 
         } catch (error) {
@@ -194,7 +195,7 @@ export default function Preview({
 
     const fetchRULeader = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/planning-section/resources-unit-leader/read/');
+            const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
             setRULeaderData(response.data);
             // console.log("Resources Unit Leader Data:", response.data);
         } catch (error) {
@@ -209,7 +210,7 @@ export default function Preview({
 
     const fetchOSChief = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/main-section/operation-section-chief/read/');
+            const response = await axios.get(`${apiUrl}main-section/operation-section-chief/read/`);
             setOSChiefData(response.data);
             // console.log("Operation Section Chief Data:", response.data);
         } catch (error) {
@@ -244,7 +245,7 @@ export default function Preview({
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/ics-204/export-docx/${id}`,
+                `${apiUrl}ics-204/export-docx/${id}`,
                 {},
                 {
                     responseType: 'blob', // Penting untuk menangani file biner
@@ -659,19 +660,19 @@ export default function Preview({
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     {preparedByRULeader && (
                                         <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                            <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 {preparedByRULeader.name || "N/A"}
                                             </div>
-                                            <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 Position: Resources Unit Leader
                                             </div>
-                                            <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 Signature: {isPreparedRULeader}
                                             </div>
-                                            <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 Prepared Date: {preparedDateRULeader}
                                             </div>
-                                            <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 Prepared Time: {preparedTimeRULeader}
                                             </div>
                                         </div>
@@ -679,19 +680,19 @@ export default function Preview({
 
                                     {preparedByOSChief && (
                                         <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                            <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 {preparedByOSChief.name || "N/A"}
                                             </div>
-                                            <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 Position: Operation Section Chief
                                             </div>
-                                            <div style={{ width: '100px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 Signature: {isPreparedOSChief}
                                             </div>
-                                            <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 Prepared Date: {preparedDateOSChief}
                                             </div>
-                                            <div style={{ width: '300px', marginLeft: '1rem' }}>
+                                            <div style={{ marginLeft: '5rem' }}>
                                                 Prepared Time: {preparedTimeOSChief}
                                             </div>
                                         </div>
