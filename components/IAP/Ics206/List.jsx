@@ -10,7 +10,6 @@ import { ButtonDelete, ButtonDetail, ButtonPreview, InputButton } from '@/compon
 import { SearchQuery } from '@/components/SearchQuery';
 import TableHeader from './TableHeader';
 import Pagination from '@/components/Pagination';
-import MedicalAidStations from './MedicalAidStations';
 import axios from 'axios';
 
 dayjs.extend(customParseFormat);
@@ -36,7 +35,8 @@ export default function List() {
         key: null,
         direction: 'asc'
     });
-
+    
+    const apiUrl = 'http://127.0.0.1:8000/'
     const routeUrl = "ics-206/main";
     const responseKey = "read-paginated";
 
@@ -69,7 +69,7 @@ export default function List() {
 
     const medicalAidStations = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/ics-206/medical-aid-station/read/');
+            const response = await axios.get(`${apiUrl}ics-206/medical-aid-station/read/`);
             setMedicalAidStationsData(response.data);
         } catch (error) {
             console.error('Error fetching operation section chief data:', error);
@@ -78,7 +78,7 @@ export default function List() {
 
     const transportations = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/ics-206/transportation/read/');
+            const response = await axios.get(`${apiUrl}ics-206/transportation/read/`);
             setTransportationsData(response.data);
             console.log("Transportation Data:", response.data);
         } catch (error) {
@@ -88,7 +88,7 @@ export default function List() {
 
     const hospitals = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/ics-206/hospitals/read/');
+            const response = await axios.get(`${apiUrl}ics-206/hospitals/read/`);
             setHospitalsData(response.data);
         } catch (error) {
             console.error('Error fetching operation section chief data:', error);
