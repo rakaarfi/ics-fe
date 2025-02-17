@@ -2,8 +2,9 @@
 
 import axios from "axios";
 import { useState, useRef, useEffect } from "react";
+import { CloudUpload } from "lucide-react"
 
-export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, id }) {
+export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, titleName = 'Upload File', disabled = false }) {
     const [file, setFile] = useState(null);
     const [uploadStatus, setUploadStatus] = useState("");
     const [filename, setFilename] = useState(currentFile || "");
@@ -11,18 +12,22 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, id
     const [isLoading, setIsLoading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [error, setError] = useState("");
-
-    const apiUrl = 'http://127.0.0.1:8000/'
+    const [fileType, setFileType] = useState(null);
 
     const [timestamp, setTimestamp] = useState(null);
+    const apiUrl = 'http://127.0.0.1:8000/';
+    const fileInputRef = useRef(null);
+
+    const handleClick = () => {
+        if (!disabled && fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
 
     useEffect(() => {
         setTimestamp(Date.now()); // Hanya dijalankan di client
     }, []);
 
-    const fileInputRef = useRef(null);
-
-    // Bersihkan URL objek saat komponen di-unmount atau file berubah
     useEffect(() => {
         return () => {
             if (fileUrl && fileUrl.startsWith("blob:")) {
@@ -31,17 +36,23 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, id
         };
     }, [fileUrl]);
 
-    // Jika ada currentFile, set fileUrl untuk menampilkan preview dari server
     useEffect(() => {
+        console.log("Current file received in UploadFile:", currentFile);
         if (currentFile) {
             setFilename(currentFile);
             setFileUrl(`${apiUrl}file/get/${currentFile}`);
+            // setFileUrl(currentFile);
+
+            // Determine file type from the filename extension
+            const extension = currentFile.split('.').pop().toLowerCase();
+            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension);
+            setFileType(isImage ? 'image' : 'document');
         } else {
-            setFileUrl(null); // Set fileUrl ke null jika tidak ada currentFile
+            setFileUrl(null);
+            setFileType(null);
         }
     }, [currentFile]);
 
-    // Fungsi untuk mengunggah file
     const handleUpload = async () => {
         if (!file) {
             setError("Pilih file terlebih dahulu!");
@@ -51,33 +62,29 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, id
         setIsLoading(true);
         setError("");
 
-        // Modifikasi nama file dengan menambahkan timestamp
         const originalName = file.name;
-        const fileExtension = originalName.split('.').pop(); // Ambil ekstensi file
-        const fileNameWithoutExtension = originalName.slice(0, originalName.lastIndexOf('.')); // Ambil nama file tanpa ekstensi
-        const modifiedFileName = `${fileNameWithoutExtension}_${timestamp}.${fileExtension}`; // Nama file baru
+        const fileExtension = originalName.split('.').pop();
+        const fileNameWithoutExtension = originalName.slice(0, originalName.lastIndexOf('.'));
+        const modifiedFileName = `${fileNameWithoutExtension}_${timestamp}.${fileExtension}`;
 
-        // Buat objek File baru dengan nama yang sudah dimodifikasi
         const modifiedFile = new File([file], modifiedFileName, { type: file.type });
 
         const formData = new FormData();
-        formData.append("file", modifiedFile); // Gunakan file dengan nama yang sudah dimodifikasi
+        formData.append("file", modifiedFile);
 
         try {
-            const response = await axios.post(
-                `${apiUrl}file/upload/`,
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
+            const response = await axios.post(`${apiUrl}file/upload/`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+                    console.log(`Upload progress: ${percentCompleted}%`);
+                },
+            });
 
             if (response.status === 200) {
                 setUploadStatus("File berhasil diunggah!");
                 setFilename(response.data.filename);
-                setFileUrl(URL.createObjectURL(file)); // Tampilkan preview file
+                setFileUrl(URL.createObjectURL(file));
                 onFileUpload(response.data.filename);
             } else {
                 setUploadStatus("Gagal mengunggah file.");
@@ -90,7 +97,6 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, id
         }
     };
 
-    // Fungsi untuk menghapus file yang sudah diunggah
     const handleRemoveFile = async () => {
         if (!filename) {
             setError("Tidak ada file yang diunggah.");
@@ -102,10 +108,11 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, id
             if (response.status === 200) {
                 setFile(null);
                 setFilename("");
-                setFileUrl(null); // Set fileUrl ke null setelah file dihapus
+                setFileUrl(null);
+                setFileType(null);
                 setUploadStatus("");
-                onFileUpload(""); // Reset nama file di parent component
-                onDeleteFile(); // Beritahu parent component bahwa file dihapus
+                onFileUpload("");
+                onDeleteFile();
             } else {
                 setError("Gagal menghapus file.");
             }
@@ -115,69 +122,26 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, id
         }
     };
 
-    // Fungsi untuk membatalkan upload
     const handleCancel = () => {
         setFile(null);
         setUploadStatus("");
-        setFileUrl(null); // Set fileUrl ke null saat upload dibatalkan
+        setFileUrl(null); // Set imageUrl ke null saat upload dibatalkan
+        setFileType(null);
         setError("");
         if (fileInputRef.current) {
             fileInputRef.current.value = ""; // Reset input file
         }
     };
 
-    // Fungsi untuk memeriksa file yang diunggah
-    const handleCheckFile = async () => {
-        if (!filename) {
-            setError("Belum ada file yang diunggah!");
-            return;
-        }
-
-        setIsLoading(true);
-        setError("");
-
-        try {
-            const response = await axios.get(
-                `${apiUrl}file/get/${filename}`,
-                { responseType: "blob" }
-            );
-
-            if (response.status === 200) {
-                const url = URL.createObjectURL(response.data);
-                setFileUrl(url);
-            } else {
-                setError("File tidak ditemukan.");
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            setError("Terjadi kesalahan saat memeriksa file.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Fungsi untuk menangani perubahan file
     const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        if (selectedFile && (
-            selectedFile.type === "image/jpeg" ||
-            selectedFile.type === "image/png" ||
-            selectedFile.type === "application/pdf" ||
-            selectedFile.type === "application/msword" ||
-            selectedFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-            selectedFile.type === "application/vnd.ms-powerpoint" ||
-            selectedFile.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
-            selectedFile.type === "application/vnd.ms-excel" ||
-            selectedFile.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )) {
-            setFile(selectedFile);
-            setError("");
-        } else {
-            setError("Hanya file JPG, JPEG, PNG, PDF, DOC, DOCX, PPT, PPTX, XLS, atau XLSX yang diizinkan.");
+        if (fileUrl && fileUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(fileUrl);
         }
+
+        const selectedFile = e.target.files[0];
+        processFile(selectedFile);
     };
 
-    // Fungsi untuk menangani drag-and-drop
     const handleDragEnter = (e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -197,149 +161,140 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, id
         e.preventDefault();
         setIsDragging(false);
 
+        if (fileUrl && fileUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(fileUrl);
+        }
+
         const droppedFile = e.dataTransfer.files[0];
-        if (droppedFile && (
-            droppedFile.type === "image/jpeg" || 
-            droppedFile.type === "image/png" || 
-            droppedFile.type === "application/pdf" || 
-            droppedFile.type === "application/msword" || 
-            droppedFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
-            droppedFile.type === "application/vnd.ms-powerpoint" || 
-            droppedFile.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" || 
-            droppedFile.type === "application/vnd.ms-excel" || 
-            droppedFile.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )) {
-            setFile(droppedFile);
-            setError("");
-        } else {
-            setError("Hanya file JPG, JPEG, PNG, PDF, DOC, DOCX, PPT, PPTX, XLS, atau XLSX yang diizinkan.");
+        processFile(droppedFile);
+    };
+
+    const processFile = (selectedFile) => {
+        if (selectedFile) {
+            const allowedTypes = [
+                "image/jpeg", "image/png", "image/gif", "image/svg+xml",
+                "application/pdf",
+                "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            ];
+            const isValidType = allowedTypes.includes(selectedFile.type);
+            const isSizeAllowed = selectedFile.size <= 10 * 1024 * 1024; // Maksimal 10MB
+
+            if (!isValidType) {
+                setError("Jenis file tidak didukung.");
+            } else if (!isSizeAllowed) {
+                setError("Ukuran file maksimal 10MB.");
+            } else {
+                setFile(selectedFile);
+                setFileUrl(URL.createObjectURL(selectedFile));
+                setFileType(selectedFile.type.split('/')[0]); // 'image' or 'application'
+                setError("");
+            }
         }
     };
 
     return (
         <div className="p-4 max-w-md mx-auto">
-            <h1 className="text-2xl font-bold mb-4">Upload Map/Sketch</h1>
+            <h1 className="text-2xl font-bold mb-4">{titleName}</h1>
 
-            {/* Form untuk memilih file */}
-            <div className="space-y-4">
-                {/* Dropzone Area */}
-                <div
-                    className={`flex items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-gray-50"
-                        } ${error && "border-red-500 bg-red-50"}`}
-                    onDragEnter={handleDragEnter}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => {
-                        if (fileInputRef.current) {
-                            fileInputRef.current.click();
-                        }
-                    }}
-                >
-                    {/* Tampilkan <label> hanya jika file belum dimasukkan */}
-                    {!file && !filename && (
+            {/* Drag & Drop Area */}
+            <div
+                role="button"
+                tabIndex={0}
+                className={`flex items-center justify-center w-full border-2 rounded-lg cursor-pointer transition-all
+                    ${isDragging ? "border-blue-500 bg-blue-100" : "border-gray-300 bg-gray-50"}
+                    ${error && "border-red-500 bg-red-50"}`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={handleClick}
+                onKeyDown={(e) => {
+                    if (!disabled && (e.key === "Enter" || e.key === " ")) {
+                        fileInputRef.current?.click();
+                    }
+                }}
+            >
+                {!file && !filename ? (
+                    <>
                         <label
                             htmlFor="dropzone-file"
                             className="flex flex-col items-center justify-center w-full h-full cursor-pointer"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg
-                                    className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 20 16"
-                                >
-                                    <path
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                                    />
-                                </svg>
-                                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                                    <span className="font-semibold">Click to upload</span> or drag and drop
+                                <CloudUpload size={30} className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" />
+                                <p className={`text-sm ${disabled ? "text-red-500" : "text-gray-500"}`}>
+                                    {disabled ? "Checkbox must be checked" : "Click to upload or drag and drop"}
                                 </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">JPG, JPEG, PNG, PDF, DOC, DOCX, PPT, PPTX, XLS, atau XLSX</p>
+                                {isDragging && <p className="mt-2 text-blue-600">Release the file here</p>}
                             </div>
                         </label>
-                    )}
-
-                    {/* Tampilkan pesan jika file sudah dimasukkan */}
-                    {(file || filename) && (
-                        <p className="text-sm text-gray-500">
-                            File sudah dipilih. Klik di sini untuk mengganti file.
-                        </p>
-                    )}
-                </div>
-
-                {/* Input file (tetap ada, tetapi tersembunyi) */}
-                <input
-                    id="dropzone-file"
-                    type="file"
-                    className="hidden"
-                    onChange={handleFileChange}
-                    ref={fileInputRef}
-                    accept=".doc,.docx,.pdf,.txt,.xlsx,.xls"
-                />
-
-                {/* Preview Gambar */}
-                {fileUrl && (
-                    <img
-                        src={fileUrl}
-                        alt="Uploaded"
-                        className="max-w-full h-auto rounded-lg shadow-md"
-                    />
+                    </>
+                ) : (
+                    <p className="text-gray-500 text-sm">File selected. Click to change.</p>
                 )}
+            </div>
+            <input
+                id="dropzone-file"
+                type="file"
+                className="hidden"
+                onChange={(e) => !disabled && handleFileChange(e)}
+                ref={fileInputRef}
+                accept=".jpg,.jpeg,.png,.gif,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                disabled={disabled}
+            />
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">DOC, PDF, XLS, XLSX.</p>
 
-                {/* Tombol Upload dan Cancel */}
-                <div className="flex gap-2">
-                    {!filename && (
-                        <>
-                            <button
-                                onClick={handleUpload}
-                                disabled={isLoading || !file}
-                                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
-                            >
-                                {isLoading ? "Mengunggah..." : "Upload File"}
-                            </button>
-                            <button
-                                onClick={handleCancel}
-                                disabled={isLoading || !file}
-                                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-300"
-                            >
-                                Cancel
-                            </button>
-                        </>
+            {fileUrl && (
+                <div className="mt-4">
+                    {/* Check the file type and display accordingly */}
+                    {(file?.type?.includes("image") || fileType === 'image') ? (
+                        <img src={fileUrl} alt="Preview" className="max-w-full h-auto rounded-lg shadow-md" />
+                    ) : (
+                        <p className="text-sm text-gray-500">📄 {file?.name || filename}</p>
                     )}
-                    {filename && (
+
+                    {/* File info */}
+                    <div className="text-sm text-gray-500 mt-2">
+                        <p>File Name: {file?.name || filename}</p>
+                    </div>
+                </div>
+            )}
+
+
+            <div className="flex gap-2 mt-4">
+                {!filename && (
+                    <>
                         <button
-                            onClick={handleRemoveFile}
-                            disabled={isLoading}
+                            onClick={handleUpload}
+                            disabled={isLoading || !file}
+                            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+                        >
+                            {isLoading ? "Uploading..." : "Upload File"}
+                        </button>
+                        <button
+                            onClick={handleCancel}
+                            disabled={isLoading || !file}
                             className="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-red-300"
                         >
-                            Hapus File
+                            Cancel
                         </button>
-                    )}
-                </div>
+                    </>
+                )}
+                {filename && (
+                    <button
+                        onClick={handleRemoveFile}
+                        className="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    >
+                        Delete File
+                    </button>
+                )}
             </div>
 
-            {/* Status upload */}
-            {uploadStatus && (
-                <p className={`mt-4 text-sm ${uploadStatus.includes("berhasil") ? "text-green-600" : "text-red-600"}`}>
-                    {uploadStatus}
-                </p>
-            )}
-
-            {/* Pesan error */}
-            {error && (
-                <p className="mt-4 text-sm text-red-600">
-                    {error}
-                </p>
-            )}
-
+            {uploadStatus && <p className="mt-4 text-sm text-green-600">{uploadStatus}</p>}
+            {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
         </div>
     );
 }

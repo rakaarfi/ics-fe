@@ -139,9 +139,15 @@ export default function Detail() {
         if (filename) {
             try {
                 const response = await axios.get(
-                    `${apiUrl}file/get/${filename}`,
-                    { responseType: 'blob' }
+                    `http://localhost:8000/file/get/${filename}`, {
+                    responseType: 'blob',
+                    headers: {
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
                 );
+                console.log('map sketch data', response);
+
                 return filename;
             } catch (error) {
                 console.error('Error fetching map sketch:', error);
@@ -591,7 +597,7 @@ export default function Detail() {
 
                         {/* <!-- Baris untuk Chart --> */}
                         <tr>
-                        <td className="px-4 py-2" colSpan={7}>
+                            <td className="px-4 py-2" colSpan={7}>
                                 <div
                                     className="border border-gray-300 rounded-md p-3"
                                     style={{

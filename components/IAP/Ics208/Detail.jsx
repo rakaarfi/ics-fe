@@ -6,6 +6,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import dayjs from 'dayjs';
 import { useParams } from 'next/navigation';
+import UploadFile from '@/components/UploadFile';
 
 
 export default function Detail() {
@@ -30,9 +31,18 @@ export default function Detail() {
         // Ambil data detail
         axios
             .get(`${apiUrl}${routeUrl}/read/${id}`)
-            .then((response) => {
+            .then(async (response) => {
                 setFormData(response.data);
                 operationalPeriodId = response.data.operational_period_id;
+
+                // Ambil data file jika ada
+                if (response.data.site_safety_plan) {
+                    const fileData = await fetchFileData(response.data.site_safety_plan);
+                    setFormData(prevFormData => ({
+                        ...prevFormData,
+                        site_safety_plan: fileData
+                    }))
+                }
 
                 return axios.get(`${apiUrl}operational-period/read`);
             })
@@ -79,6 +89,49 @@ export default function Detail() {
         }
 
     }, [id]);
+
+    const handleFileUpload = async (filename) => {
+        try {
+            await axios.put(`${apiUrl}ics-208/main/update/${id}`, {
+                site_safety_plan: filename,
+            });
+
+            setFormData(prevData => ({
+                ...prevData,
+                site_safety_plan: filename,
+            }));
+        } catch (error) {
+            console.error('Error updating site safety plan:', error);
+        }
+    };
+
+    const handleDeleteFile = async () => {
+        setFormData(prevData => ({
+            ...prevData,
+            site_safety_plan: null,
+        }));
+    };
+
+    const fetchFileData = async (filename) => {
+        if (filename) {
+            try {
+                const response = await axios.get(
+                    `http://localhost:8000/file/get/${filename}`, {
+                    responseType: 'blob',
+                    headers: {
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+                );
+                return filename;
+            } catch (error) {
+                console.error('Error fetching map sketch:', error);
+                return null;
+            }
+        }
+        return null;
+    };
+
 
     const handleIncidentChange = (e) => {
         const incident_id = parseInt(e.target.value, 10);
@@ -168,7 +221,6 @@ export default function Detail() {
         try {
             const response = await axios.get(`${apiUrl}incident-data/read`);
             setIncidentData(response.data);
-            console.log("Incident Data:", response.data);
 
         } catch (error) {
             console.error('Error fetching incident data:', error);
@@ -184,7 +236,6 @@ export default function Detail() {
         try {
             const response = await axios.get(`${apiUrl}main-section/safety-officer/read/`);
             setSafetyOfficerData(response.data);
-            console.log("Planning Section Chief Data:", response.data);
         } catch (error) {
             console.error('Error fetching Planning Section Chief data:', error);
             setError('Failed to fetch Planning Section Chief data');
@@ -267,20 +318,22 @@ export default function Detail() {
                                     checked={formData.is_required || false}
                                 />
                             </td>
-                            <td className="px-4 pt-4">
-                                <span className="font-bold">
-                                    Site Safety Plan
-                                </span>
-                                <textarea
-                                    name='site_safety_plan'
-                                    className="w-full px-3 py-2 border rounded-md"
-                                    onChange={handleChange}
-                                    value={formData.site_safety_plan}
-                                    rows="3"
+                        </tr>
+
+                        <tr>
+                            <td className="px-4 py-2" colSpan={7}>
+                                <UploadFile
+                                    onFileUpload={handleFileUpload}
+                                    titleName='Upload Site Safety Plan'
+                                    currentFile={formData.site_safety_plan}
+                                    onDeleteFile={handleDeleteFile}
                                     disabled={!formData.is_required}
-                                >
-                                </textarea>
+                                    id={id}
+                                />
                             </td>
+                        </tr>
+
+                        <tr>
                             <td className="px-4 pt-4">
                                 <span className="font-bold">
                                     Additional Safety Message(s)

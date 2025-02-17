@@ -1,6 +1,7 @@
 'use client'
 
 import axios from "axios";
+import { CloudUpload } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, id }) {
@@ -33,6 +34,8 @@ export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, i
 
     // Jika ada currentFile, set imageUrl untuk menampilkan preview dari server
     useEffect(() => {
+        console.log("Current file received in UploadFile:", currentFile);
+
         if (currentFile) {
             setFilename(currentFile);
             setImageUrl(`${apiUrl}file/get/${currentFile}`);
@@ -220,7 +223,7 @@ export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, i
         if (droppedFile) {
             const isValidType = ["image/jpeg", "image/png"].includes(droppedFile.type);
             const isSizeAllowed = droppedFile.size <= 5 * 1024 * 1024; // Maksimal 5MB
-    
+
             if (!isValidType) {
                 setError("Only JPG, JPEG, or PNG files are allowed.");
             } else if (!isSizeAllowed) {
@@ -268,25 +271,10 @@ export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, i
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg
-                                    className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 20 16"
-                                >
-                                    <path
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                                    />
-                                </svg>
+                                <CloudUpload size={30} className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" />
                                 <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
                                     <span className="font-semibold">Click to upload</span> or drag and drop
                                 </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG or JPEG</p>
                                 {isDragging && <p className="mt-2 text-blue-600">Release the file here</p>}
                             </div>
                         </label>
@@ -305,7 +293,8 @@ export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, i
                     ref={fileInputRef}
                     accept="image/jpg,image/jpeg,image/png"
                 />
-
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">PNG, JPG or JPEG (MAX.5MB).</p>
+                
                 {/* Preview Gambar */}
                 {imageUrl && (
                     <img
@@ -324,7 +313,7 @@ export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, i
                                 disabled={isLoading || !file}
                                 className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
                             >
-                                {isLoading ? "Mengunggah..." : "Upload File"}
+                                {isLoading ? "Uploading..." : "Upload File"}
                             </button>
                             <button
                                 onClick={handleCancel}

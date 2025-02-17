@@ -14,6 +14,7 @@ import FormContainer from '../FormContainer'
 import ResourceSummary from './ResourceSummary';
 import { ButtonSubmit } from '../ButtonComponents';
 import ActionsStrategiesTactics from './ActionsStrategiesTactics';
+import UploadFile from '../UploadFile';
 
 const TimePicker = dynamic(
     () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
@@ -45,7 +46,7 @@ export default function Input() {
     const [isClient, setIsClient] = useState(false);
 
     const apiUrl = 'http://127.0.0.1:8000/'
-    
+
     useEffect(() => {
         setIsClient(true);
     }, []);
@@ -159,7 +160,7 @@ export default function Input() {
 
         // Validasi: Pastikan file sudah diunggah
         if (!formData.map_sketch) {
-            alert("Harap unggah file map/sketch terlebih dahulu!");
+            alert("Please upload the map/sketch file first!");
             return;
         }
 

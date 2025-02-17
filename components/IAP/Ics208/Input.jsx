@@ -5,6 +5,7 @@ import FormContainer from '@/components/FormContainer';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import dayjs from 'dayjs';
+import UploadFile from '@/components/UploadFile';
 
 
 export default function Input() {
@@ -16,7 +17,15 @@ export default function Input() {
     const [error, setError] = useState(null);
 
     const apiUrl = 'http://127.0.0.1:8000/'
-    
+
+    // Fungsi untuk menangani perubahan nama file yang diunggah
+    const handleFileUpload = (filename) => {
+        setFormData(prevData => ({
+            ...prevData,
+            site_safety_plan: filename, // Simpan nama file ke state formData
+        }));
+    };
+
     const handleIncidentChange = (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
@@ -60,6 +69,10 @@ export default function Input() {
         e.preventDefault();
 
         try {
+            if (!formData.site_safety_plan) {
+                alert("Please upload the file first!");
+                return;
+            }
             // Validasi data sebelum mengirim
             if (!formData.operational_period_id) {
                 alert("Please select an Operational Period.");
@@ -200,20 +213,15 @@ export default function Input() {
                                     checked={formData.is_required || false}
                                 />
                             </td>
-                            <td className="px-4 pt-4">
-                                <span className="font-bold">
-                                    Site Safety Plan
-                                </span>
-                                <textarea
-                                    name='site_safety_plan'
-                                    className="w-full px-3 py-2 border rounded-md"
-                                    onChange={handleChange}
-                                    value={formData.site_safety_plan}
-                                    rows="3"
-                                    disabled={!formData.is_required}
-                                >
-                                </textarea>
+                        </tr>
+
+                        <tr>
+                            <td className="px-4 py-2" colSpan={7}>
+                                <UploadFile onFileUpload={handleFileUpload} titleName='Upload Site Safety Plan' disabled={!formData.is_required}/>
                             </td>
+                        </tr>
+
+                        <tr>
                             <td className="px-4 pt-4">
                                 <span className="font-bold">
                                     Additional Safety Message(s)
