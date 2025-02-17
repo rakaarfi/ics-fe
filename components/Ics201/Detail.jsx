@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 import Chart from './Chart';
-import Upload from './Upload';
+import UploadImage from './UploadImage';
 import FormContainer from '../FormContainer';
 import ResourceSummary from './ResourceSummary';
 import { fetchData, readById } from '@/utils/api';
@@ -523,7 +523,7 @@ export default function Detail() {
                         {/* <!-- Baris untuk Upload Sketch --> */}
                         <tr>
                             <td className="px-4 py-2" colSpan={7}>
-                                <Upload
+                                <UploadImage
                                     onFileUpload={handleFileUpload}
                                     currentFile={formData.map_sketch}
                                     onDeleteFile={handleDeleteFile}

@@ -8,7 +8,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 import Chart from './Chart';
-import Upload from './Upload';
+import UploadImage from './UploadImage';
 import { fetchData } from '@/utils/api';
 import FormContainer from '../FormContainer'
 import ResourceSummary from './ResourceSummary';
@@ -316,7 +316,7 @@ export default function Input() {
                         {/* <!-- Baris untuk Upload Sketch --> */}
                         <tr>
                             <td className="px-4 py-2" colSpan={7}>
-                                <Upload onFileUpload={handleFileUpload} />
+                                <UploadImage onFileUpload={handleFileUpload} />
                             </td>
                         </tr>
 
