@@ -1,0 +1,104 @@
+name: 🚀 Deploy App...
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "development" branch
+  push:
+    branches: ["main"] # main, dev, staging
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  SNAPSHOT_VERSION: ${{ github.run_number }}
+
+jobs:
+  app-deploy:
+    name: 🚚 Build App...
+    runs-on: server-raka-dev
+    steps:
+
+      - name: 🎉 Get latest code
+        uses: actions/checkout@v3
+
+      # - name: Rename ENV...
+      #   run: |
+      #     mv .env.example .env
+
+      - name: Manual Replace
+        run: |
+          sed -i 's#DATABASE_URL=#DATABASE_URL=${{ secrets.DATABASE_URL }}#g' docker-compose.yaml
+
+      # - name: 📡 Docker Swarm Deploy...
+      #   run: |
+      #     # Set variables
+      #     SNAPSHOT_VERSION="${{ env.SNAPSHOT_VERSION }}"
+      #     SERVICE_NAME="rwid-platform-dev"
+      #     IMAGE_NAME="${SERVICE_NAME}:${SNAPSHOT_VERSION:-first}"
+      #     REPLICAS=1  # Set the number of replicas
+      #     PORT=6000
+
+      #     # Step 1: Build the Docker image
+      #     echo "⌛ Building Docker image..."
+      #     docker build -t $IMAGE_NAME .
+      #     echo "✅ Building Docker image, DONE!"
+
+      #     # Step 2: Check if the service exists
+      #     echo "Checking if Docker Swarm service exists..."
+      #     SERVICE_EXISTS=$(docker service ls --filter name=$SERVICE_NAME -q)
+
+      #     if [ -z "$SERVICE_EXISTS" ]; then
+      #       echo "⌛ Service $SERVICE_NAME does not exist. Creating new service..."
+      #       docker service create \
+      #         --name $SERVICE_NAME \
+      #         --replicas $REPLICAS \
+      #         --publish $PORT:$PORT \
+      #         --network platform_network \
+      #         $IMAGE_NAME
+      #       echo "✅ Service $SERVICE_NAME created, DONE!"
+      #     else
+      #       echo "⌛ Service $SERVICE_NAME exists. Updating service..."
+      #       docker service update \
+      #         --image $IMAGE_NAME \
+      #         --replicas $REPLICAS \
+      #         $SERVICE_NAME
+      #       echo "✅ Service $SERVICE_NAME updated, DONE!"
+      #     fi
+
+      #     # Step 3: Cleanup unused images
+      #     echo "Cleaning up unused Docker images..."
+      #     docker image prune -f 
+
+      - name: 📡 Docker Compose...
+        run: |
+          docker compose -f docker-compose.yaml pull
+          docker compose -f docker-compose.yaml up --force-recreate --build -d
+          docker image prune -f
+
+      # ----------------------------------------------------------------------
+      # ----------------------------------------------------------------------
+      # ----------------------------------------------------------------------
+
+      - name: Dump GitHub context
+        if: success() || failure() || cancelled()
+        id: github_context_step
+        run: echo '${{ toJSON(github) }}'
+      - name: Dump job context
+        if: success() || failure() || cancelled()
+        run: echo '${{ toJSON(job) }}'
+      - name: Dump steps context
+        if: success() || failure() || cancelled()
+        run: echo '${{ toJSON(steps) }}'
+      - name: Dump runner context
+        if: success() || failure() || cancelled()
+        run: echo '${{ toJSON(runner) }}'
+      - name: Dump strategy context
+        if: success() || failure() || cancelled()
+        run: echo '${{ toJSON(strategy) }}'
+      - name: Dump matrix context
+        if: success() || failure() || cancelled()
+        run: echo '${{ toJSON(matrix) }}'
+
+      # ----------------------------------------------------------------------
+      # ----------------------------------------------------------------------
+      # ----------------------------------------------------------------------
