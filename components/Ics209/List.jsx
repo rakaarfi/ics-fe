@@ -33,7 +33,7 @@ export default function List() {
         direction: 'asc'
     });
 
-    const routeUrl = "ics-202/main";
+    const routeUrl = "ics-209/main";
     const responseKey = "read-paginated";
 
     const incident = async () => {
@@ -56,7 +56,7 @@ export default function List() {
 
     const approval = async () => {
         try {
-            const data = await fetchData('ics-202/approval');
+            const data = await fetchData('ics-209/approval');
             setApprovalData(data);
             console.log("Approval Data:", data);
 
@@ -71,7 +71,7 @@ export default function List() {
 
     const isApproved = (itemId) => {
         const approval = approvalData.find(
-            (approval) => approval.ics_202_id === itemId
+            (approval) => approval.ics_209_id === itemId
         );
         return approval ? approval.is_approved : false;
     };
@@ -175,11 +175,11 @@ export default function List() {
     }, [currentPage, search]);
 
     return (
-        <FormContainer title="ICS 202 Incident Objectives List">
+        <FormContainer title="ICS 209 - Incident Status Summary">
             <div className="flex flex-row justify-between items-center mb-4">
                 <InputButton
-                    href="/dashboard/iap/ics-202/input"
-                    text="Input ICS 202"
+                    href="/dashboard/iap/ics-209/input"
+                    text="Input ICS 209"
                 />
                 <SearchQuery
                     searchQuery={search}
@@ -220,10 +220,10 @@ export default function List() {
                                         {operationalPeriodRange}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
-                                        {item.objectives}
+                                        {item.report_version}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
-                                        {item.command_emphasis}
+                                        {item.report_number}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
                                         {isApproved(item.id) ? (
@@ -238,9 +238,9 @@ export default function List() {
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">
                                         {isApproved(item.id) ? (
-                                            <ButtonPreview href={`/dashboard/iap/ics-202/preview/${item.id}`} />
+                                            <ButtonPreview href={`/dashboard/ics-209/preview/${item.id}`} />
                                         ) : (
-                                            <ButtonDetail href={`/dashboard/iap/ics-202/detail/${item.id}`} />
+                                            <ButtonDetail href={`/dashboard/ics-209/detail/${item.id}`} />
                                         )}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-4">

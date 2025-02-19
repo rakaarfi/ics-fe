@@ -2,43 +2,48 @@
 
 import axios from "axios";
 import { useState, useEffect, useRef } from "react";
-import { Upload, Trash2, Grid, List, Pencil } from "lucide-react"; // Ikon modern
+import { Upload, Trash2, Grid, List, Pencil, Eye } from "lucide-react"; // Ikon modern
+import dynamic from "next/dynamic";
+import { DocViewerRenderers, MSDocRenderer } from "@cyntler/react-doc-viewer";
+
+const DocViewer = dynamic(() => import("@cyntler/react-doc-viewer"), { ssr: false });
 
 export default function UploadPage() {
     const [file, setFile] = useState(null);
     const [uploadStatus, setUploadStatus] = useState("");
     const [filename, setFilename] = useState("");
-    const [imageUrl, setImageUrl] = useState("");
-    const [allImages, setAllImages] = useState([]);
+    const [fileUrl, setfileUrl] = useState("");
+    const [allFiles, setAllFiles] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
     const [viewMode, setViewMode] = useState("grid"); // Default ke grid
+    const [previewFile, setPreviewFile] = useState(null);
 
     const fileInputRef = useRef(null); // Create a reference for the file input
     const apiUrl = 'http://127.0.0.1:8000/'
 
     // Fungsi untuk mengambil daftar semua gambar
-    const fetchAllImages = async () => {
+    const fetchAllFiles = async () => {
         try {
             const response = await axios.get(`${apiUrl}file/list/`);
             if (response.status === 200) {
-                setAllImages(response.data.files);
+                setAllFiles(response.data.files);
             } else {
-                console.error("Gagal mengambil daftar gambar.");
+                console.error("Failed to retrieve the image list.");
             }
         } catch (error) {
             console.error("Error:", error);
         }
     };
 
-    // Ambil daftar gambar saat komponen dimuat
+    // Ambil daftar file saat komponen dimuat
     useEffect(() => {
-        fetchAllImages();
+        fetchAllFiles();
     }, []);
 
     // Fungsi untuk mengunggah file
     const handleUpload = async () => {
         if (!file) {
-            alert("Pilih file terlebih dahulu!");
+            alert("Select the file first!");
             return;
         }
         const formData = new FormData();
@@ -54,15 +59,15 @@ export default function UploadPage() {
                 }
             );
             if (response.status === 200) {
-                setUploadStatus("File berhasil diunggah!");
+                setUploadStatus("File uploaded successfully!");
                 setFilename(response.data.filename);
-                fetchAllImages();
+                fetchAllFiles();
             } else {
-                setUploadStatus("Gagal mengunggah file.");
+                setUploadStatus("Failed to upload the file.");
             }
         } catch (error) {
             console.error("Error:", error);
-            setUploadStatus("Terjadi kesalahan saat mengunggah file.");
+            setUploadStatus("An error occurred while uploading the file.");
         }
     };
 
@@ -77,7 +82,7 @@ export default function UploadPage() {
     // Fungsi untuk memeriksa file yang diunggah
     const handleCheckFile = async () => {
         if (!filename) {
-            alert("Belum ada file yang diunggah!");
+            alert("No files uploaded yet!");
             return;
         }
 
@@ -88,14 +93,14 @@ export default function UploadPage() {
             );
 
             if (response.status === 200) {
-                const imageUrl = URL.createObjectURL(response.data);
-                setImageUrl(imageUrl);
+                const fileUrl = URL.createObjectURL(response.data);
+                setfileUrl(fileUrl);
             } else {
-                alert("File tidak ditemukan.");
+                alert("File not found.");
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("Terjadi kesalahan saat memeriksa file.");
+            alert("An error occurred while checking the file.");
         }
     };
 
@@ -108,21 +113,21 @@ export default function UploadPage() {
 
             if (response.status === 200) {
                 alert(response.data.message);
-                // Refresh daftar gambar setelah menghapus
-                fetchAllImages();
+                // Refresh daftar file setelah menghapus
+                fetchAllFiles();
             } else {
-                alert("Gagal menghapus file.");
+                alert("Failed to delete the file.");
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("Terjadi kesalahan saat menghapus file.");
+            alert("An error occurred while deleting the file.");
         }
     };
 
     // Fungsi untuk memperbarui file
     const handleUpdateFile = async () => {
         if (!selectedFile || !file) {
-            alert("Pilih file terlebih dahulu!");
+            alert("Select the file first!");
             return;
         }
 
@@ -143,97 +148,90 @@ export default function UploadPage() {
             if (response.status === 200) {
                 alert(response.data.message);
                 // Refresh daftar gambar setelah memperbarui
-                fetchAllImages();
+                fetchAllFiles();
             } else {
-                alert("Gagal memperbarui file.");
+                alert("Failed to update the file.");
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("Terjadi kesalahan saat memperbarui file.");
+            alert("An error occurred while updating the file.");
         }
     };
 
+    // Ubah fungsi handlePreview menjadi seperti ini
+    const handlePreview = async (filename) => {
+        try {
+            // Ambil file sebagai blob
+            const response = await axios.get(
+                `${apiUrl}file/get/${filename}`,
+                { responseType: 'blob' }
+            );
+
+            if (response.status === 200) {
+                // Dapatkan tipe MIME yang sebenarnya dari response
+                const fileType = response.headers['content-type'] || getMimeType(filename);
+                const blob = response.data;
+
+                // Buat URL objek dari blob
+                const fileUrl = URL.createObjectURL(blob);
+
+                const docs = [{
+                    uri: fileUrl,
+                    fileName: filename,
+                    fileType: fileType
+                }]
+
+                setPreviewFile(docs);
+            }
+        } catch (error) {
+            console.error("Error previewing file:", error);
+            alert("Failed to preview the file");
+        }
+    };
+
+    // Tambahkan fungsi helper untuk mendeteksi tipe MIME berdasarkan ekstensi
+    const getMimeType = (filename) => {
+        const extension = filename.split('.').pop().toLowerCase();
+        const mimeTypes = {
+            'pdf': 'application/pdf',
+            'doc': 'application/msword',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls': 'application/vnd.ms-excel',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'ppt': 'application/vnd.ms-powerpoint',
+            'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'txt': 'text/plain',
+            'png': 'image/png',
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'gif': 'image/gif'
+        };
+
+        return mimeTypes[extension] || 'application/octet-stream';
+    };
+
+    const isImage = (filename) => {
+        if (filename) {
+            // Determine file type from the filename extension
+            const extension = filename.split('.').pop().toLowerCase();
+            return ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension);
+        }
+        return false;
+    };
+
+    const docs = [
+        {
+            uri: "https://calibre-ebook.com/downloads/demos/demo.docx",
+            fileType: "docx",
+            fileName: "demo.docx"
+        }
+    ]
+
+
     return (
         <>
-            {/* <div style={{ padding: "20px" }} className="lg:ml-[17rem] ml-[9rem] lg:my-0 my-24 mx-2"> */}
-                {/* <h1>Upload dan Periksa Gambar</h1> */}
-
-                {/* Form untuk memilih file */}
-                {/* <div className="flex gap-4">
-                    {file && (
-                        <img src={URL.createObjectURL(file)} alt="Uploaded" style={{ maxWidth: "30%", height: "auto" }} />
-                    )}
-                    <input
-                        type="file"
-                        accept="image/jpg,image/jpeg"
-                        onChange={(e) => setFile(e.target.files[0])}
-                        ref={fileInputRef} // Attach the reference to the input
-                    />
-                    <button onClick={handleUpload}>Upload File</button>
-                    <button onClick={handleCancel}>Cancel</button>
-                </div> */}
-
-                {/* Status upload */}
-                {/* {uploadStatus && <p>{uploadStatus}</p>} */}
-
-                {/* Tombol untuk memeriksa file */}
-                {/* {filename && (
-                    <div>
-                        <button onClick={handleCheckFile}>Periksa File</button>
-                    </div>
-                )} */}
-
-                {/* Tampilkan gambar jika berhasil diambil */}
-                {/* {imageUrl && (
-                    <div>
-                        <h2>Gambar yang Diunggah:</h2>
-                        <img src={imageUrl} alt="Uploaded" style={{ maxWidth: "100%", height: "auto" }} />
-                    </div>
-                )} */}
-
-                {/* Tampilkan semua gambar yang tersimpan */}
-
-                {/* <div> */}
-                    {/* <h2>Semua Gambar yang Tersimpan:</h2> */}
-
-                    {/* Tombol Toggle */}
-                    {/* <div className="mb-4">
-                        <button
-                            className="px-4 py-2 mr-2 bg-blue-500 text-white rounded"
-                            onClick={() => setViewMode("grid")}
-                        >
-                            Grid View
-                        </button>
-                        <button
-                            className="px-4 py-2 bg-gray-500 text-white rounded"
-                            onClick={() => setViewMode("list")}
-                        >
-                            List View
-                        </button>
-                    </div> */}
-
-                    {/* Kontainer Gambar */}
-                    {/* <div className={viewMode === "grid" ? "grid grid-cols-3 gap-4" : "flex flex-col gap-4"}>
-                        {allImages.map((image, index) => (
-                            <div
-                                key={index}
-                                className={viewMode === "grid" ? "border p-2 flex flex-col items-center" : "border p-2 flex items-center gap-4"}
-                            >
-                                <img
-                                    src={`${apiUrl}file/get/${image}`}
-                                    alt={image}
-                                    className={viewMode === "grid" ? "w-40 h-auto" : "w-20 h-20"}
-                                />
-                                <p>{image.length > 25 ? `${image.substring(0, 25)}...` : image}</p>
-                                <button onClick={() => handleDeleteFile(image)}>Hapus</button>
-                                <button onClick={() => setSelectedFile(image)}>Pilih untuk Update</button>
-                            </div>
-                        ))}
-                    </div> */}
-                {/* </div> */}
-            {/* </div> */}
             <div className="lg:ml-[17rem] ml-[9rem] my-10 p-6 bg-gray-100 rounded-lg shadow-md">
-                <h1 className="text-2xl font-semibold mb-4">Upload dan Periksa Gambar</h1>
+                <h1 className="text-2xl font-semibold mb-4">Upload and Review Files</h1>
 
                 {/* Form untuk upload file */}
                 <div className="bg-white p-4 rounded-lg shadow flex flex-col gap-4">
@@ -272,11 +270,11 @@ export default function UploadPage() {
                 </div>
 
                 {/* Tampilkan gambar yang berhasil diunggah */}
-                {imageUrl && (
+                {fileUrl && (
                     <div className="mt-6">
-                        <h2 className="text-lg font-semibold mb-2">Gambar yang Diunggah:</h2>
+                        <h2 className="text-lg font-semibold mb-2">Uploaded Files:</h2>
                         <img
-                            src={imageUrl}
+                            src={fileUrl}
                             alt="Uploaded"
                             className="w-full max-w-md rounded-lg shadow-md"
                         />
@@ -303,34 +301,56 @@ export default function UploadPage() {
 
                 {/* Semua gambar yang tersimpan */}
                 <div>
-                    <h2 className="text-lg font-semibold">Semua Gambar yang Tersimpan:</h2>
+                    <h2 className="text-lg font-semibold">All Saved Files:</h2>
 
                     <div className={viewMode === "grid" ? "grid grid-cols-3 gap-4 mt-4" : "flex flex-col gap-4 mt-4"}>
-                        {allImages.map((image, index) => (
+                        {allFiles.map((fileName, index) => (
                             <div
                                 key={index}
                                 className={`border p-3 rounded-lg shadow-md bg-white ${viewMode === "grid" ? "flex flex-col items-center" : "flex items-center gap-4"
                                     }`}
                             >
-                                <img
-                                    src={`${apiUrl}file/get/${image}`}
-                                    alt={image}
-                                    className={viewMode === "grid" ? "w-40 h-auto rounded-lg" : "w-20 h-20 rounded-lg"}
-                                />
-                                <p className="text-sm text-gray-700">{image.length > 25 ? `${image.substring(0, 25)}...` : image}</p>
-
-                                {/* <button className="px-2 py-1 mt-2 bg-red-500 text-white rounded-lg flex items-center gap-2 hover:bg-red-600" onClick={() => handleDeleteFile(image)}>
-                                    <Trash2 size={16} />
-                                    Hapus
-                                </button> */}
-                                {/* <button className="px-2 py-1 mt-2 bg-orange-500 text-white rounded-lg flex items-center gap-2 hover:bg-orange-600" onClick={() => setSelectedFile(image)}>
-                                    <Pencil size={16} />
-                                    Edit
-                                </button> */}
+                                {isImage(fileName) ? (
+                                    <img
+                                        src={`${apiUrl}file/get/${fileName}`}
+                                        alt={fileName}
+                                        className={viewMode === "grid" ? "w-40 h-auto rounded-lg" : "w-20 h-20 rounded-lg"}
+                                    />
+                                ) : (
+                                    <button onClick={() => handlePreview(fileName)} className="px-3 py-2 bg-gray-500 text-white rounded-lg flex items-center gap-2">
+                                        <Eye size={18} /> Preview
+                                    </button>
+                                )}
+                                <p className="text-sm text-gray-700">{fileName.length > 25 ? `${fileName.substring(0, 25)}...` : fileName}</p>
                             </div>
                         ))}
                     </div>
                 </div>
+                {previewFile && (
+                    <div className="mt-6 p-4 bg-white shadow-lg rounded-lg">
+                        <h2 className="text-lg font-semibold">File Preview: {previewFile.fileName}</h2>
+                        <DocViewer
+                            documents={docs}
+                            config={{
+                                header: {
+                                    disableHeader: false,
+                                    disableFileName: false,
+                                    retainURLParams: false
+                                }
+                            }}
+                            pluginRenderers={[...DocViewerRenderers, MSDocRenderer]}
+                        />
+                        <div className="mt-4">
+                            <a
+                                href={previewFile.uri}
+                                download={previewFile.fileName}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-lg inline-block hover:bg-blue-600"
+                            >
+                                Download File
+                            </a>
+                        </div>
+                    </div>
+                )}
             </div>
 
         </>

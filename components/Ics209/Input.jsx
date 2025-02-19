@@ -11,32 +11,32 @@ export default function Input() {
         operational_period_id: "",
         report_version: "",
         report_number: "",
-        incident_commander_id: null,
+        incident_commander_id: "",
         incident_source: "",
         is_source_ctrl: true,
         materials_release: "",
         is_material_ctrl: true,
         response_status: "",
         is_acc: false,
-        acc_num: null,
+        acc_num: 0,
         is_acc_mustered: false,
         is_acc_sheltered: false,
         is_acc_evacuated: false,
         is_unacc: false,
-        unacc_num: null,
-        unacc_emp: null,
-        unacc_con: null,
-        unacc_oth: null,
+        unacc_num: 0,
+        unacc_emp: 0,
+        unacc_con: 0,
+        unacc_oth: 0,
         is_injured: false,
-        inj_num: null,
-        inj_emp: null,
-        inj_con: null,
-        inj_oth: null,
+        inj_num: 0,
+        inj_emp: 0,
+        inj_con: 0,
+        inj_oth: 0,
         is_dead: false,
-        dead_num: null,
-        dead_emp: null,
-        dead_con: null,
-        dead_oth: null,
+        dead_num: 0,
+        dead_emp: 0,
+        dead_con: 0,
+        dead_oth: 0,
         env_impact: "",
         env_desc: "",
         comm_impact: "",
@@ -49,8 +49,8 @@ export default function Input() {
         res_needed: "",
         est_completion_date: "",
         est_res_democ_start: "",
-        cost_to_date: null,
-        final_cost_est: null,
+        cost_to_date: "",
+        final_cost_est: "",
         gov_contact: "",
         media_contact: "",
         kin_contact: "",
@@ -67,20 +67,18 @@ export default function Input() {
     const [operationalPeriodData, setOperationalPeriodData] = useState([]);
     const [selectedPeriod, setSelectedPeriod] = useState(null);
     const [SULeaderData, setSULeaderData] = useState([]);
+    const [ICData, setICData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const apiUrl = 'http://127.0.0.1:8000/'
-    
+
     const handleIncidentChange = (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
 
         const incident = incidentData.find((item) => item.id === incident_id);
         setSelectedIncident(incident);
-
-        console.log("Selected Incident:", incident);
-
 
         setLoading(true);
         setError(null);
@@ -113,14 +111,14 @@ export default function Input() {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
-        setFormData({
-            ...formData,
-            [name]: type === "checkbox"
-                ? checked
-                : name === "is_source_ctrl" || name === "is_material_ctrl"
-                    ? value === "true"
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            [name]: type === "checkbox" 
+                ? checked 
+                : (name === "is_source_ctrl" || name === "is_material_ctrl") 
+                    ? value === "true" 
                     : value,
-        });
+        }));
     };
 
 
@@ -149,25 +147,25 @@ export default function Input() {
                 is_material_ctrl: formData.is_material_ctrl,
                 response_status: formData.response_status,
                 is_acc: formData.is_acc,
-                acc_num: formData.acc_num,
+                acc_num: parseInt(formData.acc_num, 10),
                 is_acc_mustered: formData.is_acc_mustered,
                 is_acc_sheltered: formData.is_acc_sheltered,
                 is_acc_evacuated: formData.is_acc_evacuated,
                 is_unacc: formData.is_unacc,
-                unacc_num: formData.unacc_num,
-                unacc_emp: formData.unacc_emp,
-                unacc_con: formData.unacc_con,
-                unacc_oth: formData.unacc_oth,
+                unacc_num: parseInt(formData.unacc_num, 10),
+                unacc_emp: parseInt(formData.unacc_emp, 10),
+                unacc_con: parseInt(formData.unacc_con, 10),
+                unacc_oth: parseInt(formData.unacc_oth, 10),
                 is_injured: formData.is_injured,
-                inj_num: formData.inj_num,
-                inj_emp: formData.inj_emp,
-                inj_con: formData.inj_con,
-                inj_oth: formData.inj_oth,
+                inj_num: parseInt(formData.inj_num, 10),
+                inj_emp: parseInt(formData.inj_emp, 10),
+                inj_con: parseInt(formData.inj_con, 10),
+                inj_oth: parseInt(formData.inj_oth, 10),
                 is_dead: formData.is_dead,
-                dead_num: formData.dead_num,
-                dead_emp: formData.dead_emp,
-                dead_con: formData.dead_con,
-                dead_oth: formData.dead_oth,
+                dead_num: parseInt(formData.dead_num, 10),
+                dead_emp: parseInt(formData.dead_emp, 10),
+                dead_con: parseInt(formData.dead_con, 10),
+                dead_oth: parseInt(formData.dead_oth, 10),
                 env_impact: formData.env_impact,
                 env_desc: formData.env_desc,
                 comm_impact: formData.comm_impact,
@@ -238,6 +236,21 @@ export default function Input() {
         fetchSULeader();
     }, []);
 
+    const fetchIC = async () => {
+        try {
+            const response = await axios.get(`${apiUrl}main-section/incident-commander/read/`);
+            setICData(response.data);
+            console.log("Incident Commander Data:", response.data);
+        } catch (error) {
+            console.error('Error fetching Incident Commander data:', error);
+            setError('Failed to fetch Incident Commander data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIC();
+    }, []);
+
     const parseTimeIncident = (timeStr) => {
         if (!timeStr) return null;
 
@@ -248,8 +261,48 @@ export default function Input() {
         return null;
     };
 
+    // Update nilai _num secara otomatis
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            unacc_num: (parseInt(prev.unacc_emp) || 0) + (parseInt(prev.unacc_con) || 0) + (parseInt(prev.unacc_oth) || 0),
+            inj_num: (parseInt(prev.inj_emp) || 0) + (parseInt(prev.inj_con) || 0) + (parseInt(prev.inj_oth) || 0),
+            dead_num: (parseInt(prev.dead_emp) || 0) + (parseInt(prev.dead_con) || 0) + (parseInt(prev.dead_oth) || 0),
+        }));
+    }, [formData.unacc_emp, formData.unacc_con, formData.unacc_oth, formData.inj_emp, formData.inj_con, formData.inj_oth, formData.dead_emp, formData.dead_con, formData.dead_oth]);
+
+    // Fungsi untuk memformat angka menjadi format currency (Rp 12,000)
+    const formatCurrency = (value) => {
+        if (!value) return "";
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+        })
+            .format(value)
+            .replace("Rp", "Rp ")
+            .trim();
+    };
+
+    // Fungsi untuk menghandle perubahan input agar tidak terjadi bug angka 0 tambahan
+    const handleCurrencyChange = (e) => {
+        const { name, value } = e.target;
+
+        // Hapus semua karakter non-angka
+        const rawValue = value.replace(/[^0-9]/g, "");
+
+        // Cegah angka kosong berubah menjadi "0"
+        const newValue = rawValue === "" ? "" : parseInt(rawValue, 10);
+
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            [name]: newValue, // Simpan sebagai angka tanpa format
+        }));
+    };
+
+
     return (
-        <FormContainer title="Input ICS 209 - Incident Objectives">
+        <FormContainer title="Input ICS 209 - Incident Status Summary">
             <div className="mb-4 flex flex-row">
                 <select
                     className="flex-1 block w-[400px] rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
@@ -490,7 +543,13 @@ export default function Input() {
                                         </tr>
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.report_number} onChange={handleChange} />
+                                                <input
+                                                    type="text"
+                                                    name='report_number'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={formData.report_number}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                         </tr>
                                     </tbody>
@@ -507,7 +566,25 @@ export default function Input() {
                                         </tr>
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.incident_commander_id} onChange={handleChange} />
+                                                <select
+                                                    name="incident_commander_id"
+                                                    className="flex-1 block rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
+                                                    value={formData.incident_commander_id || ""}
+                                                    onChange={(e) => setFormData(prev => ({
+                                                        ...prev,
+                                                        incident_commander_id: e.target.value
+                                                    }))}
+                                                    required
+                                                >
+                                                    <option value="" disabled>
+                                                        Select Incident Commander
+                                                    </option>
+                                                    {ICData.map(commander => (
+                                                        <option key={commander.id} value={commander.id}>
+                                                            {commander.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -526,7 +603,13 @@ export default function Input() {
                                         </tr>
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.incident_source} onChange={handleChange} />
+                                                <input
+                                                    type="text"
+                                                    name='incident_source'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={formData.incident_source}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                         </tr>
                                     </tbody>
@@ -586,7 +669,13 @@ export default function Input() {
                                         </tr>
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.materials_release} onChange={handleChange} />
+                                                <input
+                                                    type="text"
+                                                    name='materials_release'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={formData.materials_release}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                         </tr>
                                     </tbody>
@@ -646,7 +735,13 @@ export default function Input() {
                                         </tr>
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.response_status} onChange={handleChange} />
+                                                <input
+                                                    type="text"
+                                                    name='response_status'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={formData.response_status}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                         </tr>
                                     </tbody>
@@ -668,25 +763,53 @@ export default function Input() {
 
                                         {/* Accounted For */}
                                         <tr>
-                                            {/* <td className="px-4 py-2 border rounded-md">Accounted for</td> */}
                                             <td className="px-4 py-2 border rounded-md whitespace-nowrap">
-                                                <input type="checkbox" className="mr-2" checked={formData.is_acc} onChange={handleChange} />
+                                                <input
+                                                    type="checkbox"
+                                                    name='is_acc'
+                                                    className="mr-2"
+                                                    checked={formData.is_acc || false}
+                                                    onChange={handleChange} />
                                                 <strong>Accounted for</strong>
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Number</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.acc_num} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    name='acc_num'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.acc_num, 10)}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md text-center" colSpan={2}>
-                                                <input type="checkbox" className="mr-2" checked={formData.is_acc_mustered} onChange={handleChange} />
+                                                <input
+                                                    type="checkbox"
+                                                    name='is_acc_mustered'
+                                                    className="mr-2"
+                                                    checked={formData.is_acc_mustered || false}
+                                                    onChange={handleChange}
+                                                />
                                                 Mustered
                                             </td>
                                             <td className="px-4 py-2 border rounded-md text-center" colSpan={2}>
-                                                <input type="checkbox" className="mr-2" checked={formData.is_acc_sheltered} onChange={handleChange} />
+                                                <input
+                                                    type="checkbox"
+                                                    name='is_acc_sheltered'
+                                                    className="mr-2"
+                                                    checked={formData.is_acc_sheltered || false}
+                                                    onChange={handleChange}
+                                                />
                                                 Sheltered
                                             </td>
                                             <td className="px-4 py-2 border rounded-md text-center" colSpan={2}>
-                                                <input type="checkbox" className="mr-2" checked={formData.is_acc_evacuated} onChange={handleChange} />
+                                                <input
+                                                    type="checkbox"
+                                                    name='is_acc_evacuated'
+                                                    className="mr-2"
+                                                    checked={formData.is_acc_evacuated || false}
+                                                    onChange={handleChange}
+                                                />
                                                 Evacuated
                                             </td>
                                         </tr>
@@ -700,24 +823,58 @@ export default function Input() {
                                         {/* Unaccounted For */}
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md whitespace-nowrap">
-                                                <input type="checkbox" className="mr-2" checked={formData.is_unacc} onChange={handleChange} />
+                                                <input
+                                                    type="checkbox"
+                                                    name='is_unacc'
+                                                    className="mr-2"
+                                                    checked={formData.is_unacc || false}
+                                                    onChange={handleChange} />
                                                 <strong>Unaccounted for</strong>
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Number</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.unacc_num} onChange={handleChange} />
+                                                <input
+                                                    type="text"
+                                                    min="0"
+                                                    name='unacc_num'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.unacc_num, 10) || 0}
+                                                    onChange={handleChange}
+                                                    readOnly
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Employee</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.unacc_emp} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    name='unacc_emp'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.unacc_emp, 10) || 0}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Contractor</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.unacc_con} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    name='unacc_con'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.unacc_con, 10) || 0}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Other</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.unacc_oth} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    name='unacc_oth'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.unacc_oth, 10) || 0}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                         </tr>
 
@@ -730,24 +887,58 @@ export default function Input() {
                                         {/* Injured */}
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="checkbox" className="mr-2" checked={formData.is_injured} onChange={handleChange} />
+                                                <input
+                                                    type="checkbox"
+                                                    name='is_injured'
+                                                    className="mr-2"
+                                                    checked={formData.is_injured || false}
+                                                    onChange={handleChange}
+                                                />
                                                 <strong>Injured</strong>
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Number</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.inj_num} onChange={handleChange} />
+                                                <input
+                                                    type="text"
+                                                    name='inj_num'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.inj_num, 10) || 0}
+                                                    onChange={handleChange}
+                                                    readOnly
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Employee</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.inj_emp} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    name='inj_emp'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.inj_emp, 10) || 0}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Contractor</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.inj_con} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    name='inj_con'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.inj_con, 10) || 0}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Other</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.inj_oth} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    name='inj_oth'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.inj_oth, 10) || 0}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                         </tr>
 
@@ -760,24 +951,58 @@ export default function Input() {
                                         {/* Dead */}
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="checkbox" className="mr-2" checked={formData.is_dead} onChange={handleChange} />
+                                                <input
+                                                    type="checkbox"
+                                                    name='is_dead'
+                                                    className="mr-2"
+                                                    checked={formData.is_dead}
+                                                    onChange={handleChange}
+                                                />
                                                 <strong>Dead</strong>
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Number</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.dead_num} onChange={handleChange} />
+                                                <input
+                                                    type="text"
+                                                    name='dead_num'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.dead_num, 10) || 0}
+                                                    onChange={handleChange}
+                                                    readOnly
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Employee</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.dead_emp} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    name='dead_emp'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.dead_emp, 10) || 0}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Contractor</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.dead_con} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    name='dead_con'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.dead_con, 10) || 0}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                             <td className="px-4 py-2 border rounded-md">Other</td>
                                             <td className="px-4 py-2 border rounded-md">
-                                                <input type="text" className="w-full text-center border rounded-md" value={formData.dead_oth} onChange={handleChange} />
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    name='dead_oth'
+                                                    className="w-full text-center border rounded-md"
+                                                    value={parseInt(formData.dead_oth, 10) || 0}
+                                                    onChange={handleChange}
+                                                />
                                             </td>
                                         </tr>
                                     </tbody>
@@ -1012,7 +1237,7 @@ export default function Input() {
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
                                                 <textarea
-                                                    name="ops_desc"
+                                                    name="events_period"
                                                     value={formData.events_period}
                                                     rows="7"
                                                     cols="50"
@@ -1041,7 +1266,7 @@ export default function Input() {
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
                                                 <textarea
-                                                    name="ops_desc"
+                                                    name="obj_next_period"
                                                     value={formData.obj_next_period}
                                                     rows="7"
                                                     cols="50"
@@ -1070,7 +1295,7 @@ export default function Input() {
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
                                                 <textarea
-                                                    name="ops_desc"
+                                                    name="actions_next_period"
                                                     value={formData.actions_next_period}
                                                     rows="7"
                                                     cols="50"
@@ -1099,7 +1324,7 @@ export default function Input() {
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
                                                 <textarea
-                                                    name="ops_desc"
+                                                    name="res_needed"
                                                     value={formData.res_needed}
                                                     rows="7"
                                                     cols="50"
@@ -1114,6 +1339,7 @@ export default function Input() {
                             </td>
                         </tr>
 
+                        {/* Anticipated Incident Management Completion Date */}
                         <tr>
                             <td className="px-4 py-2 border rounded-md w-1/2" colSpan={2}>
                                 <table className="w-full table-fixed">
@@ -1125,6 +1351,7 @@ export default function Input() {
                                             <td className="px-4 py-2 border rounded-md">
                                                 <input
                                                     type="date"
+                                                    name="est_completion_date"
                                                     className="w-full text-center border rounded-md"
                                                     value={formData.est_completion_date}
                                                     onChange={handleChange}
@@ -1135,6 +1362,7 @@ export default function Input() {
                                 </table>
                             </td>
 
+                            {/* Estimated Incident Costs to Date */}
                             <td className="px-4 py-2 border rounded-md w-1/2">
                                 <table className="w-full table-fixed">
                                     <tbody>
@@ -1145,9 +1373,10 @@ export default function Input() {
                                             <td className="px-4 py-2 border rounded-md">
                                                 <input
                                                     type="text"
+                                                    name="cost_to_date"
                                                     className="w-full text-center border rounded-md"
-                                                    value={formData.cost_to_date}
-                                                    onChange={handleChange}
+                                                    value={formatCurrency(formData.cost_to_date)}
+                                                    onChange={handleCurrencyChange}
                                                 />
                                             </td>
                                         </tr>
@@ -1156,6 +1385,7 @@ export default function Input() {
                             </td>
                         </tr>
 
+                        {/* Projected Significant Resource Demobilization Start Date */}
                         <tr>
                             <td className="px-4 py-2 border rounded-md w-1/2" colSpan={2}>
                                 <table className="w-full table-fixed">
@@ -1167,6 +1397,7 @@ export default function Input() {
                                             <td className="px-4 py-2 border rounded-md">
                                                 <input
                                                     type="date"
+                                                    name="est_res_democ_start"
                                                     className="w-full text-center border rounded-md"
                                                     value={formData.est_res_democ_start}
                                                     onChange={handleChange}
@@ -1177,6 +1408,7 @@ export default function Input() {
                                 </table>
                             </td>
 
+                            {/* Projected Final Incident Cost Estimate */}
                             <td className="px-4 py-2 border rounded-md w-1/2">
                                 <table className="w-full table-fixed">
                                     <tbody>
@@ -1187,9 +1419,10 @@ export default function Input() {
                                             <td className="px-4 py-2 border rounded-md">
                                                 <input
                                                     type="text"
+                                                    name='final_cost_est'
                                                     className="w-full text-center border rounded-md"
-                                                    value={formData.final_cost_est}
-                                                    onChange={handleChange}
+                                                    value={formatCurrency(formData.final_cost_est)}
+                                                    onChange={handleCurrencyChange}
                                                 />
                                             </td>
                                         </tr>
@@ -1212,7 +1445,7 @@ export default function Input() {
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
                                                 <textarea
-                                                    name="ops_desc"
+                                                    name="gov_contact"
                                                     value={formData.gov_contact}
                                                     rows="7"
                                                     cols="50"
@@ -1241,7 +1474,7 @@ export default function Input() {
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
                                                 <textarea
-                                                    name="ops_desc"
+                                                    name="media_contact"
                                                     value={formData.media_contact}
                                                     rows="7"
                                                     cols="50"
@@ -1270,7 +1503,7 @@ export default function Input() {
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
                                                 <textarea
-                                                    name="ops_desc"
+                                                    name="kin_contact"
                                                     value={formData.kin_contact}
                                                     rows="7"
                                                     cols="50"
@@ -1299,7 +1532,7 @@ export default function Input() {
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
                                                 <textarea
-                                                    name="ops_desc"
+                                                    name="shareholder_contact"
                                                     value={formData.shareholder_contact}
                                                     rows="7"
                                                     cols="50"
@@ -1328,7 +1561,7 @@ export default function Input() {
                                         <tr>
                                             <td className="px-4 py-2 border rounded-md">
                                                 <textarea
-                                                    name="ops_desc"
+                                                    name="ngo_contact"
                                                     value={formData.ngo_contact}
                                                     rows="7"
                                                     cols="50"

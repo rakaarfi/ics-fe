@@ -8,12 +8,10 @@ export default function page() {
     const responseKey = "read-paginated";
 
     return (
-        <div className="lg:ml-[17rem] ml-[9rem] lg:my-0 my-24 mx-2">
-            <ListTemplate
-                routeUrl={routeUrl}
-                responseKey={responseKey}
-                headerText="Public Information Officer"
-            />
-        </div>
+        <ListTemplate
+            routeUrl={routeUrl}
+            responseKey={responseKey}
+            headerText="Public Information Officer"
+        />
     )
 }

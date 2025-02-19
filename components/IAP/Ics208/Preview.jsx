@@ -150,6 +150,30 @@ export default function Preview({
         }
     };
 
+    const handlePreviewButtonClick = async (filename) => {
+        try {
+            const response = await axios.get(
+                `${apiUrl}file/get/${filename}`,
+                { responseType: 'blob' }
+            );
+
+            // Buat URL objek dari blob
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+
+            // Buat elemen <a> untuk memicu unduhan
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${filename}`); // Nama file yang akan diunduh
+            document.body.appendChild(link);
+            link.click();
+
+            // Hapus elemen <a> setelah unduhan selesai
+            link.parentNode.removeChild(link);
+        } catch (error) {
+            console.error('Error exporting document:', error);
+        }
+    };
+
     if (loading) return <p>Loading...</p>;
     if (error) return <p className="text-red-500">{error}</p>;
     // if (!data) return <p>No data found</p>;
@@ -251,15 +275,21 @@ export default function Preview({
                                     <strong>4. Site Safety Plan Required? {formData.is_required ? '✓' : '✗'}
                                     </strong>
                                     <br />
-                                    <br />
-                                    <strong>Site Safety Plan
-                                    </strong>
-                                    <div
-                                        className="border border-gray-300"
-                                        style={{ height: '50px', marginTop: '10px', padding: '1rem' }}
-                                    >
-                                        {formData.site_safety_plan}
-                                    </div>
+                                    {formData.site_safety_plan ? (
+                                        <>
+                                            <br />
+                                            <strong>Site Safety Plan
+                                            </strong>
+                                            <div
+                                                className="border border-gray-300"
+                                                style={{ height: '70px', marginTop: '10px', padding: '1rem' }}
+                                            >
+                                                <button onClick={() => handlePreviewButtonClick(formData.site_safety_plan)} className="px-3 py-2 bg-gray-500 text-white rounded-lg flex items-center gap-2">
+                                                    Download Plan
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : null}
                                     <br />
                                     <strong>Additional Message
                                     </strong>

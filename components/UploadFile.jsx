@@ -55,7 +55,7 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, ti
 
     const handleUpload = async () => {
         if (!file) {
-            setError("Pilih file terlebih dahulu!");
+            setError("Select the file first!");
             return;
         }
 
@@ -82,16 +82,16 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, ti
             });
 
             if (response.status === 200) {
-                setUploadStatus("File berhasil diunggah!");
+                setUploadStatus("File uploaded successfully!");
                 setFilename(response.data.filename);
                 setFileUrl(URL.createObjectURL(file));
                 onFileUpload(response.data.filename);
             } else {
-                setUploadStatus("Gagal mengunggah file.");
+                setUploadStatus("Failed to upload the file.");
             }
         } catch (error) {
             console.error("Error:", error);
-            setError("Terjadi kesalahan saat mengunggah file.");
+            setError("An error occurred while uploading the file.");
         } finally {
             setIsLoading(false);
         }
@@ -99,7 +99,7 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, ti
 
     const handleRemoveFile = async () => {
         if (!filename) {
-            setError("Tidak ada file yang diunggah.");
+            setError("No files were uploaded.");
             return;
         }
 
@@ -114,11 +114,11 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, ti
                 onFileUpload("");
                 onDeleteFile();
             } else {
-                setError("Gagal menghapus file.");
+                setError("Failed to delete the file.");
             }
         } catch (error) {
             console.error("Error:", error);
-            setError("Terjadi kesalahan saat menghapus file.");
+            setError("An error occurred while deleting the file.");
         }
     };
 
@@ -182,9 +182,9 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, ti
             const isSizeAllowed = selectedFile.size <= 10 * 1024 * 1024; // Maksimal 10MB
 
             if (!isValidType) {
-                setError("Jenis file tidak didukung.");
+                setError("The file type is not supported.");
             } else if (!isSizeAllowed) {
-                setError("Ukuran file maksimal 10MB.");
+                setError("Maximum file size is 10MB.");
             } else {
                 setFile(selectedFile);
                 setFileUrl(URL.createObjectURL(selectedFile));
@@ -251,15 +251,18 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, ti
                 <div className="mt-4">
                     {/* Check the file type and display accordingly */}
                     {(file?.type?.includes("image") || fileType === 'image') ? (
-                        <img src={fileUrl} alt="Preview" className="max-w-full h-auto rounded-lg shadow-md" />
+                        <>
+                            <img src={fileUrl} alt="Preview" className="max-w-full h-auto rounded-lg shadow-md" />
+
+                            <div className="text-sm text-gray-500 mt-2">
+                                <p>File Name: {file?.name || filename}</p>
+                            </div>
+                        </>
                     ) : (
-                        <p className="text-sm text-gray-500">📄 {file?.name || filename}</p>
+                        <p className="text-sm text-gray-500">📄 File Name:  {file?.name || filename}</p>
                     )}
 
-                    {/* File info */}
-                    <div className="text-sm text-gray-500 mt-2">
-                        <p>File Name: {file?.name || filename}</p>
-                    </div>
+
                 </div>
             )}
 

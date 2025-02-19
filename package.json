@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@balkangraph/orgchart.js": "^8.14.65",
+    "@cyntler/react-doc-viewer": "^1.17.0",
     "@dabeng/react-orgchart": "^1.0.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
