@@ -15,18 +15,20 @@ export const useHostName = () => {
     return hostName;
 };
 
-const hostName = useHostName();
-
-const apiUrl = `http://${hostName}:8000/`;
-
 // Create
 export const createData = async ({ routeUrl, payload }) => {
+    const hostName = useHostName();
+    const apiUrl = `http://${hostName}:8000/`;
+
     const response = await axios.post(`${apiUrl}${routeUrl}/create/`, payload);
     return response.data;
 };
 
 // Read
 export const fetchData = async (routeUrl) => {
+    const hostName = useHostName();
+    const apiUrl = `http://${hostName}:8000/`;
+    
     const response = await axios.get(`${apiUrl}${routeUrl}/read`);
     return response.data;
 }
@@ -43,6 +45,9 @@ export const fetchPaginatedData = async ({
     setError
 }) => {
     try {
+        const hostName = useHostName();
+        const apiUrl = `http://${hostName}:8000/`;
+        
         const url = `${apiUrl}${routeUrl}/${responseKey}?page=${currentPage}&search=${search}`;
         const response = await axios.get(url);
         setData(response.data.data);
@@ -58,11 +63,17 @@ export const fetchPaginatedData = async ({
 
 // Read by ID
 export const readById = async ({ routeUrl, id }) => {
+    const hostName = useHostName();
+    const apiUrl = `http://${hostName}:8000/`;
+    
     const response = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
     return response.data;
 };
 
 export const readTableById = async ({ routeUrl, id }) => {
+    const hostName = useHostName();
+    const apiUrl = `http://${hostName}:8000/`;
+    
     const response = await axios.get(`${apiUrl}${routeUrl}/${id}/`);
     return response.data;
 };
@@ -88,6 +99,9 @@ export const readTableById = async ({ routeUrl, id }) => {
 
 export const handleUpdate = async (id, routeUrl, formData) => {
     try {
+        const hostName = useHostName();
+        const apiUrl = `http://${hostName}:8000/`;
+        
         const response = await axios.put(`${apiUrl}${routeUrl}/update/${id}`, formData);
         alert("Data updated successfully!");
     } catch (err) {
@@ -101,6 +115,9 @@ export const handleDelete = async (id, routeUrl) => {
     const isConfirmed = window.confirm("Are you sure you want to delete this data?");
     if (isConfirmed) {
         try {
+            const hostName = useHostName();
+            const apiUrl = `http://${hostName}:8000/`;
+            
             await axios.delete(`${apiUrl}${routeUrl}/delete/${id}`);
             alert("Data deleted successfully!");
 
