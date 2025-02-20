@@ -4,6 +4,10 @@ import axios from 'axios';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 const TimePicker = dynamic(
@@ -11,18 +15,13 @@ const TimePicker = dynamic(
     { ssr: false }
 );
 
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-
 import Chart from './Chart';
 import UploadImage from './UploadImage';
 import FormContainer from '../FormContainer';
 import ResourceSummary from './ResourceSummary';
-import { fetchData, readById } from '@/utils/api';
+import { fetchData, readByIcs201Id, readById } from '@/utils/api';
 import ActionsStrategiesTactics from './ActionsStrategiesTactics';
 import { ButtonSaveChanges } from '../ButtonComponents';
-import Link from 'next/link';
 
 dayjs.extend(customParseFormat);
 
@@ -49,9 +48,12 @@ export default function Detail() {
     const [incidentData, setIncidentData] = useState([]);
     const [newFile, setNewFile] = useState(null);
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-201/main";
+    const routeActionUrl = "ics-201/actions-strategies-tactics";
+    const routeResourceUrl = "ics-201/resource-summary";
+    const routeChartUrl = "ics-201/chart";
 
     useEffect(() => {
         const fetchIncidentData = async () => {
@@ -128,25 +130,25 @@ export default function Detail() {
     }, [id]);
 
     const fetchActionsData = async (ics_201_id) => {
-        const response = await axios.get(`${apiUrl}ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
-        return response.data;
+        const response = await readByIcs201Id({ routeUrl: routeActionUrl, id: ics_201_id });
+        return response;
     };
 
     const fetchResourcesData = async (ics_201_id) => {
-        const response = await axios.get(`${apiUrl}ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
-        return response.data;
+        const response = await readByIcs201Id({ routeUrl: routeResourceUrl , id: ics_201_id });
+        return response;
     };
 
     const fetchChartData = async (ics_201_id) => {
-        const response = await axios.get(`${apiUrl}ics-201/chart/read-by-ics-id/${ics_201_id}`);
-        return response.data;
+        const response = await readByIcs201Id({ routeUrl: routeChartUrl, id: ics_201_id });
+        return response;
     };
 
     const fetchMapSketchData = async (filename) => {
         if (filename) {
             try {
                 const response = await axios.get(
-                    `http://localhost:8000/file/get/${filename}`, {
+                    `http://localhost:8000/api/file/get/${filename}`, {
                     responseType: 'blob',
                     headers: {
                         "Access-Control-Allow-Origin": "*",

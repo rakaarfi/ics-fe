@@ -63,7 +63,7 @@ export default function Preview({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-204/main";
 

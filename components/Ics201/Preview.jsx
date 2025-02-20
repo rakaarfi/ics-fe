@@ -12,7 +12,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { TableHead } from '@mui/material';
 
 import FormContainer from '../FormContainer';
-import { fetchData, readById } from '@/utils/api';
+import { fetchData, readByIcs201Id, readById } from '@/utils/api';
 import useFetchDynamicOptions from '../ImtRoster/useFetchDynamicOptions';
 
 dayjs.extend(customParseFormat);
@@ -43,14 +43,18 @@ export default function Preview() {
         time_approved: dayjs().format('HH:mm'),
     });
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-201/main";
+    const routeActionUrl = "ics-201/actions-strategies-tactics";
+    const routeResourceUrl = "ics-201/resource-summary";
+    const routeChartUrl = "ics-201/chart";
+    const routeApprovalUrl = "ics-201/approval"
     const iframeRef = useRef(null);
 
     useEffect(() => {
         if (formData.map_sketch) {
-            setImageUrl(`${apiUrl}file/get/${formData.map_sketch}`);
+            setImageUrl(`http://localhost:8000/api/file/get/${formData.map_sketch}`);
         } else {
             setImageUrl(null);
         }
@@ -143,11 +147,9 @@ export default function Preview() {
     useEffect(() => {
         const fetchApprovalData = async (ics_201_id) => {
             try {
-                const response = await axios.get(
-                    `${apiUrl}ics-201/approval/read-by-ics-201-id/${ics_201_id}`
-                );
-                if (response.data.length > 0) {
-                    setApprovalData(response.data[0]);
+                const response = await readByIcs201Id({ routeUrl: routeApprovalUrl, id: ics_201_id });
+                if (response.length > 0) {
+                    setApprovalData(response[0]);
                 }
             } catch (error) {
                 console.error('Error fetching approval data:', error);
@@ -160,25 +162,25 @@ export default function Preview() {
     }, [id]);
 
     const fetchActionsData = async (ics_201_id) => {
-        const response = await axios.get(`${apiUrl}ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
-        return response.data;
+        const response = await readByIcs201Id({ routeUrl: routeActionUrl, id: ics_201_id });
+        return response;
     };
 
     const fetchResourcesData = async (ics_201_id) => {
-        const response = await axios.get(`${apiUrl}ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
-        return response.data;
+        const response = await readByIcs201Id({ routeUrl: routeResourceUrl, id: ics_201_id });
+        return response;
     };
 
     const fetchChartData = async (ics_201_id) => {
-        const response = await axios.get(`${apiUrl}ics-201/chart/read-by-ics-id/${ics_201_id}`);
-        return response.data;
+        const response = await readByIcs201Id({ routeUrl: routeChartUrl, id: ics_201_id });
+        return response;
     };
 
     const fetchMapSketchData = async (filename) => {
         if (filename) {
             try {
                 const response = await axios.get(
-                    `${apiUrl}file/get/${filename}`,
+                    `http://localhost:8000/api/file/get/${filename}`,
                     { responseType: 'blob' }
                 );
                 return filename;

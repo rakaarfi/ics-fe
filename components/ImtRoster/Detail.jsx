@@ -18,7 +18,7 @@ export default function Detail() {
     const [formData, setFormData] = useState({});
     const { dynamicOptions, errorDynamicOptions } = useFetchDynamicOptions();
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
     const handleChange = (e) => {

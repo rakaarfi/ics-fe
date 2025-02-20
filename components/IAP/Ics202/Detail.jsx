@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import dayjs from 'dayjs';
-import { fetchOperationalPeriodByIncident } from '@/utils/api';
+import { fetchData, fetchOperationalPeriodByIncident, readById, readByIcs202Id } from '@/utils/api';
 
 export default function Detail() {
     const { id } = useParams();
@@ -42,8 +42,10 @@ export default function Detail() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
+
+    // routeUrl yang merepresentasikan endpoint ICS-202 main
     const routeUrl = "ics-202/main";
 
     useEffect(() => {
@@ -113,8 +115,8 @@ export default function Detail() {
         }));
 
         fetchOperationalPeriodByIncident(incident_id)
-            .then((response) => {
-                setOperationalPeriodData(response.data);
+            .then((responseData) => {
+                setOperationalPeriodData(responseData);
             })
             .catch(() => setError('Failed to fetch operational period data'))
             .finally(() => setLoading(false));
@@ -180,11 +182,11 @@ export default function Detail() {
             alert('Failed to submit data. Please try again.');
         }
     };
-    
+
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
         } catch (error) {
             console.error('Error fetching incident data:', error);
             setError('Failed to fetch incident data');
@@ -197,8 +199,8 @@ export default function Detail() {
 
     const fetchPSChief = async () => {
         try {
-            const response = await axios.get(`${apiUrl}planning-section/planning-section-chief/read/`);
-            setPSChiefData(response.data);
+            const response = await fetchData('planning-section/planning-section-chief');
+            setPSChiefData(response);
         } catch (error) {
             console.error('Error fetching Planning Section Chief data:', error);
             setError('Failed to fetch Planning Section Chief data');

@@ -19,7 +19,7 @@ export default function UploadPage() {
     const [previewFile, setPreviewFile] = useState(null);
 
     const fileInputRef = useRef(null); // Create a reference for the file input
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
     // Fungsi untuk mengambil daftar semua gambar

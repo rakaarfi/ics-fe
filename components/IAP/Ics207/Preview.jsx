@@ -18,7 +18,7 @@ export default function Preview() {
     const [RULeaderData, setRULeaderData] = useState([]);
     const iframeRef = useRef(null);
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-203/main";
 

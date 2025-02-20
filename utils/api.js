@@ -67,8 +67,36 @@ export const fetchOperationalPeriodByIncident = async ( incidentId ) => {
     const apiUrl = `http://${hostName}:8000/api/`;
     
     const response = await axios.get(`${apiUrl}operational-period/read-by-incident/${incidentId}`);
-    return response;
+    return response.data;
 }
+
+// Read by ICS 201 ID
+export const readByIcs201Id = async ({ routeUrl, id }) => {
+    const hostName = document.location.hostname;
+    const apiUrl = `http://${hostName}:8000/api/`;
+    
+    try {
+        const response = await axios.get(`${apiUrl}${routeUrl}/read-by-ics-id/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+    }
+};
+
+// Read by ICS 202 ID
+export const readByIcs202Id = async ({ routeUrl, id }) => {
+    const hostName = document.location.hostname;
+    const apiUrl = `http://${hostName}:8000/api/`;
+    
+    try {
+        const response = await axios.get(`${apiUrl}${routeUrl}/read-by-ics-202-id/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+    }
+};
 
 // Read by ID
 export const readById = async ({ routeUrl, id }) => {

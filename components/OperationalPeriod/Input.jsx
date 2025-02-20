@@ -26,7 +26,7 @@ export default function Input() {
     const addNewRow = () => setRows([...rows, { date_from: "", time_from: "", date_to: "", time_to: "", remarks: "" }]);
     const removeRow = (index) => setRows(rows.filter((_, i) => i !== index));
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
     useEffect(() => {

@@ -15,7 +15,7 @@ export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, i
 
     const [timestamp, setTimestamp] = useState(null);
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
     useEffect(() => {

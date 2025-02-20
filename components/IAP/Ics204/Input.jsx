@@ -58,7 +58,7 @@ export default function Input() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
     const handleIncidentChange = (e) => {
@@ -75,8 +75,8 @@ export default function Input() {
         }));
 
         fetchOperationalPeriodByIncident(incident_id)
-            .then((response) => {
-                setOperationalPeriodData(response.data);
+            .then((responseData) => {
+                setOperationalPeriodData(responseData);
             })
             .catch(() => setError('Failed to fetch operational period data'))
             .finally(() => setLoading(false));

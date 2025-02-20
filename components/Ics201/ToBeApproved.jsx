@@ -16,7 +16,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Checkbox, FormControl, FormControlLabel, TableHead } from '@mui/material';
 
 import FormContainer from '../FormContainer';
-import { fetchData, readById } from '@/utils/api';
+import { fetchData, readByIcs201Id, readById } from '@/utils/api';
 import useFetchDynamicOptions from '../ImtRoster/useFetchDynamicOptions';
 
 const TimePicker = dynamic(
@@ -52,9 +52,12 @@ export default function ToBeApproved() {
         time_approved: dayjs().format('HH:mm'),
     });
     
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-201/main";
+    const routeActionUrl = "ics-201/actions-strategies-tactics";
+    const routeResourceUrl = "ics-201/resource-summary";
+    const routeChartUrl = "ics-201/chart";
     const iframeRef = useRef(null);
 
     useEffect(() => {
@@ -153,7 +156,7 @@ export default function ToBeApproved() {
         const fetchApprovalData = async (ics_201_id) => {
             try {
                 const response = await axios.get(
-                    `${apiUrl}ics-201/approval/read-by-ics-201-id/${ics_201_id}`
+                    `${apiUrl}ics-201/approval/read-by-ics-id/${ics_201_id}`
                 );
                 if (response.data.length > 0) {
                     setApprovalData(response.data[0]);
@@ -169,25 +172,25 @@ export default function ToBeApproved() {
     }, [id]);
 
     const fetchActionsData = async (ics_201_id) => {
-        const response = await axios.get(`${apiUrl}ics-201/actions-strategies-tactics/read-by-ics-id/${ics_201_id}`);
-        return response.data;
+        const response = await readByIcs201Id({ routeUrl: routeActionUrl, id: ics_201_id });
+        return response;
     };
 
     const fetchResourcesData = async (ics_201_id) => {
-        const response = await axios.get(`${apiUrl}ics-201/resource-summary/read-by-ics-201-id/${ics_201_id}`);
-        return response.data;
+        const response = await readByIcs201Id({ routeUrl: routeResourceUrl , id: ics_201_id });
+        return response;
     };
 
     const fetchChartData = async (ics_201_id) => {
-        const response = await axios.get(`${apiUrl}ics-201/chart/read-by-ics-id/${ics_201_id}`);
-        return response.data;
+        const response = await readByIcs201Id({ routeUrl: routeChartUrl, id: ics_201_id });
+        return response;
     };
 
     const fetchMapSketchData = async (filename) => {
         if (filename) {
             try {
                 const response = await axios.get(
-                    `${apiUrl}file/get/${filename}`,
+                    `http://localhost:8000/api/file/get/${filename}`,
                     { responseType: 'blob' }
                 );
                 return filename;

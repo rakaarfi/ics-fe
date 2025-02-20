@@ -33,7 +33,7 @@ export default function Detail() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-206/main";
 
@@ -51,8 +51,8 @@ export default function Detail() {
         }));
 
         fetchOperationalPeriodByIncident(incident_id)
-            .then((response) => {
-                setOperationalPeriodData(response.data);
+            .then((responseData) => {
+                setOperationalPeriodData(responseData);
             })
             .catch(() => setError('Failed to fetch operational period data'))
             .finally(() => setLoading(false));

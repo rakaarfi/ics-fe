@@ -36,7 +36,7 @@ export default function List() {
         direction: 'asc'
     });
     
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-206/main";
     const responseKey = "read-paginated";

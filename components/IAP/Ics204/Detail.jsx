@@ -53,7 +53,7 @@ export default function Detail() {
     const [preparationOSChiefID, setPreparationOSChiefID] = useState(null);
     const [preparationRULeaderID, setPreparationRULeaderID] = useState(null);
 
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-204/main";
 
@@ -71,8 +71,8 @@ export default function Detail() {
         }));
 
         fetchOperationalPeriodByIncident(incident_id)
-            .then((response) => {
-                setOperationalPeriodData(response.data);
+            .then((responseData) => {
+                setOperationalPeriodData(responseData);
             })
             .catch(() => setError('Failed to fetch operational period data'))
             .finally(() => setLoading(false));
