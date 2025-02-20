@@ -18,7 +18,8 @@ export default function Detail() {
     const [formData, setFormData] = useState({});
     const { dynamicOptions, errorDynamicOptions } = useFetchDynamicOptions();
 
-    const apiUrl = 'http://127.0.0.1:8000/'
+    const hostName = document.location.hostname;
+    const apiUrl = `http://${hostName}:8000/api/`;
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

@@ -52,7 +52,8 @@ export default function ToBeApproved() {
         time_approved: dayjs().format('HH:mm'),
     });
     
-    const apiUrl = 'http://127.0.0.1:8000/'
+    const hostName = document.location.hostname;
+    const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-201/main";
     const iframeRef = useRef(null);
 
