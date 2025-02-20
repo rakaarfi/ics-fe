@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import dayjs from 'dayjs';
+import { fetchOperationalPeriodByIncident } from '@/utils/api';
 
 export default function Detail() {
     const { id } = useParams();
@@ -111,7 +112,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
+        fetchOperationalPeriodByIncident(incident_id)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })

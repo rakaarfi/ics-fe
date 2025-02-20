@@ -61,6 +61,15 @@ export const fetchPaginatedData = async ({
     }
 };
 
+// Read Operational Period By Incident
+export const fetchOperationalPeriodByIncident = async ( incidentId ) => {
+    const hostName = document.location.hostname;
+    const apiUrl = `http://${hostName}:8000/api/`;
+    
+    const response = await axios.get(`${apiUrl}operational-period/read-by-incident/${incidentId}`);
+    return response;
+}
+
 // Read by ID
 export const readById = async ({ routeUrl, id }) => {
     const hostName = document.location.hostname;

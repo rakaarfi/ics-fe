@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react'
 import dayjs from 'dayjs';
 import { useParams } from 'next/navigation';
 import UploadFile from '@/components/UploadFile';
+import { fetchOperationalPeriodByIncident } from '@/utils/api';
 
 
 export default function Detail() {
@@ -147,7 +148,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
+        fetchOperationalPeriodByIncident(incident_id)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })

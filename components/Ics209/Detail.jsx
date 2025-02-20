@@ -6,6 +6,7 @@ import FormContainer from '@/components/FormContainer';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import dayjs from 'dayjs';
+import { fetchOperationalPeriodByIncident } from '@/utils/api';
 
 export default function Detail() {
     const { id } = useParams();
@@ -162,7 +163,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
+        fetchOperationalPeriodByIncident(incident_id)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -402,7 +403,7 @@ export default function Detail() {
                                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                                 onClick={() => setActionType("edit")}
                             >
-                                Update an 
+                                Update an
                                 <br />
                                 existing report
                             </button>

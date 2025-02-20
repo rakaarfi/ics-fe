@@ -10,6 +10,7 @@ import Hospital from './Hospital';
 import dayjs from 'dayjs';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { fetchOperationalPeriodByIncident } from '@/utils/api';
 
 
 export default function Detail() {
@@ -49,7 +50,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
+        fetchOperationalPeriodByIncident(incident_id)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })

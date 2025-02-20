@@ -5,6 +5,7 @@ import { ButtonSubmit } from '@/components/ButtonComponents';
 import FormContainer from '@/components/FormContainer';
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
+import { fetchOperationalPeriodByIncident } from '@/utils/api';
 
 export default function Input() {
     const [formData, setFormData] = useState({
@@ -90,7 +91,7 @@ export default function Input() {
             operational_period_id: "",
         }));
 
-        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
+        fetchOperationalPeriodByIncident(incident_id)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
@@ -114,10 +115,10 @@ export default function Input() {
 
         setFormData((prevFormData) => ({
             ...prevFormData,
-            [name]: type === "checkbox" 
-                ? checked 
-                : (name === "is_source_ctrl" || name === "is_material_ctrl") 
-                    ? value === "true" 
+            [name]: type === "checkbox"
+                ? checked
+                : (name === "is_source_ctrl" || name === "is_material_ctrl")
+                    ? value === "true"
                     : value,
         }));
     };

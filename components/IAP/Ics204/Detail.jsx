@@ -10,6 +10,7 @@ import { ButtonSaveChanges } from '@/components/ButtonComponents';
 import PersonnelAssigned from './PersonnelAssigned';
 import EquipmentAssigned from './EquipmentAssigned';
 import FormContainer from '@/components/FormContainer';
+import { fetchOperationalPeriodByIncident } from '@/utils/api';
 
 dayjs.extend(customParseFormat);
 
@@ -69,7 +70,7 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
+        fetchOperationalPeriodByIncident(incident_id)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })

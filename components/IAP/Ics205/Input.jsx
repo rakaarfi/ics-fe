@@ -6,6 +6,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import RadioChannel from './RadioChannel';
 import dayjs from 'dayjs';
+import { fetchOperationalPeriodByIncident } from '@/utils/api';
 
 export default function Input() {
     const [formData, setFormData] = useState({
@@ -30,7 +31,7 @@ export default function Input() {
     const [CULeaderData, setCULeaderData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    
+
     const hostName = document.location.hostname;
     const apiUrl = `http://${hostName}:8000/api/`;
 
@@ -47,7 +48,7 @@ export default function Input() {
             operational_period_id: "",
         }));
 
-        axios.get(`${apiUrl}operational-period/read-by-incident/${incident_id}`)
+        fetchOperationalPeriodByIncident(incident_id)
             .then((response) => {
                 setOperationalPeriodData(response.data);
             })
