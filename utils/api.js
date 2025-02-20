@@ -1,7 +1,7 @@
 "use client"
 
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export const useHostName = () => {
     const [hostName, setHostName] = useState('');
