@@ -1,8 +1,21 @@
 "use client"
 
 import axios from "axios";
+import { useEffect } from "react";
 
-const hostName = document.location.hostname
+export const useHostName = () => {
+    const [hostName, setHostName] = useState('');
+
+    useEffect(() => {
+        if (document) {
+            setHostName(document.location.hostname);
+        }
+    }, []);
+
+    return hostName;
+};
+
+const hostName = useHostName();
 
 const apiUrl = `http://${hostName}:8000/`;
 
