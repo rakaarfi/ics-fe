@@ -1,12 +1,13 @@
 'use client';
 
 import axios from 'axios';
-import { ButtonSaveChanges } from '@/components/ButtonComponents';
-import FormContainer from '@/components/FormContainer';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import dayjs from 'dayjs';
+
+import FormContainer from '@/components/FormContainer';
+import { ButtonSaveChanges } from '@/components/ButtonComponents';
 import { fetchData, fetchOperationalPeriodByIncident, readById, readByIcs202Id } from '@/utils/api';
 
 export default function Detail() {
@@ -48,60 +49,95 @@ export default function Detail() {
     // routeUrl yang merepresentasikan endpoint ICS-202 main
     const routeUrl = "ics-202/main";
 
+    // -------------------------------------------------------------------------
+    // Gunakan helper readById, fetchData, readByIcs202Id di dalam useEffect
+    // -------------------------------------------------------------------------
     useEffect(() => {
-        setLoading(true);
-        setError(null);
+        const fetchIcs202Data = async () => {
+            setLoading(true);
+            setError(null);
 
-        let operationalPeriodId = null;
+            try {
+                // Ambil detail ICS 202 (main data) - pakai readById
+                const mainData = await readById({ routeUrl, id });
+                setData(mainData);
+                setFormData(mainData);
 
-        // Ambil data detail
-        axios
-            .get(`${apiUrl}${routeUrl}/read/${id}`)
-            .then((response) => {
-                setData(response.data);
-                setFormData(response.data);
-                operationalPeriodId = response.data.operational_period_id;
+                // Simpan ID operational period untuk pemakaian berikutnya
+                const operationalPeriodId = mainData.operational_period_id;
 
-                return axios.get(`${apiUrl}operational-period/read`);
-            })
-            .then((response) => {
-                setOperationalPeriodData(response.data);
+                // Ambil semua data operational period - pakai fetchData
+                const allOperationalPeriods = await fetchData('operational-period');
+                setOperationalPeriodData(allOperationalPeriods);
 
-                const selectedOperationalPeriod = response.data.find(
+                // Cari operational period yang sesuai
+                const selectedOperationalPeriod = allOperationalPeriods.find(
                     (period) => period.id === operationalPeriodId
                 );
-
                 if (selectedOperationalPeriod) {
                     setFormData((prevFormData) => ({
                         ...prevFormData,
                         incident_id: selectedOperationalPeriod.incident_id,
                     }));
                 }
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
+
+                // Kalau ada id, baru fetch preparation data - pakai readByIcs202Id
+                if (id) {
+                    const prepResponse = await readByIcs202Id({
+                        routeUrl: 'ics-202/preparation',
+                        id
+                    });
+                    if (prepResponse && prepResponse.length > 0) {
+                        setPreparationData(prepResponse[0]);
+                        setPreparationID(prepResponse[0].id);
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching data:', err);
                 setError('Failed to fetch data');
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
 
-        if (id) {
-            axios.get(`${apiUrl}ics-202/preparation/read-by-ics-202-id/${id}`)
-                .then((response) => {
-                    setPreparationData(response.data[0]);
-                    setPreparationID(response.data[0].id);
-                })
-                .catch((error) => {
-                    console.error('Error fetching Preparation data:', error);
-                    setError('Failed to fetch Preparation data');
-                });
+        fetchIcs202Data();
+    }, [id, routeUrl]);
+
+    // -------------------------------------------------------------------------
+    // Fetch data Incident & Planning Section Chief
+    // -------------------------------------------------------------------------
+    const fetchIncidentData = async () => {
+        try {
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
         }
+    };
 
-    }, [id]);
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
 
+    const fetchPSChief = async () => {
+        try {
+            const response = await fetchData('planning-section/planning-section-chief');
+            setPSChiefData(response);
+        } catch (error) {
+            console.error('Error fetching Planning Section Chief data:', error);
+            setError('Failed to fetch Planning Section Chief data');
+        }
+    };
 
-    const handleIncidentChange = (e) => {
+    useEffect(() => {
+        fetchPSChief();
+    }, []);
+
+    // -------------------------------------------------------------------------
+    // Handler dropdown Incident & Operational Period
+    // -------------------------------------------------------------------------
+    const handleIncidentChange = async (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
 
@@ -114,12 +150,15 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        fetchOperationalPeriodByIncident(incident_id)
-            .then((responseData) => {
-                setOperationalPeriodData(responseData);
-            })
-            .catch(() => setError('Failed to fetch operational period data'))
-            .finally(() => setLoading(false));
+        try {
+            const responseData = await fetchOperationalPeriodByIncident(incident_id);
+            setOperationalPeriodData(responseData);
+        } catch (err) {
+            console.error('Failed to fetch operational period data:', err);
+            setError('Failed to fetch operational period data');
+        } finally {
+            setLoading(false);
+        }
     };
 
 
@@ -131,6 +170,9 @@ export default function Detail() {
         }));
     };
 
+    // -------------------------------------------------------------------------
+    // Handler umum untuk text/checkbox
+    // -------------------------------------------------------------------------
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData({
@@ -139,6 +181,9 @@ export default function Detail() {
         });
     };
 
+    // -------------------------------------------------------------------------
+    // Submit data (PUT / POST)
+    // -------------------------------------------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -182,34 +227,6 @@ export default function Detail() {
             alert('Failed to submit data. Please try again.');
         }
     };
-
-    const fetchIncidentData = async () => {
-        try {
-            const response = await fetchData('incident-data');
-            setIncidentData(response);
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
-    };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchPSChief = async () => {
-        try {
-            const response = await fetchData('planning-section/planning-section-chief');
-            setPSChiefData(response);
-        } catch (error) {
-            console.error('Error fetching Planning Section Chief data:', error);
-            setError('Failed to fetch Planning Section Chief data');
-        }
-    };
-
-    useEffect(() => {
-        fetchPSChief();
-    }, []);
 
     return (
         <FormContainer title="ICS 202 Incident Objectives Detail">

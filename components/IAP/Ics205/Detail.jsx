@@ -109,7 +109,7 @@ export default function Detail() {
         }
     };
 
-    const handleIncidentChange = (e) => {
+    const handleIncidentChange = async (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
 
@@ -122,12 +122,15 @@ export default function Detail() {
             operational_period_id: "",
         }));
 
-        fetchOperationalPeriodByIncident(incident_id)
-            .then((responseData) => {
-                setOperationalPeriodData(responseData);
-            })
-            .catch(() => setError('Failed to fetch operational period data'))
-            .finally(() => setLoading(false));
+        try {
+            const responseData = await fetchOperationalPeriodByIncident(incident_id);
+            setOperationalPeriodData(responseData);
+        } catch (err) {
+            console.error('Failed to fetch operational period data:', err);
+            setError('Failed to fetch operational period data');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleOperationalPeriodChange = (e) => {
