@@ -20,7 +20,7 @@ import { fetchData, readById } from '@/utils/api';
 import useFetchDynamicOptions from '../ImtRoster/useFetchDynamicOptions';
 
 const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
+    () => import('@mui/x-date-pickers/TimePicker').then((mod) => mod.TimePicker),
     { ssr: false }
 );
 

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -13,8 +15,8 @@ import { ButtonDelete, ButtonSubmit, ButtonSave, ButtonEdit, CancelButton } from
 
 export default function ListTemplate({ routeUrl, responseKey, headerText }) {
     const searchParams = useSearchParams();
-    const queryPage = searchParams.get("page") || "1";
-    const querySearch = searchParams.get("search") || "";
+    const [queryPage, setQueryPage] = useState("1");
+    const [querySearch, setQuerySearch] = useState("");
 
     const [data, setData] = useState([]);
     const [currentPage, setCurrentPage] = useState(Number(queryPage));
@@ -29,6 +31,11 @@ export default function ListTemplate({ routeUrl, responseKey, headerText }) {
     if (!routeUrl || !responseKey) {
         return <p className="text-red-500">Error: Missing required parameters</p>;
     }
+    
+    useEffect(() => {
+        setQueryPage(searchParams.get("page") || "1");
+        setQuerySearch(searchParams.get("search") || "");
+    }, [searchParams]);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);

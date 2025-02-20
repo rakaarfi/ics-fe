@@ -7,9 +7,9 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { TableHead } from '@mui/material';
+import TableHead from '@mui/material/TableHead';
 import FormContainer from '@/components/FormContainer';
 
 dayjs.extend(customParseFormat);

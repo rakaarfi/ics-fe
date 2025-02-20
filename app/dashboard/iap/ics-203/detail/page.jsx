@@ -1,8 +1,10 @@
 import List from '@/components/IAP/Ics203/List'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 export default function page() {
     return (
-        <List />
+        <Suspense fallback={<div>Loading...</div>}>
+            <List />
+        </Suspense>
     )
 }

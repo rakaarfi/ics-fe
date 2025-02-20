@@ -5,10 +5,15 @@ import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 import FormContainer from '../FormContainer';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { ButtonSaveChanges } from '../ButtonComponents';
 import dayjs from 'dayjs';
+import dynamic from 'next/dynamic';
+
+const TimePicker = dynamic(
+    () => import('@mui/x-date-pickers/TimePicker').then((mod) => mod.TimePicker),
+    { ssr: false }
+);
 
 export default function Detail() {
     const { id } = useParams();

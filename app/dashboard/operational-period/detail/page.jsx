@@ -1,8 +1,10 @@
 import List from '@/components/OperationalPeriod/List'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 export default function page() {
     return (
-        <List />
+        <Suspense fallback={<div>Loading...</div>}>
+            <List />
+        </Suspense>
     )
 }

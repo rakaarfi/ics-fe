@@ -1,6 +1,7 @@
 'use client'
 
 import ListTemplate from "@/components/ImtMembers/ListTemplate";
+import { Suspense } from "react";
 
 export default function page() {
 
@@ -8,10 +9,12 @@ export default function page() {
     const responseKey = "read-paginated";
 
     return (
-        <ListTemplate
-            routeUrl={routeUrl}
-            responseKey={responseKey}
-            headerText="Facility Unit Leader"
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+            <ListTemplate
+                routeUrl={routeUrl}
+                responseKey={responseKey}
+                headerText="Facility Unit Leader"
+            />
+        </Suspense>
     );
 }

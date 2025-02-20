@@ -25,9 +25,9 @@ jobs:
       #   run: |
       #     mv .env.example .env
 
-      - name: Manual Replace
-        run: |
-          sed -i 's#DATABASE_URL=#DATABASE_URL=${{ secrets.DATABASE_URL }}#g' docker-compose.yaml
+      # - name: Manual Replace
+      #   run: |
+      #     sed -i 's#DATABASE_URL=#DATABASE_URL=${{ secrets.DATABASE_URL }}#g' docker-compose.yaml
 
       # - name: 📡 Docker Swarm Deploy...
       #   run: |

@@ -1,11 +1,10 @@
 'use client';
 
 import axios from 'axios';
-import { ButtonSaveChanges, ButtonSubmit } from '@/components/ButtonComponents';
+import { ButtonSaveChanges } from '@/components/ButtonComponents';
 import FormContainer from '@/components/FormContainer';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
 import dayjs from 'dayjs';
 
 export default function Detail() {
@@ -1738,7 +1737,7 @@ export default function Detail() {
                                 {/* Submit Button */}
                                 <tr>
                                     <td colSpan={7} className="text-right px-4 py-2">
-                                        <ButtonSubmit />
+                                        <ButtonSaveChanges />
                                     </td>
                                 </tr>
                             </tbody>

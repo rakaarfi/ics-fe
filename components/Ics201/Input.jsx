@@ -2,10 +2,15 @@
 
 import axios from 'axios';
 import dayjs from 'dayjs';
-import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dynamic from 'next/dynamic';
+
+const TimePicker = dynamic(
+    () => import('@mui/x-date-pickers/TimePicker').then((mod) => mod.TimePicker),
+    { ssr: false }
+);
 
 import Chart from './Chart';
 import UploadImage from './UploadImage';
@@ -14,12 +19,7 @@ import FormContainer from '../FormContainer'
 import ResourceSummary from './ResourceSummary';
 import { ButtonSubmit } from '../ButtonComponents';
 import ActionsStrategiesTactics from './ActionsStrategiesTactics';
-import UploadFile from '../UploadFile';
 
-const TimePicker = dynamic(
-    () => import('@mui/x-date-pickers').then((mod) => mod.TimePicker),
-    { ssr: false }
-);
 
 export default function Input() {
     const [formData, setFormData] = useState({

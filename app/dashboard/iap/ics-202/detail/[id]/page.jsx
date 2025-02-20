@@ -1,8 +1,10 @@
 import Detail from '@/components/IAP/Ics202/Detail'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 export default function page() {
     return (
-        <Detail />
+        <Suspense fallback={<div>Loading...</div>}>
+            <Detail />
+        </Suspense>
     )
 }

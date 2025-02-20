@@ -3,10 +3,15 @@
 import React, { useState } from 'react';
 import FormContainer from '../FormContainer'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { createData } from '@/utils/api';
 import { ButtonSubmit } from '../ButtonComponents';
+import dynamic from 'next/dynamic';
+
+const TimePicker = dynamic(
+    () => import('@mui/x-date-pickers/TimePicker').then((mod) => mod.TimePicker),
+    { ssr: false }
+);
 
 export default function Input() {
 

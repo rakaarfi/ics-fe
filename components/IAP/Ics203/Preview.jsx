@@ -2,18 +2,17 @@
 
 import axios from 'axios';
 import dayjs from 'dayjs';
-import dynamic from 'next/dynamic';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { TableHead } from '@mui/material';
+import TableHead from '@mui/material/TableHead';
 import FormContainer from '@/components/FormContainer';
 import useFetchDynamicOptions from '@/components/ImtRoster/useFetchDynamicOptions';
-import { MainSection, PlanningSection, LogisticSection, FinanceSection, OperationSectionList, boldItems } from '@/components/ImtRoster/inputFields';
+import { MainSection, PlanningSection, LogisticSection, FinanceSection, OperationSectionList } from '@/components/ImtRoster/inputFields';
 
 dayjs.extend(customParseFormat);
 

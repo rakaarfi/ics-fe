@@ -295,7 +295,7 @@ export default function List() {
                                     <td className="border border-gray-300 px-4 py-2">
                                         {item.special_medical_procedures}
                                     </td>
-                                    <td className="border border-gray-300 px-4 py-2">
+                                    <td className="border border-gray-300 px-4 py-2 whitespace-nowrap">
                                         {isApproved(item.id) ? (
                                             <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                                 Approved

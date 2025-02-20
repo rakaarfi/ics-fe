@@ -10,7 +10,6 @@ import React, { useEffect, useState } from 'react';
 import FormContainer from '@/components/FormContainer';
 
 
-
 export default function Preview({
 }) {
     const { id } = useParams();
