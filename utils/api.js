@@ -17,7 +17,7 @@ export const useHostName = () => {
 
 // Create
 export const createData = async ({ routeUrl, payload }) => {
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
     const response = await axios.post(`${apiUrl}${routeUrl}/create/`, payload);
@@ -26,7 +26,7 @@ export const createData = async ({ routeUrl, payload }) => {
 
 // Read
 export const fetchData = async (routeUrl) => {
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     
     const response = await axios.get(`${apiUrl}${routeUrl}/read`);
@@ -63,7 +63,7 @@ export const fetchPaginatedData = async ({
 
 // Read Operational Period By Incident
 export const fetchOperationalPeriodByIncident = async ( incidentId ) => {
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     
     const response = await axios.get(`${apiUrl}operational-period/read-by-incident/${incidentId}`);
@@ -72,7 +72,7 @@ export const fetchOperationalPeriodByIncident = async ( incidentId ) => {
 
 // Read by ICS 201 ID
 export const readByIcs201Id = async ({ routeUrl, id }) => {
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     
     try {
@@ -86,7 +86,7 @@ export const readByIcs201Id = async ({ routeUrl, id }) => {
 
 // Read by ICS 202 ID
 export const readByIcs202Id = async ({ routeUrl, id }) => {
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     
     try {
@@ -100,7 +100,7 @@ export const readByIcs202Id = async ({ routeUrl, id }) => {
 
 // Read by ID
 export const readById = async ({ routeUrl, id }) => {
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     
     const response = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
@@ -108,7 +108,7 @@ export const readById = async ({ routeUrl, id }) => {
 };
 
 export const readTableById = async ({ routeUrl, id }) => {
-    const hostName = document.location.hostname;
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
     
     const response = await axios.get(`${apiUrl}${routeUrl}/${id}/`);
