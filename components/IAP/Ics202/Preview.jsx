@@ -10,6 +10,7 @@ import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import FormContainer from '@/components/FormContainer';
+import { fetchData, readByIcs202Id, readById } from '@/utils/api';
 
 dayjs.extend(customParseFormat);
 
@@ -34,8 +35,7 @@ export default function Preview() {
         map_chart: false,
         weather_tides_currents: false,
     });
-    const [incidentData, setIncidentData] = useState([]);
-    // const [incidentCommanderData, setIncidentCommanderData] = useState([]);
+    const [incidentDetails, setIncidentDetails] = useState(null);
     const [operationalPeriodData, setOperationalPeriodData] = useState([]);
     const [ICData, setICData] = useState([]);
     const [approvalData, setApprovalData] = useState({
@@ -50,92 +50,102 @@ export default function Preview() {
         date_prepared: dayjs().format('YYYY-MM-DD'),
         time_prepared: dayjs().format('HH:mm'),
     });
+    const [preparationID, setPreparationID] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
+
+    // routeUrl yang merepresentasikan endpoint ICS-202 main
     const routeUrl = "ics-202/main";
 
+    // -------------------------------------------------------------------------
+    // Gunakan helper readById, fetchData, readByIcs202Id di dalam useEffect
+    // -------------------------------------------------------------------------
     useEffect(() => {
-        setLoading(true);
-        setError(null);
+        const fetchIcs202Data = async () => {
+            setLoading(true);
+            setError(null);
 
-        let operationalPeriodId = null;
+            try {
+                // Ambil detail ICS 202 (main data) - pakai readById
+                const mainData = await readById({ routeUrl, id });
+                setData(mainData);
+                setFormData(mainData);
 
-        axios
-            .get(`${apiUrl}${routeUrl}/read/${id}`)
-            .then((response) => {
-                setData(response.data);
-                setFormData(response.data);
-                operationalPeriodId = response.data.operational_period_id;
+                // Simpan ID operational period untuk pemakaian berikutnya
+                const operationalPeriodId = mainData.operational_period_id;
 
-                // Ambil data operational period
-                return axios.get(`${apiUrl}operational-period/read`);
-            })
-            .then((response) => {
-                setOperationalPeriodData(response.data);
+                // Ambil semua data operational period - pakai fetchData
+                const allOperationalPeriods = await fetchData('operational-period');
+                setOperationalPeriodData(allOperationalPeriods);
 
-                // Cari operational period dan incident terkait
-                const selectedOperationalPeriod = response.data.find(
+                // Cari operational period yang sesuai
+                const selectedOperationalPeriod = allOperationalPeriods.find(
                     (period) => period.id === operationalPeriodId
                 );
-
                 if (selectedOperationalPeriod) {
                     setFormData((prevFormData) => ({
                         ...prevFormData,
                         incident_id: selectedOperationalPeriod.incident_id,
                     }));
                 }
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-                setError('Failed to fetch data');
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    }, [id]);
 
-    // Fetch preparation data
-    useEffect(() => {
-        const fetchPreparationData = async () => {
-            try {
-                const response = await axios.get(
-                    `${apiUrl}ics-202/preparation/read-by-ics-202-id/${id}`
-                );
-                if (response.data.length > 0) {
-                    setPreparationData(response.data);
+                // Kalau ada id, baru fetch preparation data - pakai readByIcs202Id
+                if (id) {
+                    const prepResponse = await readByIcs202Id({
+                        routeUrl: 'ics-202/preparation',
+                        id
+                    });
+                    if (prepResponse && prepResponse.length > 0) {
+                        setPreparationData(prepResponse[0]);
+                        setPreparationID(prepResponse[0].id);
+                    }
                 }
-            } catch (error) {
-                console.error('Error fetching preparation data:', error);
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                setError('Failed to fetch data');
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchPreparationData();
-    }, [id]);
+        fetchIcs202Data();
+    }, [id, routeUrl]);
 
-    // Fetch Planning Section Chief data
+    // -------------------------------------------------------------------------
+    // Fetch data Incident & Planning Section Chief & 
+    // Preparation & Incident Commander & Approval
+    // -------------------------------------------------------------------------
+
     useEffect(() => {
-        if (preparationData.length > 0 && preparationData[0].planning_section_chief_id) {
-            fetchPSChief(preparationData[0].planning_section_chief_id);
+        if (preparationData.planning_section_chief_id) {
+            fetchPSChief(preparationData.planning_section_chief_id);
         }
     }, [preparationData]);
 
+
     const fetchPSChief = async (chiefId) => {
         try {
-            const response = await axios.get(`${apiUrl}planning-section/planning-section-chief/read/${chiefId}`);
-            setPSChiefData(response.data);
+            const response = await readById({
+                routeUrl: 'planning-section/planning-section-chief',
+                id: chiefId
+            });
+            setPSChiefData(response);
         } catch (error) {
             console.error('Error fetching PS Chief data:', error);
         }
     };
 
-
+    // Fetch Incident Commander
     const fetchIC = async (incindentId) => {
         try {
-            const response = await axios.get(`${apiUrl}main-section/incident-commander/read/${incindentId}`);
-            setICData(response.data);
+            const response = await readById({
+                routeUrl: 'main-section/incident-commander',
+                id: incindentId
+            });
+            setICData(response);
         } catch (error) {
             console.error('Error fetching IC data:', error);
         }
@@ -145,14 +155,16 @@ export default function Preview() {
         fetchIC(approvalData.incident_commander_id);
     }, [approvalData]);
 
+    // Fetch Approval
     useEffect(() => {
         const fetchApprovalData = async (ics_202_id) => {
             try {
-                const response = await axios.get(
-                    `${apiUrl}ics-202/approval/read-by-ics-202-id/${ics_202_id}`
-                );
-                if (response.data.length > 0) {
-                    setApprovalData(response.data[0]);
+                const response = await readByIcs202Id({
+                    routeUrl: 'ics-202/approval',
+                    id: ics_202_id
+                });
+                if (response && response.length > 0) {
+                    setApprovalData(response[0]);
                 }
             } catch (error) {
                 console.error('Error fetching approval data:', error);
@@ -165,25 +177,27 @@ export default function Preview() {
     }, [id]);
 
     // Fetch Incident Data
+    const fetchIncidentById = async (incidentId) => {
+        try {
+            const response = await readById({
+                routeUrl: 'incident-data',
+                id: incidentId
+            });
+            setIncidentDetails(response);
+        } catch (error) {
+            setError('Failed to fetch incident data');
+        }
+    };
+    
     useEffect(() => {
-        const fetchIncidentData = async () => {
-            try {
-                const response = await axios.get(`${apiUrl}incident-data/read`);
-                setIncidentData(response.data);
-            } catch (error) {
-                setError('Failed to fetch incident data');
-            }
-        };
-        fetchIncidentData();
-    }, []);
+        if (formData.incident_id) {
+            fetchIncidentById(formData.incident_id);
+        }
+    }, [formData.incident_id]);
 
-    const isPrepared = preparationData.length > 0 ? preparationData[0].is_prepared : false;
-    const preparedDate = preparationData.length > 0 ? preparationData[0].date_prepared : null;
-    const preparedTime = preparationData.length > 0 ? preparationData[0].time_prepared : null;
-
-    const incidentDetails = incidentData.find(
-        (incident) => incident.id === formData.incident_id
-    );
+    const isPrepared = preparationData ? preparationData.is_prepared : false;
+    const preparedDate = preparationData ? preparationData.date_prepared : null;
+    const preparedTime = preparationData ? preparationData.time_prepared : null;
 
     const selectedOperationalPeriod = operationalPeriodData.find(
         (period) => period.id === formData.operational_period_id

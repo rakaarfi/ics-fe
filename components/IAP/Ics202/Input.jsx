@@ -5,7 +5,7 @@ import { ButtonSubmit } from '@/components/ButtonComponents';
 import FormContainer from '@/components/FormContainer';
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import { fetchOperationalPeriodByIncident } from '@/utils/api';
+import { fetchOperationalPeriodByIncident, fetchData } from '@/utils/api';
 
 export default function Input() {
     const [formData, setFormData] = useState({
@@ -43,8 +43,8 @@ export default function Input() {
     // -------------------------------------------------------------------------
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
         } catch (error) {
             console.error('Error fetching incident data:', error);
             setError('Failed to fetch incident data');
@@ -57,9 +57,8 @@ export default function Input() {
 
     const fetchPSChief = async () => {
         try {
-            const response = await axios.get(`${apiUrl}planning-section/planning-section-chief/read/`);
-            setPSChiefData(response.data);
-            console.log("Planning Section Chief Data:", response.data);
+            const response = await fetchData('planning-section/planning-section-chief');
+            setPSChiefData(response);
         } catch (error) {
             console.error('Error fetching Planning Section Chief data:', error);
             setError('Failed to fetch Planning Section Chief data');
