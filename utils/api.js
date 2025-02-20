@@ -116,24 +116,6 @@ export const readTableById = async ({ routeUrl, id }) => {
 };
 
 // Update
-// export const handleUpdate = async (e, id, routeUrl) => {
-//     e.preventDefault();
-
-//     const formData = new FormData(e.target);
-//     const updatedData = Object.fromEntries(formData.entries());
-
-//     try {
-//         const response = await axios.put(
-//             `${apiUrl}${routeUrl}/update/${id}`,
-//             updatedData
-//         );
-//         alert("Data updated successfully!");
-
-//     } catch (err) {
-//         alert("Error updating data: " + err.message);
-//     }
-// };
-
 export const handleUpdate = async (id, routeUrl, formData) => {
     try {
         const hostName = document.location.hostname;
