@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const apiUrl = "http://127.0.0.1:8000/";
+const hostName = document.location.hostname
+
+const apiUrl = `http://${hostName}:8000/`;
 
 // Create
 export const createData = async ({ routeUrl, payload }) => {
