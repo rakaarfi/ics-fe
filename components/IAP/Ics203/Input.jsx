@@ -7,7 +7,7 @@ import useFetchDynamicOptions from "@/components/ImtRoster/useFetchDynamicOption
 import { ButtonSubmit } from "@/components/ButtonComponents";
 import axios from "axios";
 import dayjs from 'dayjs';
-import { fetchOperationalPeriodByIncident } from "@/utils/api";
+import { fetchData, fetchOperationalPeriodByIncident } from "@/utils/api";
 
 
 export default function Input() {
@@ -18,14 +18,52 @@ export default function Input() {
     const [RULeaderData, setRULeaderData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    
+
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
+    // -------------------------------------------------------------------------
+    // Fetch data Incident & Resources Unit Leader
+    // -------------------------------------------------------------------------
+    const fetchIncidentData = async () => {
+        try {
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
+
+    const fetchRULeader = async () => {
+        try {
+            const response = await fetchData('planning-section/resources-unit-leader');
+            setRULeaderData(response);
+            console.log("Resources Unit Leader Data:", response);
+        } catch (error) {
+            console.error('Error fetching Resources Unit Leader data:', error);
+            setError('Failed to fetch Resources Unit Leader data');
+        }
+    };
+
+    useEffect(() => {
+        fetchRULeader();
+    }, []);
+
+    // -------------------------------------------------------------------------
+    // Handler umum untuk text/checkbox
+    // -------------------------------------------------------------------------
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // -------------------------------------------------------------------------
+    // Handler dropdown Incident & Operational Period
+    // -------------------------------------------------------------------------
     const handleIncidentChange = async (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
@@ -60,6 +98,9 @@ export default function Input() {
         }));
     };
 
+    // -------------------------------------------------------------------------
+    // Submit data (POST)
+    // -------------------------------------------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -117,37 +158,6 @@ export default function Input() {
             alert("Terjadi kesalahan saat menyimpan data.");
         }
     };
-
-    const fetchIncidentData = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-            console.log("Incident Data:", response.data);
-
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
-    };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchRULeader = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
-            setRULeaderData(response.data);
-            console.log("Planning Section Chief Data:", response.data);
-        } catch (error) {
-            console.error('Error fetching Planning Section Chief data:', error);
-            setError('Failed to fetch Planning Section Chief data');
-        }
-    };
-
-    useEffect(() => {
-        fetchRULeader();
-    }, []);
 
     return (
         <FormContainer title="Input ICS 203 - Organization Assignment List">

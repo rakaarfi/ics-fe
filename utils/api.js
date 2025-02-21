@@ -61,6 +61,20 @@ export const fetchPaginatedData = async ({
     }
 };
 
+// Read by
+export const readBy = async ({ routeUrl, id }) => {
+    const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
+    const apiUrl = `http://${hostName}:8000/api/`;
+    
+    try {
+        const response = await axios.get(`${apiUrl}${routeUrl}/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+    }
+};
+
 // Read Operational Period By Incident
 export const fetchOperationalPeriodByIncident = async ( incidentId ) => {
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
