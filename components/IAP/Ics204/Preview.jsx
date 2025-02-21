@@ -11,6 +11,7 @@ import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import FormContainer from '@/components/FormContainer';
 import { TableHead } from '@mui/material';
+import { fetchData, readBy } from '@/utils/api';
 
 dayjs.extend(customParseFormat);
 
@@ -20,11 +21,11 @@ export default function Preview({
     const { id } = useParams();
     const [formData, setFormData] = useState({
         operational_period_id: null,
-        operation_section_chief_id: null, // Untuk Operations Personnel
-        prepared_operation_section_chief_id: null, // Untuk Prepared by
+        operation_section_chief_id: null,
+        prepared_operation_section_chief_id: null,
         resources_unit_leader_id: null,
         is_prepared_ru_leader: false,
-        is_prepared_os_chief: false, // Jika OS Chief yang prepared
+        is_prepared_os_chief: false,
         branch_director_name: "",
         branch_director_number: "",
         division_supervisor_name: "",
@@ -67,36 +68,37 @@ export default function Preview({
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-204/main";
 
+    // -------------------------------------------------------------------------
+    // Gunakan helper readBy, fetchData di dalam useEffect
+    // -------------------------------------------------------------------------
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchIcs204Data = async () => {
             setLoading(true);
             setError(null);
 
             try {
                 // Fetch main data
-                const responseData = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
-                const mainData = responseData.data;
+                const responseData = await readBy({ routeUrl: "ics-204/main/read", id });
+                const mainData = responseData;
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationOSChiefResponse, preparationRULeaderResponse, personnelsData, equipmentsData] = await Promise.all([
-                    axios.get(`${apiUrl}operational-period/read`),
-                    axios.get(`${apiUrl}ics-204/preparation-os-chief/read-by-ics-204-id/${id}`),
-                    axios.get(`${apiUrl}ics-204/preparation-ru-leader/read-by-ics-204-id/${id}`),
+                    fetchData('operational-period'),
+                    readBy({ routeUrl: 'ics-204/preparation-os-chief/read-by-ics-204-id', id }),
+                    readBy({ routeUrl: 'ics-204/preparation-ru-leader/read-by-ics-204-id', id }),
                     fetchPersonnelsData(mainData.id),
                     fetchEquipmentsData(mainData.id),
                 ]);
 
                 // Extracting data
-                const operationalPeriodData = operationalPeriodResponse.data;
-                const preparationOSChiefData = preparationOSChiefResponse.data.length > 0 ? preparationOSChiefResponse.data[0] : null;
-                const preparationRULeaderData = preparationRULeaderResponse.data.length > 0 ? preparationRULeaderResponse.data[0] : null;
+                const operationalPeriodData = operationalPeriodResponse;
+                const preparationOSChiefData = preparationOSChiefResponse.length > 0 ? preparationOSChiefResponse[0] : null;
+                const preparationRULeaderData = preparationRULeaderResponse.length > 0 ? preparationRULeaderResponse[0] : null;
 
                 setPreparationOSChiefID(preparationOSChiefData ? preparationOSChiefData.id : null);
                 setPreparationRULeaderID(preparationRULeaderData ? preparationRULeaderData.id : null);
                 setPreparationOSChiefData(preparationOSChiefData);
                 setPreparationRULeaderData(preparationRULeaderData);
-                console.log("Preparation RULeader Data:", preparationRULeaderData);
-                console.log("Preparation OS Chief Data:", preparationOSChiefData);
 
                 // Find associated incident_id from operational period
                 const selectedOperationalPeriod = operationalPeriodData.find(period => period.id === mainData.operational_period_id);
@@ -153,36 +155,17 @@ export default function Preview({
         };
 
         if (id) {
-            fetchData();
+            fetchIcs204Data();
         }
     }, [id]);
 
-    const fetchPersonnelsData = async (ics_204_id) => {
-        try {
-            const response = await axios.get(`${apiUrl}ics-204/personnel-assigned/read-by-ics-id/${ics_204_id}`);
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching personnels data:', error);
-            throw error;
-        }
-    };
-
-    const fetchEquipmentsData = async (ics_204_id) => {
-        try {
-            const response = await axios.get(`${apiUrl}ics-204/equipment-assigned/read-by-ics-id/${ics_204_id}`);
-            console.log("Equipments Data:", response.data);
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching equipments data:', error);
-            throw error;
-        }
-    };
-
+    // -------------------------------------------------------------------------
+    // Fetch data
+    // -------------------------------------------------------------------------
     const fetchIncidentData = async () => {
         try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
         } catch (error) {
             console.error('Error fetching incident data:', error);
             setError('Failed to fetch incident data');
@@ -195,9 +178,8 @@ export default function Preview({
 
     const fetchRULeader = async () => {
         try {
-            const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
-            setRULeaderData(response.data);
-            // console.log("Resources Unit Leader Data:", response.data);
+            const response = await fetchData('planning-section/resources-unit-leader');
+            setRULeaderData(response);
         } catch (error) {
             console.error('Error fetching Resources Unit Leader data:', error);
             setError('Failed to fetch Resources Unit Leader data');
@@ -210,9 +192,8 @@ export default function Preview({
 
     const fetchOSChief = async () => {
         try {
-            const response = await axios.get(`${apiUrl}main-section/operation-section-chief/read/`);
-            setOSChiefData(response.data);
-            // console.log("Operation Section Chief Data:", response.data);
+            const response = await fetchData('main-section/operation-section-chief');
+            setOSChiefData(response);
         } catch (error) {
             console.error('Error fetching Operation Section Chief data:', error);
             setError('Failed to fetch Operation Section Chief data');
@@ -222,6 +203,32 @@ export default function Preview({
     useEffect(() => {
         fetchOSChief();
     }, []);
+
+    const fetchPersonnelsData = async (ics_204_id) => {
+        try {
+            const response = await readBy({
+                routeUrl: 'ics-204/personnel-assigned/read-by-ics-id',
+                id: ics_204_id
+            });
+            return response;
+        } catch (error) {
+            console.error('Error fetching personnels data:', error);
+            throw error;
+        }
+    };
+
+    const fetchEquipmentsData = async (ics_204_id) => {
+        try {
+            const response = await readBy({
+                routeUrl: 'ics-204/equipment-assigned/read-by-ics-id',
+                id: ics_204_id
+            });
+            return response;
+        } catch (error) {
+            console.error('Error fetching equipments data:', error);
+            throw error;
+        }
+    };
 
     const isPreparedOSChief = preparationOSChiefData?.is_prepared ? '✓' : '✗';
     const preparedDateOSChief = preparationOSChiefData?.date_prepared || "N/A";
@@ -439,7 +446,7 @@ export default function Preview({
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5', width: '25%'  }}>
+                                    <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5', width: '25%' }}>
                                         Division/Group
                                     </TableCell>
                                     <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>
@@ -447,7 +454,7 @@ export default function Preview({
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5', width: '25%'  }}>
+                                    <TableCell sx={{ border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f5f5f5', width: '25%' }}>
                                         Staging Area
                                     </TableCell>
                                     <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>

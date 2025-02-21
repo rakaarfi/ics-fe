@@ -7,7 +7,7 @@ import PersonnelAssigned from './PersonnelAssigned';
 import EquipmentAssigned from './EquipmentAssigned';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { fetchOperationalPeriodByIncident } from '@/utils/api';
+import { fetchData, fetchOperationalPeriodByIncident } from '@/utils/api';
 
 
 export default function Input() {
@@ -61,6 +61,54 @@ export default function Input() {
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
+    // -------------------------------------------------------------------------
+    // Fetch data
+    // -------------------------------------------------------------------------
+    const fetchIncidentData = async () => {
+        try {
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
+
+    const fetchRULeader = async () => {
+        try {
+            const response = await fetchData('planning-section/resources-unit-leader');
+            setRULeaderData(response);
+        } catch (error) {
+            console.error('Error fetching Resources Unit Leader data:', error);
+            setError('Failed to fetch Resources Unit Leader data');
+        }
+    };
+
+    useEffect(() => {
+        fetchRULeader();
+    }, []);
+
+    const fetchOSChief = async () => {
+        try {
+            const response = await fetchData('main-section/operation-section-chief');
+            setOSChiefData(response);
+        } catch (error) {
+            console.error('Error fetching Operation Section Chief data:', error);
+            setError('Failed to fetch Operation Section Chief data');
+        }
+    };
+
+    useEffect(() => {
+        fetchOSChief();
+    }, []);
+
+    // -------------------------------------------------------------------------
+    // Handler dropdown Incident & Operational Period
+    // -------------------------------------------------------------------------
     const handleIncidentChange = async (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
@@ -94,6 +142,9 @@ export default function Input() {
         }));
     };
 
+    // -------------------------------------------------------------------------
+    // Handler umum untuk text/checkbox
+    // -------------------------------------------------------------------------
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData({
@@ -102,43 +153,15 @@ export default function Input() {
         });
     };
 
-    // Functions to handle changes in child components
-    const handleEquipmentsChange = (index, updates) => {
-        setFormData(prevData => {
-            const newEquipments = [...prevData.equipmentAssigned];
-            newEquipments[index] = { ...newEquipments[index], ...updates };
-            return { ...prevData, equipmentAssigned: newEquipments };
-        });
-    };
-
+    // -------------------------------------------------------------------------
+    // Handler Personnels
+    // -------------------------------------------------------------------------
     const handlePersonnelsChange = (index, updates) => {
         setFormData(prevData => {
             const newPersonnels = [...prevData.personnelAssigned];
             newPersonnels[index] = { ...newPersonnels[index], ...updates };
             return { ...prevData, personnelAssigned: newPersonnels };
         });
-    };
-
-    // Functions to add/remove rows in child components
-    const addEquipmentsRow = () => {
-        setFormData(prevData => ({
-            ...prevData,
-            equipmentAssigned: [...prevData.equipmentAssigned, {
-                kind: "",
-                quantity: "",
-                type_specification: "",
-                number: "",
-                location: "",
-                remarks: "",
-            },],
-        }));
-    };
-
-    const removeEquipmentsRow = (index) => {
-        setFormData(prevData => ({
-            ...prevData,
-            equipmentAssigned: prevData.equipmentAssigned.filter((_, i) => i !== index),
-        }));
     };
 
     const addPersonnelsRow = () => {
@@ -160,7 +183,41 @@ export default function Input() {
         }));
     };
 
-    // Handle Submit
+    // -------------------------------------------------------------------------
+    // Handler Equipments
+    // -------------------------------------------------------------------------
+    const handleEquipmentsChange = (index, updates) => {
+        setFormData(prevData => {
+            const newEquipments = [...prevData.equipmentAssigned];
+            newEquipments[index] = { ...newEquipments[index], ...updates };
+            return { ...prevData, equipmentAssigned: newEquipments };
+        });
+    };
+
+    const addEquipmentsRow = () => {
+        setFormData(prevData => ({
+            ...prevData,
+            equipmentAssigned: [...prevData.equipmentAssigned, {
+                kind: "",
+                quantity: "",
+                type_specification: "",
+                number: "",
+                location: "",
+                remarks: "",
+            },],
+        }));
+    };
+
+    const removeEquipmentsRow = (index) => {
+        setFormData(prevData => ({
+            ...prevData,
+            equipmentAssigned: prevData.equipmentAssigned.filter((_, i) => i !== index),
+        }));
+    };
+
+    // -------------------------------------------------------------------------
+    // Submit data (POST)
+    // -------------------------------------------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -262,50 +319,6 @@ export default function Input() {
             alert(`Failed to submit data: ${error.response?.data?.message || error.message}`);
         }
     };
-
-    const fetchIncidentData = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
-    };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchRULeader = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
-            setRULeaderData(response.data);
-            console.log("Resources Unit Leader Data:", response.data);
-        } catch (error) {
-            console.error('Error fetching Resources Unit Leader data:', error);
-            setError('Failed to fetch Resources Unit Leader data');
-        }
-    };
-
-    useEffect(() => {
-        fetchRULeader();
-    }, []);
-
-    const fetchOSChief = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}main-section/operation-section-chief/read/`);
-            setOSChiefData(response.data);
-            console.log("Operation Section Chief Data:", response.data);
-        } catch (error) {
-            console.error('Error fetching Operation Section Chief data:', error);
-            setError('Failed to fetch Operation Section Chief data');
-        }
-    };
-
-    useEffect(() => {
-        fetchOSChief();
-    }, []);
 
     useEffect(() => {
         if (formData.operation_section_chief_id) {
