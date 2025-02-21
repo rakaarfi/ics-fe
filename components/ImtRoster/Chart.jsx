@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { fetchData, readTableById } from "@/utils/api";
+import FormContainer from "../FormContainer";
 
 const Chart = () => {
 
     const [data, setData] = useState({});
     const [roster, setRoster] = useState([]);
     const [selectedRoster, setSelectedRoster] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchRosterData = async () => {
@@ -16,6 +18,7 @@ const Chart = () => {
                 setRoster(initialRoster);
             } catch (err) {
                 console.error("Error fetching roster data:", err.message);
+                setError(err.message);
             }
         };
 
@@ -29,6 +32,7 @@ const Chart = () => {
             setData(response);
         } catch (err) {
             console.error("Error fetching data:", err.message);
+            setError(err.message);
         }
     };
 
@@ -45,32 +49,46 @@ const Chart = () => {
     });
 
     return (
-        <div className="container mx-auto p-4 font-jkt">
-            <div className="justify-center items-center min-h-screen min-w-screen">
-                <div className="border rounded-3xl p-4 shadow-lg dark:bg-[#12171c] bg-[#ffffff] dark:border-0">
-                    <div className="flex flex-col mb-4">
-                        <select
-                            value={selectedRoster ? selectedRoster.id : ""}
-                            onChange={(e) => handleRosterClick(Number(e.target.value))}
-                            className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8]"
-                        >
-                            <option value="" disabled>
-                                Select Roster
-                            </option>
-                            {roster.map((roster) => (
-                                <option key={roster.id} value={roster.id}>
-                                    {roster.date_from} — {roster.date_to}
-                                </option>
-                            ))}
-                        </select>
-                        <p className="w-full px-3 py-1.5 text-base text-gray-900 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8]">
-                            Remark: {selectedRoster ? selectedRoster.remark : ""}
-                        </p>
-                    </div>
-                    <div className="flex flex-col justify-center items-center">
-                        <h1 className="text-2xl font-bold text-center mb-2 whitespace-nowrap">Organisation Flow chart</h1>
-                        <div className="container mx-auto text-center pt-5">
-                            <div className="items-center justify-center flex">
+        <FormContainer title={`Organisation Flow Chart`} error={error}>
+            <div className="flex flex-col mb-4">
+                <select
+                    value={selectedRoster ? selectedRoster.id : ""}
+                    onChange={(e) => handleRosterClick(Number(e.target.value))}
+                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8]"
+                >
+                    <option value="" disabled>
+                        Select Roster
+                    </option>
+                    {roster.map((roster) => (
+                        <option key={roster.id} value={roster.id}>
+                            {roster.date_from} — {roster.date_to}
+                        </option>
+                    ))}
+                </select>
+                <p className="w-full px-3 py-1.5 text-base text-gray-900 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8]">
+                    Remark: {selectedRoster ? selectedRoster.remark : ""}
+                </p>
+            </div>
+
+            <div
+                className="border border-gray-300 rounded-md p-3"
+                style={{
+                    maxHeight: '800px',
+                    overflowX: 'scroll',
+                    position: 'relative'
+                }}
+            >
+                <div style={{
+                    minWidth: 'max-content',
+                    paddingLeft: '100px',
+                    paddingRight: '100px'
+                }}>
+
+                    <div className="container mx-auto text-center pt-5">
+                        <div className="items-center justify-center flex">
+                            {!selectedRoster ? (
+                                <p className="text-gray-500">Please select the roster</p>
+                            ) : (
                                 <div className="text-center">
                                     <div className="flex flex-col justify-center items-center">
                                         <div className="text-center p-4 border border-gray-300 rounded-lg shadow text-xs w-[215px]">
@@ -379,12 +397,12 @@ const Chart = () => {
                                         </li>
                                     </ul>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </FormContainer >
     );
 };
 
