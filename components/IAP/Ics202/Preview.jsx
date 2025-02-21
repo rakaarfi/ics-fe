@@ -10,7 +10,7 @@ import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import FormContainer from '@/components/FormContainer';
-import { fetchData, readByIcs202Id, readById } from '@/utils/api';
+import { fetchData, readBy } from '@/utils/api';
 
 dayjs.extend(customParseFormat);
 
@@ -57,11 +57,8 @@ export default function Preview() {
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
-    // routeUrl yang merepresentasikan endpoint ICS-202 main
-    const routeUrl = "ics-202/main";
-
     // -------------------------------------------------------------------------
-    // Gunakan helper readById, fetchData, readByIcs202Id di dalam useEffect
+    // Gunakan helper readBy, fetchData di dalam useEffect
     // -------------------------------------------------------------------------
     useEffect(() => {
         const fetchIcs202Data = async () => {
@@ -69,8 +66,8 @@ export default function Preview() {
             setError(null);
 
             try {
-                // Ambil detail ICS 202 (main data) - pakai readById
-                const mainData = await readById({ routeUrl, id });
+                // Ambil detail ICS 202 (main data) - pakai readBy
+                const mainData = await readBy({ routeUrl: "ics-202/main/read", id });
                 setData(mainData);
                 setFormData(mainData);
 
@@ -92,10 +89,10 @@ export default function Preview() {
                     }));
                 }
 
-                // Kalau ada id, baru fetch preparation data - pakai readByIcs202Id
+                // Kalau ada id, baru fetch preparation data - pakai readBy
                 if (id) {
-                    const prepResponse = await readByIcs202Id({
-                        routeUrl: 'ics-202/preparation',
+                    const prepResponse = await readBy({
+                        routeUrl: 'ics-202/preparation/read-by-ics-202-id',
                         id
                     });
                     if (prepResponse && prepResponse.length > 0) {
@@ -112,7 +109,7 @@ export default function Preview() {
         };
 
         fetchIcs202Data();
-    }, [id, routeUrl]);
+    }, [id]);
 
     // -------------------------------------------------------------------------
     // Fetch data Incident & Planning Section Chief & 
@@ -128,26 +125,28 @@ export default function Preview() {
 
     const fetchPSChief = async (chiefId) => {
         try {
-            const response = await readById({
-                routeUrl: 'planning-section/planning-section-chief',
+            const response = await readBy({
+                routeUrl: 'planning-section/planning-section-chief/read',
                 id: chiefId
             });
             setPSChiefData(response);
         } catch (error) {
-            console.error('Error fetching PS Chief data:', error);
+            console.error('Error fetching Planning Section Chief data:', error);
+            setError(`Error fetching Planning Section Chief data`)
         }
     };
 
     // Fetch Incident Commander
     const fetchIC = async (incindentId) => {
         try {
-            const response = await readById({
-                routeUrl: 'main-section/incident-commander',
+            const response = await readBy({
+                routeUrl: 'main-section/incident-commander/read',
                 id: incindentId
             });
             setICData(response);
         } catch (error) {
-            console.error('Error fetching IC data:', error);
+            console.error('Error fetching Incident Commander data:', error);
+            setError(`Error fetching Incident Commander data`)
         }
     }
 
@@ -159,8 +158,8 @@ export default function Preview() {
     useEffect(() => {
         const fetchApprovalData = async (ics_202_id) => {
             try {
-                const response = await readByIcs202Id({
-                    routeUrl: 'ics-202/approval',
+                const response = await readBy({
+                    routeUrl: 'ics-202/approval/read-by-ics-202-id',
                     id: ics_202_id
                 });
                 if (response && response.length > 0) {
@@ -168,6 +167,7 @@ export default function Preview() {
                 }
             } catch (error) {
                 console.error('Error fetching approval data:', error);
+                setError(`Error fetching approval data`)
             }
         };
 
@@ -179,8 +179,8 @@ export default function Preview() {
     // Fetch Incident Data
     const fetchIncidentById = async (incidentId) => {
         try {
-            const response = await readById({
-                routeUrl: 'incident-data',
+            const response = await readBy({
+                routeUrl: 'incident-data/read',
                 id: incidentId
             });
             setIncidentDetails(response);
@@ -227,6 +227,7 @@ export default function Preview() {
             link.parentNode.removeChild(link);
         } catch (error) {
             console.error('Error exporting document:', error);
+            setError(error.message)
         }
     };
 
@@ -235,7 +236,7 @@ export default function Preview() {
     }
 
     if (error) {
-        return <div>Error: {error}</div>;
+        return <div className='text-red-500'>Error: {error}</div>;
     }
 
     if (!incidentDetails) {

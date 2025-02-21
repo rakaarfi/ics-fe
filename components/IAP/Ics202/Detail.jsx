@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 
 import FormContainer from '@/components/FormContainer';
 import { ButtonSaveChanges } from '@/components/ButtonComponents';
-import { fetchData, fetchOperationalPeriodByIncident, readById, readByIcs202Id } from '@/utils/api';
+import { fetchData, fetchOperationalPeriodByIncident, readBy } from '@/utils/api';
 
 export default function Detail() {
     const { id } = useParams();
@@ -46,11 +46,8 @@ export default function Detail() {
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
-    // routeUrl yang merepresentasikan endpoint ICS-202 main
-    const routeUrl = "ics-202/main";
-
     // -------------------------------------------------------------------------
-    // Gunakan helper readById, fetchData, readByIcs202Id di dalam useEffect
+    // Gunakan helper fetchData di dalam useEffect
     // -------------------------------------------------------------------------
     useEffect(() => {
         const fetchIcs202Data = async () => {
@@ -58,8 +55,8 @@ export default function Detail() {
             setError(null);
 
             try {
-                // Ambil detail ICS 202 (main data) - pakai readById
-                const mainData = await readById({ routeUrl, id });
+                // Ambil detail ICS 202 (main data) - pakai readBy
+                const mainData = await readBy({ routeUrl: "ics-202/main/read", id });
                 setData(mainData);
                 setFormData(mainData);
 
@@ -81,10 +78,10 @@ export default function Detail() {
                     }));
                 }
 
-                // Kalau ada id, baru fetch preparation data - pakai readByIcs202Id
+                // Kalau ada id, baru fetch preparation data - pakai readBy
                 if (id) {
-                    const prepResponse = await readByIcs202Id({
-                        routeUrl: 'ics-202/preparation',
+                    const prepResponse = await readBy({
+                        routeUrl: 'ics-202/preparation/read-by-ics-202-id',
                         id
                     });
                     if (prepResponse && prepResponse.length > 0) {
@@ -101,7 +98,7 @@ export default function Detail() {
         };
 
         fetchIcs202Data();
-    }, [id, routeUrl]);
+    }, [id]);
 
     // -------------------------------------------------------------------------
     // Fetch data Incident & Planning Section Chief
