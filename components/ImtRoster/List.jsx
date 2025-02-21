@@ -8,6 +8,7 @@ import { SearchQuery } from '../SearchQuery'
 import { fetchPaginatedData } from '@/utils/api';
 import { useSearchParams } from 'next/navigation';
 import { ButtonDelete, ButtonDetail, InputButton } from '../ButtonComponents';
+import FormContainer from '../FormContainer';
 
 
 export default function List() {
@@ -55,69 +56,61 @@ export default function List() {
     }, [currentPage, search]);
 
     return (
-        <div className="container mx-auto p-4 font-jkt">
-
-            {error && <p className="text-red-500">{error}</p>}
-
-            <div className="justify-center items-center min-h-screen min-w-screen">
-                <div className="border rounded-3xl p-4 shadow-lg dark:bg-[#12171c] bg-[#ffffff]">
-                    <h1 className="text-2xl font-bold text-center mb-2 whitespace-nowrap">IMT Roster List</h1>
-                    <div className="flex flex-row justify-between items-center mb-4">
-                        <InputButton
-                            href="/dashboard/imt-roster/input"
-                            text="Input IMT Roster"
-                        />
-                        <SearchQuery
-                            searchQuery={search}
-                            setSearchQuery={setSearch}
-                            placeHolder={"Enter keyword..."}
-                        />
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="table-auto w-full text-xs">
-                            <thead>
-                                <tr>
-                                    <th className="border border-gray-300 px-4 py-2">No</th>
-                                    <th className="border border-gray-300 px-4 py-2">Period From</th>
-                                    <th className="border border-gray-300 px-4 py-2">Period To</th>
-                                    <th className="border border-gray-300 px-4 py-2">Remark</th>
-                                    <th className="border border-gray-300 px-4 py-2" colSpan={2}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.map((item, index) => (
-                                    <tr key={item.id}>
-                                        <td className="border border-gray-300 px-4 py-2 text-center">
-                                            {index + 1 + (currentPage - 1) * 10}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2 text-center">
-                                            {item.date_to}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2 text-center">
-                                            {item.date_from}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2 text-center">
-                                            {item.remark}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-4 text-center">
-                                            <ButtonDetail href={`/dashboard/imt-roster/detail/${item.id}`} />
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-4 text-center">
-                                            <ButtonDelete onClick={() => handleDelete(item.id, routeUrl)} />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        searchQuery={search}
-                    />
-                </div>
+        <FormContainer title="IMT Roster List" error={error}>
+            <div className="flex flex-row justify-between items-center mb-4">
+                <InputButton
+                    href="/dashboard/imt-roster/input"
+                    text="Input IMT Roster"
+                />
+                <SearchQuery
+                    searchQuery={search}
+                    setSearchQuery={setSearch}
+                    placeHolder={"Enter keyword..."}
+                />
             </div>
-        </div>
+            <div className="overflow-x-auto">
+                <table className="table-auto w-full text-xs">
+                    <thead>
+                        <tr>
+                            <th className="border border-gray-300 px-4 py-2">No</th>
+                            <th className="border border-gray-300 px-4 py-2">Period From</th>
+                            <th className="border border-gray-300 px-4 py-2">Period To</th>
+                            <th className="border border-gray-300 px-4 py-2">Remark</th>
+                            <th className="border border-gray-300 px-4 py-2" colSpan={2}>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map((item, index) => (
+                            <tr key={item.id}>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                    {index + 1 + (currentPage - 1) * 10}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                    {item.date_to}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                    {item.date_from}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                    {item.remark}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-4 text-center">
+                                    <ButtonDetail href={`/dashboard/imt-roster/detail/${item.id}`} />
+                                </td>
+                                <td className="border border-gray-300 px-4 py-4 text-center">
+                                    <ButtonDelete onClick={() => handleDelete(item.id, routeUrl)} />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                searchQuery={search}
+            />
+        </FormContainer>
     )
 }

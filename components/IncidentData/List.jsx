@@ -7,6 +7,7 @@ import { ButtonDelete, ButtonDetail, InputButton } from '../ButtonComponents';
 import Pagination from '../Pagination';
 import { SearchQuery } from '../SearchQuery';
 import TableHeader from './TableHeader';
+import FormContainer from '../FormContainer';
 
 export default function List() {
 
@@ -53,75 +54,67 @@ export default function List() {
     }, [currentPage, search]);
 
     return (
-        <div className="container mx-auto p-4 font-jkt">
-
-            {error && <p className="text-red-500">{error}</p>}
-
-            <div className="justify-center items-center min-h-screen min-w-screen">
-                <div className="border rounded-3xl p-4 shadow-lg dark:bg-[#12171c] bg-[#ffffff] dark:border-0">
-                    <h1 className="text-2xl font-bold text-center mb-2 whitespace-nowrap">Incident Data List</h1>
-                    <div className="flex flex-row justify-between items-center mb-4">
-                        <InputButton
-                            href="/dashboard/incident-data/input"
-                            text="Input Incident Data"
-                        />
-                        <SearchQuery
-                            searchQuery={search}
-                            setSearchQuery={setSearch}
-                            placeHolder={"Enter keyword..."}
-                        />
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="table-auto w-full text-xs">
-                            <TableHeader />
-                            <tbody>
-                                {data.map((item, index) => (
-                                    <tr key={item.id}>
-                                        <td className="border border-gray-300 px-4 py-2 text-center">
-                                            {index + 1 + (currentPage - 1) * 10}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {item.no}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {item.name}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {item.date_incident}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {item.time_incident}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {item.timezone}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {item.location}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {item.description}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-4">
-                                            <ButtonDetail href={`/dashboard/incident-data/detail/${item.id}`} />
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-4">
-                                            <ButtonDelete
-                                                onClick={() => handleDelete(item.id, routeUrl)}
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        searchQuery={search}
-                    />
-                </div>
+        <FormContainer title="Incident Data List" error={error}>
+            <div className="flex flex-row justify-between items-center mb-4">
+                <InputButton
+                    href="/dashboard/incident-data/input"
+                    text="Input Incident Data"
+                />
+                <SearchQuery
+                    searchQuery={search}
+                    setSearchQuery={setSearch}
+                    placeHolder={"Enter keyword..."}
+                />
             </div>
-        </div>
+            <div className="overflow-x-auto">
+                <table className="table-auto w-full text-xs">
+                    <TableHeader />
+                    <tbody>
+                        {data.map((item, index) => (
+                            <tr key={item.id}>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                    {index + 1 + (currentPage - 1) * 10}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {item.no}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {item.name}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {item.date_incident}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {item.time_incident}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {item.timezone}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {item.location}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {item.description}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-4">
+                                    <ButtonDetail href={`/dashboard/incident-data/detail/${item.id}`} />
+                                </td>
+                                <td className="border border-gray-300 px-4 py-4">
+                                    <ButtonDelete
+                                        onClick={() => handleDelete(item.id, routeUrl)}
+                                    />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                searchQuery={search}
+            />
+        </FormContainer >
     )
 }
