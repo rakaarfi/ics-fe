@@ -43,7 +43,6 @@ export default function Input() {
         try {
             const response = await fetchData('planning-section/resources-unit-leader');
             setRULeaderData(response);
-            console.log("Resources Unit Leader Data:", response);
         } catch (error) {
             console.error('Error fetching Resources Unit Leader data:', error);
             setError('Failed to fetch Resources Unit Leader data');
