@@ -13,7 +13,7 @@ import TableHead from '@mui/material/TableHead';
 import FormContainer from '@/components/FormContainer';
 import useFetchDynamicOptions from '@/components/ImtRoster/useFetchDynamicOptions';
 import { MainSection, PlanningSection, LogisticSection, FinanceSection, OperationSectionList } from '@/components/ImtRoster/inputFields';
-import { fetchData, readBy, readById } from '@/utils/api';
+import { fetchData, readBy } from '@/utils/api';
 
 dayjs.extend(customParseFormat);
 
@@ -73,11 +73,8 @@ export default function Preview({
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
-    // routeUrl yang merepresentasikan endpoint ICS-203 main
-    const routeUrl = "ics-203/main";
-
     // -------------------------------------------------------------------------
-    // Gunakan helper readById, fetchData, readByIcs203Id di dalam useEffect
+    // Gunakan helper readBy, fetchData di dalam useEffect
     // -------------------------------------------------------------------------
     useEffect(() => {
         const fetchIcs203Data = async () => {
@@ -85,8 +82,8 @@ export default function Preview({
             setError(null);
 
             try {
-                // Ambil detail ICS 202 (main data) - pakai readById
-                const mainData = await readById({ routeUrl, id });
+                // Ambil detail ICS 203 (main data) - pakai readBy
+                const mainData = await readBy({ routeUrl: "ics-203/main/read", id });
                 setFormData(mainData);
 
                 // Simpan ID operational period untuk pemakaian berikutnya
@@ -133,7 +130,7 @@ export default function Preview({
         };
 
         fetchIcs203Data();
-    }, [id, routeUrl]);
+    }, [id]);
 
     // -------------------------------------------------------------------------
     // Fetch data Incident & Resources Unit Leader
@@ -187,6 +184,9 @@ export default function Preview({
         fetchRULeader();
     }, []);
 
+    // -------------------------------------------------------------------------
+    // Data yang dibutuhkan
+    // -------------------------------------------------------------------------
 
     const isPrepared = preparationData.length > 0 ? preparationData[0].is_prepared : false;
     const preparedDate = preparationData.length > 0 ? preparationData[0].date_prepared : null;
@@ -200,6 +200,9 @@ export default function Preview({
         (period) => period.id === formData.operational_period_id
     );
 
+    // --------------------------------------------------------------------------
+    // Handle Export
+    // --------------------------------------------------------------------------
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
@@ -225,14 +228,6 @@ export default function Preview({
         } catch (error) {
             console.error('Error exporting document:', error);
         }
-    };
-
-    const findIdByName = (name, options = []) => {
-        if (!Array.isArray(options)) {
-            return "";
-        }
-        const foundOption = options.find(option => option.name === name);
-        return foundOption ? foundOption.id : "";
     };
 
     if (loading) return <p>Loading...</p>;

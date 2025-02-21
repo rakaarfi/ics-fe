@@ -8,7 +8,7 @@ import { ButtonSaveChanges } from "@/components/ButtonComponents";
 import axios from "axios";
 import dayjs from 'dayjs';
 import { useParams } from "next/navigation";
-import { fetchOperationalPeriodByIncident, fetchData, readBy, readById } from "@/utils/api";
+import { fetchOperationalPeriodByIncident, fetchData, readBy } from "@/utils/api";
 
 export default function Detail() {
     const { id } = useParams();
@@ -63,11 +63,8 @@ export default function Detail() {
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
-    // routeUrl yang merepresentasikan endpoint ICS-203 main
-    const routeUrl = "ics-203/main";
-
     // -------------------------------------------------------------------------
-    // Gunakan helper readById, fetchData, readByIcs203Id di dalam useEffect
+    // Gunakan helper readBy, fetchData di dalam useEffect
     // -------------------------------------------------------------------------
     useEffect(() => {
         const fetchIcs203Data = async () => {
@@ -76,7 +73,7 @@ export default function Detail() {
 
             try {
                 // Ambil detail ICS 202 (main data) - pakai readById
-                const mainData = await readById({ routeUrl, id });
+                const mainData = await readBy({ routeUrl: "ics-203/main/read", id });
                 setFormData(mainData);
 
                 // Simpan ID operational period untuk pemakaian berikutnya
@@ -123,7 +120,7 @@ export default function Detail() {
         };
 
         fetchIcs203Data();
-    }, [id, routeUrl]);
+    }, [id]);
 
     // -------------------------------------------------------------------------
     // Fetch data Incident & Resources Unit Leader
