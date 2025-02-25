@@ -140,6 +140,13 @@ export const IAPNavbar = () => {
 
     return (
         <nav className="dark:bg-[#12171c] bg-[#ffffff] p-3 lg:p-6 z-[9999] fixed left-0 rounded-3xl shadow h-[95vh] my-5 mx-5 w-[250px]">
+            <div className='flex justify-center mb-10'>
+                <Link href='/dashboard'>
+                    <button className='bg-[#1a202c] hover:bg-[#2d3748] text-white font-bold py-2 px-4 rounded-full'>
+                        Back to Main Menu
+                    </button>
+                </Link>
+            </div>
             <div className="flex flex-col container mx-auto justify-between">
                 <div className="flex flex-col">
                     <h1 className='text-lg font-bold border-b font-jkt'>Incident Action Plan (IAP)</h1>
@@ -147,13 +154,6 @@ export const IAPNavbar = () => {
                         {incidentActionPlan.map((data) => renderMenu(data))}
                     </div>
                 </div>
-            </div>
-            <div className='flex justify-center my-10'>
-                <Link href='/dashboard'>
-                    <button className='bg-[#1a202c] hover:bg-[#2d3748] text-white font-bold py-2 px-4 rounded-full'>
-                        Back to Main Menu
-                    </button>
-                </Link>
             </div>
         </nav>
     );
