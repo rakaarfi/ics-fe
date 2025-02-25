@@ -178,7 +178,7 @@ export default function List() {
         <FormContainer title="ICS 209 - Incident Status Summary">
             <div className="flex flex-row justify-between items-center mb-4">
                 <InputButton
-                    href="/dashboard/iap/ics-209/input"
+                    href="/dashboard/ics-209/input"
                     text="Input ICS 209"
                 />
                 <SearchQuery
