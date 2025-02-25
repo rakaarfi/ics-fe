@@ -3,25 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { fetchData, readTableById } from "@/utils/api";
 import { getIncidentTeamData } from "./tableFields";
-// import pdfMake from 'pdfmake/build/pdfmake';
-import './print.css'; // Import print stylesheet
-
-// pdfMake.fonts = {
-//     Roboto: {
-//         normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf',
-//         bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf',
-//         italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Italic.ttf',
-//         bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-MediumItalic.ttf'
-//     }
-// };
 
 const Table = () => {
     const [data, setData] = useState({});
     const [roster, setRoster] = useState([]);
     const [selectedRoster, setSelectedRoster] = useState(null);
     const incidentTeamData = getIncidentTeamData(data);
-    // const [showPreview, setShowPreview] = useState(false);
-    // const [pdfSrc, setPdfSrc] = useState('');
 
     useEffect(() => {
         const fetchRosterData = async () => {
@@ -57,65 +44,6 @@ const Table = () => {
         month: "long",
         day: "numeric",
     });
-
-    // const handlePrint = () => {
-    //     window.print();
-    // };
-
-    // const createDocDefinition = () => ({
-    //     content: [
-    //         { text: 'Incident Management Team Roster', style: 'header' },
-    //         { text: formattedDate, style: 'subheader' },
-    //         {
-    //             table: {
-    //                 headerRows: 1,
-    //                 widths: ['auto', 'auto', 'auto', 'auto', 'auto'],
-    //                 body: [
-    //                     ['No.', 'Position Name', 'IMT Member Name', 'Office', 'Cellular'],
-    //                     ...incidentTeamData.map(row => [
-    //                         row.no || '-',
-    //                         row.position || '-',
-    //                         row.name || '-',
-    //                         row.office || '-',
-    //                         row.cell || '-'
-    //                     ])
-    //                 ]
-    //             }
-    //         }
-    //     ],
-    //     styles: {
-    //         header: {
-    //             fontSize: 18,
-    //             bold: true,
-    //             margin: [0, 0, 0, 10]
-    //         },
-    //         subheader: {
-    //             fontSize: 12,
-    //             italic: true,
-    //             margin: [0, 5, 0, 15]
-    //         }
-    //     }
-    // });
-
-    // const previewPDF = () => {
-    //     if (incidentTeamData.length === 0) {
-    //         alert('No data to preview.');
-    //         return;
-    //     }
-    //     pdfMake.createPdf(createDocDefinition()).getBlob((blob) => {
-    //         const url = URL.createObjectURL(blob);
-    //         setPdfSrc(url);
-    //         setShowPreview(true);
-    //     });
-    // };
-
-    // const downloadPDF = () => {
-    //     if (incidentTeamData.length === 0) {
-    //         alert('No data to download.');
-    //         return;
-    //     }
-    //     pdfMake.createPdf(createDocDefinition()).download('IncidentManagementTeamRoster.pdf');
-    // };
 
     return (
         <div className="p-8 bg-gray-100">
@@ -171,22 +99,6 @@ const Table = () => {
                     <div>{formattedDate}</div>
                 </div>
             </div>
-            <div className="mt-4 flex space-x-2">
-                {/* <button onClick={previewPDF} className="bg-blue-500 text-white px-4 py-2">Preview PDF</button>
-                <button onClick={downloadPDF} className="bg-blue-500 text-white px-4 py-2">Download PDF</button> */}
-                {/* <button onClick={handlePrint} className="bg-blue-500 text-white px-4 py-2">Print Table</button> */}
-            </div>
-            {/* {showPreview && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-4 rounded">
-                        <button onClick={() => {
-                            URL.revokeObjectURL(pdfSrc);
-                            setShowPreview(false);
-                        }} className="float-right">X</button>
-                        <iframe src={pdfSrc} width="1000px" height="800px"></iframe>
-                    </div>
-                </div>
-            )} */}
         </div>
     );
 };
