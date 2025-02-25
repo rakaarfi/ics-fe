@@ -11,6 +11,7 @@ import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import TableHead from '@mui/material/TableHead';
 import FormContainer from '@/components/FormContainer';
+import { readBy } from '@/utils/api';
 
 dayjs.extend(customParseFormat);
 
@@ -24,46 +25,47 @@ export default function Preview({
         special_instructions: "",
         radioChannel: [],
     });
-    const [incidentData, setIncidentData] = useState([]);
-    const [operationalPeriodData, setOperationalPeriodData] = useState([]);
+    const [selectedOperationalPeriod, setSelectedOperationalPeriod] = useState(null)
+    const [incidentDetails, setIncidentDetails] = useState(null);
     const [CULeaderData, setCULeaderData] = useState([]);
     const [preparationData, setPreparationData] = useState({
         is_prepared: false,
         date_prepared: dayjs().format('YYYY-MM-DD'),
         time_prepared: dayjs().format('HH:mm'),
     });
-    const [preparationID, setPreparationID] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
-    const routeUrl = "ics-205/main";
 
+    // -------------------------------------------------------------------------
+    // Gunakan helper readBy di dalam useEffect
+    // -------------------------------------------------------------------------
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchIcs205Data = async () => {
             setLoading(true);
             setError(null);
 
             try {
                 // Fetch main data
-                const responseData = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
-                const mainData = responseData.data;
+                const responseData = await readBy({ routeUrl: "ics-205/main/read", id });
+                const mainData = responseData;
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationResponse, radioChannelsData] = await Promise.all([
-                    axios.get(`${apiUrl}operational-period/read`),
-                    axios.get(`${apiUrl}ics-205/preparation/read-by-ics-205-id/${id}`),
+                    readBy({ routeUrl: 'operational-period/read', id: mainData.operational_period_id }),
+                    readBy({ routeUrl: "ics-205/preparation/read-by-ics-205-id", id }),
                     fetchRadioChannelsData(mainData.id),
                 ]);
 
                 // Extracting data
-                const operationalPeriodData = operationalPeriodResponse.data;
-                const preparationData = preparationResponse.data.length > 0 ? preparationResponse.data[0] : null;
+                const preparationData = preparationResponse.length > 0 ? preparationResponse[0] : null;
+                setPreparationData(preparationResponse);
+                setSelectedOperationalPeriod(operationalPeriodResponse);
 
                 // Find associated incident_id from operational period
-                const selectedOperationalPeriod = operationalPeriodData.find(period => period.id === mainData.operational_period_id);
-                const incidentId = selectedOperationalPeriod ? selectedOperationalPeriod.incident_id : null;
+                const incidentId = operationalPeriodResponse ? operationalPeriodResponse.incident_id : null;
 
                 // Update FormData with fetched data
                 setFormData(prevFormData => ({
@@ -89,13 +91,6 @@ export default function Preview({
                         time_prepared: preparationData.time_prepared,
                     }),
                 }));
-
-                // Set state
-                setOperationalPeriodData(operationalPeriodData);
-                if (preparationData) {
-                    setPreparationID(preparationData.id);
-                }
-
             } catch (err) {
                 console.error("Error fetching data:", err);
                 setError("Failed to fetch data");
@@ -105,14 +100,57 @@ export default function Preview({
         };
 
         if (id) {
-            fetchData();
+            fetchIcs205Data();
         }
     }, [id]);
 
+    // -------------------------------------------------------------------------
+    // Fetch data
+    // -------------------------------------------------------------------------
+    const fetchIncidentById = async (incidentId) => {
+        try {
+            const response = await readBy({
+                routeUrl: 'incident-data/read',
+                id: incidentId
+            });
+            setIncidentDetails(response);
+        } catch (error) {
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        if (formData.incident_id) {
+            fetchIncidentById(formData.incident_id);
+        }
+    }, [formData.incident_id]);
+
+    const fetchCULeader = async (CULeaderId) => {
+        try {
+            const response = await readBy({
+                routeUrl: 'logistic-section/communication-unit-leader/read',
+                id: CULeaderId
+            })
+            setCULeaderData(response);
+        } catch (error) {
+            console.error('Error fetching Communication Unit Leader data:', error);
+            setError('Failed to fetch Communication Unit Leader data');
+        }
+    };
+
+    useEffect(() => {
+        if (formData.communication_unit_leader_id) {
+            fetchCULeader(formData.communication_unit_leader_id);
+        }
+    }, [formData.communication_unit_leader_id]);
+
     const fetchRadioChannelsData = async (ics_205_id) => {
         try {
-            const response = await axios.get(`${apiUrl}ics-205/radio-channel/read-by-ics-id/${ics_205_id}`);
-            return response.data;
+            const response = await readBy({
+                routeUrl: 'ics-205/radio-channel/read-by-ics-id',
+                id: ics_205_id
+            });
+            return response;
         } catch (err) {
             console.error("Error fetching radio channels:", err);
             setError("Failed to fetch radio channels");
@@ -120,68 +158,13 @@ export default function Preview({
         }
     };
 
-    // Fetch preparation data
-    useEffect(() => {
-        const fetchPreparationData = async () => {
-            try {
-                const response = await axios.get(
-                    `${apiUrl}ics-205/preparation/read-by-ics-205-id/${id}`
-                );
-                if (response.data.length > 0) {
-                    setPreparationData(response.data);
-                }
-            } catch (error) {
-                console.error('Error fetching preparation data:', error);
-            }
-        };
-
-        fetchPreparationData();
-    }, [id]);
-
-    const fetchIncidentData = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
-    };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchCULeader = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}logistic-section/communication-unit-leader/read/`);
-            setCULeaderData(response.data);
-            console.log("Communication Unit Leader Data:", response.data);
-
-        } catch (error) {
-            console.error('Error fetching Communication Unit Leader Data:', error);
-            setError('Failed to fetch Communication Unit Leader Data');
-        }
-    };
-
-    useEffect(() => {
-        fetchCULeader();
-    }, []);
-
-
     const isPrepared = preparationData.length > 0 ? preparationData[0].is_prepared : false;
     const preparedDate = preparationData.length > 0 ? preparationData[0].date_prepared : null;
     const preparedTime = preparationData.length > 0 ? preparationData[0].time_prepared : null;
 
-    const incidentDetails = incidentData.find(
-        (incident) => incident.id === formData.incident_id
-    );
-
-    const selectedOperationalPeriod = operationalPeriodData.find(
-        (period) => period.id === formData.operational_period_id
-    );
-
+    // -------------------------------------------------------------------------
+    // Handler Export
+    // -------------------------------------------------------------------------
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
@@ -207,14 +190,6 @@ export default function Preview({
         } catch (error) {
             console.error('Error exporting document:', error);
         }
-    };
-
-    const findIdByName = (name, options = []) => {
-        if (!Array.isArray(options)) {
-            return "";
-        }
-        const foundOption = options.find(option => option.name === name);
-        return foundOption ? foundOption.id : "";
     };
 
     if (loading) return <p>Loading...</p>;
@@ -361,7 +336,7 @@ export default function Preview({
                                 <strong>5. Prepared by:</strong>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
                                     <div style={{ marginLeft: '5rem' }}>
-                                        {CULeaderData.find((CULeader) => CULeader.id === preparationID)?.name || "N/A"}
+                                        {CULeaderData?.name || "N/A"}
                                     </div>
                                     <div style={{ marginLeft: '5rem' }}>
                                         Position: Communication Unit Leader
