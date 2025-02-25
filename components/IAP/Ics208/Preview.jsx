@@ -8,121 +8,147 @@ import TableRow from '@mui/material/TableRow';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import FormContainer from '@/components/FormContainer';
+import { readBy } from '@/utils/api';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
 
 
 export default function Preview({
 }) {
     const { id } = useParams();
     const [formData, setFormData] = useState({});
-    const [incidentData, setIncidentData] = useState([]);
-    const [operationalPeriodData, setOperationalPeriodData] = useState([]);
+    const [selectedOperationalPeriod, setSelectedOperationalPeriod] = useState(null)
+    const [incidentDetails, setIncidentDetails] = useState(null);
     const [safetyOfficerData, setSafetyOfficerData] = useState([]);
-    const [preparationID, setPreparationID] = useState(null);
+    const [preparationData, setPreparationData] = useState({
+        is_prepared: false,
+        date_prepared: dayjs().format('YYYY-MM-DD'),
+        time_prepared: dayjs().format('HH:mm'),
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
-    const routeUrl = "ics-208/main";
 
+    // -------------------------------------------------------------------------
+    // Gunakan helper fetchData, readBy di dalam useEffect
+    // -------------------------------------------------------------------------
     useEffect(() => {
-        setLoading(true);
-        setError(null);
+        const fetchIcs208Data = async () => {
+            setLoading(true);
+            setError(null);
 
-        let operationalPeriodId = null;
+            try {
+                // Ambil detail ICS 208 (main data) - pakai readBy
+                const mainData = await readBy({ routeUrl: "ics-208/main/read", id });
+                setFormData(mainData);
 
-        // Ambil data detail
-        axios
-            .get(`${apiUrl}${routeUrl}/read/${id}`)
-            .then((response) => {
-                setFormData(response.data);
-                operationalPeriodId = response.data.operational_period_id;
-
-                return axios.get(`${apiUrl}operational-period/read`);
-            })
-            .then((response) => {
-                setOperationalPeriodData(response.data);
-
-                const selectedOperationalPeriod = response.data.find(
-                    (period) => period.id === operationalPeriodId
-                );
-
-                if (selectedOperationalPeriod) {
-                    setFormData((prevFormData) => ({
+                if (mainData.site_safety_plan) {
+                    const fileData = await fetchFileData(mainData.site_safety_plan);
+                    setFormData(prevFormData => ({
                         ...prevFormData,
-                        incident_id: selectedOperationalPeriod.incident_id,
-                    }));
+                        site_safety_plan: fileData
+                    }))
                 }
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-                setError('Failed to fetch data');
-            })
-            .finally(() => {
+
+                // Fetch additional data in parallel
+                const [operationalPeriodResponse, preparationResponse] = await Promise.all([
+                    readBy({ routeUrl: "operational-period/read", id: mainData.operational_period_id }),
+                    readBy({ routeUrl: "ics-208/preparation/read-by-ics-208-id", id }),
+                ])
+
+                // Extracting data
+                const preparationData = preparationResponse.length > 0 ? preparationResponse[0] : null;
+                setPreparationData(preparationResponse);
+                setSelectedOperationalPeriod(operationalPeriodResponse);
+
+                // Find associated incident_id from operational period
+                const incidentId = operationalPeriodResponse ? operationalPeriodResponse.incident_id : null;
+
+                // Update FormData with fetched data
+                setFormData(prevFormData => ({
+                    ...prevFormData,
+                    ...mainData, // Spread all main data fields
+                    incident_id: incidentId,
+                    ...(preparationData && preparationData[0]), // Spread all preparation data fields
+                }));
+            } catch (error) {
+                console.error('Error fetching ICS 208 data:', error);
+                setError('Failed to fetch ICS 208 data');
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
 
-        if (id) {
-            axios.get(`${apiUrl}ics-208/preparation/read-by-ics-208-id/${id}`)
-                .then((response) => {
-                    if (response.data.length > 0) {
-                        setFormData((prevFormData) => ({
-                            ...prevFormData,
-                            is_prepared: response.data[0].is_prepared,
-                            safety_officer_id: response.data[0].safety_officer_id,
-                            date_prepared: response.data[0].date_prepared,
-                            time_prepared: response.data[0].time_prepared
-                        }));
-                        setPreparationID(response.data[0].id);
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error fetching Preparation data:', error);
-                    setError('Failed to fetch Preparation data');
-                });
-        }
-
+        fetchIcs208Data();
     }, [id]);
 
-    const fetchIncidentData = async () => {
+    // -------------------------------------------------------------------------
+    // Fetch data
+    // -------------------------------------------------------------------------
+    const fetchIncidentById = async (incidentId) => {
         try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-
+            const response = await readBy({
+                routeUrl: 'incident-data/read',
+                id: incidentId
+            });
+            setIncidentDetails(response);
         } catch (error) {
-            console.error('Error fetching incident data:', error);
             setError('Failed to fetch incident data');
         }
     };
 
     useEffect(() => {
-        fetchIncidentData();
-    }, []);
+        if (formData.incident_id) {
+            fetchIncidentById(formData.incident_id);
+        }
+    }, [formData.incident_id]);
 
-    const fetchSafetyOfficer = async () => {
+    const fetchSafetyOfficer = async (SafetyOfficerId) => {
         try {
-            const response = await axios.get(`${apiUrl}main-section/safety-officer/read/`);
-            setSafetyOfficerData(response.data);
-            console.log("Planning Section Chief Data:", response.data);
+            const response = await readBy({ routeUrl: "main-section/safety-officer/read", id: SafetyOfficerId });
+            setSafetyOfficerData(response);
         } catch (error) {
-            console.error('Error fetching Planning Section Chief data:', error);
-            setError('Failed to fetch Planning Section Chief data');
+            console.error('Error fetching Safety Officer data:', error);
+            setError('Failed to fetch Safety Officer data');
         }
     };
 
     useEffect(() => {
-        fetchSafetyOfficer();
-    }, []);
+        if (preparationData.length > 0 && preparationData[0].safety_officer_id) {
+            fetchSafetyOfficer(preparationData[0].safety_officer_id);
+        }
+    }, [preparationData]);
 
+    const fetchFileData = async (filename) => {
+        if (filename) {
+            try {
+                const response = await axios.get(
+                    `http://localhost:8000/api/file/get/${filename}`, {
+                    responseType: 'blob',
+                    headers: {
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+                );
+                return filename;
+            } catch (error) {
+                console.error('Error fetching map sketch:', error);
+                return null;
+            }
+        }
+        return null;
+    };
 
-    const incidentDetails = incidentData.find(
-        (incident) => incident.id === formData.incident_id
-    );
+    const isPrepared = preparationData.length > 0 ? preparationData[0].is_prepared : false;
+    const preparedDate = preparationData.length > 0 ? preparationData[0].date_prepared : null;
+    const preparedTime = preparationData.length > 0 ? preparationData[0].time_prepared : null;
 
-    const selectedOperationalPeriod = operationalPeriodData.find(
-        (period) => period.id === formData.operational_period_id
-    );
-
+    // -------------------------------------------------------------------------
+    // Handle export button click
+    // -------------------------------------------------------------------------
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
@@ -150,6 +176,9 @@ export default function Preview({
         }
     };
 
+    // -------------------------------------------------------------------------
+    // Handle preview button click
+    // -------------------------------------------------------------------------
     const handlePreviewButtonClick = async (filename) => {
         try {
             const response = await axios.get(
@@ -281,10 +310,14 @@ export default function Preview({
                                             <strong>Site Safety Plan
                                             </strong>
                                             <div
-                                                className="border border-gray-300"
-                                                style={{ height: '70px', marginTop: '10px', padding: '1rem' }}
+                                                className="border border-gray-300 gap-2 flex flex-col"
+                                                style={{ marginTop: '10px', padding: '1rem' }}
                                             >
-                                                <button onClick={() => handlePreviewButtonClick(formData.site_safety_plan)} className="px-3 py-2 bg-gray-500 text-white rounded-lg flex items-center gap-2">
+                                                <span>File Name: {formData.site_safety_plan}</span>
+                                                <button
+                                                    onClick={() => handlePreviewButtonClick(formData.site_safety_plan)}
+                                                    className="px-3 py-2 bg-gray-500 text-white justify-center rounded-lg flex items-center gap-2 w-[10%]"
+                                                >
                                                     Download Plan
                                                 </button>
                                             </div>
@@ -315,19 +348,19 @@ export default function Preview({
                                     <strong>5. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                                         <div style={{ marginLeft: '5rem' }}>
-                                            {safetyOfficerData.find((officer) => officer.id === formData.safety_officer_id)?.name || 'Unknown Safety Officer'}
+                                            {safetyOfficerData?.name || 'Unknown Safety Officer'}
                                         </div>
                                         <div style={{ marginLeft: '5rem' }}>
                                             Position: Safety Officer
                                         </div>
                                         <div style={{ marginLeft: '5rem' }}>
-                                            Signature: {formData.is_prepared ? '✓' : '✗'}
+                                            Signature: {isPrepared}
                                         </div>
                                         <div style={{ marginLeft: '5rem' }}>
-                                            Prepared Date: {formData.date_prepared}
+                                            Prepared Date: {preparedDate}
                                         </div>
                                         <div style={{ marginLeft: '5rem' }}>
-                                            Prepared Time: {formData.time_prepared}
+                                            Prepared Time: {preparedTime}
                                         </div>
                                     </div>
                                 </TableCell>
