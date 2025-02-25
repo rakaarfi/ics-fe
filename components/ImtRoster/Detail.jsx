@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 
 import RosterForm from './RosterForm';
-import { handleUpdate } from '@/utils/api';
+import { handleUpdate, readBy } from '@/utils/api';
 import FormContainer from '../FormContainer';
 import { ButtonSaveChanges } from '../ButtonComponents';
 import useFetchDynamicOptions from './useFetchDynamicOptions';
@@ -28,8 +28,8 @@ export default function Detail() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`${apiUrl}roster-table/${id}/`);
-                setData(response.data);
+                const response = await readBy({ routeUrl: 'roster-table', id });
+                setData(response);
             } catch (err) {
                 console.error("Error fetching data:", err.message);
                 setError(err.message);
