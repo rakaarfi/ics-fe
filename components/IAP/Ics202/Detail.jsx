@@ -47,7 +47,7 @@ export default function Detail() {
     const apiUrl = `http://${hostName}:8000/api/`;
 
     // -------------------------------------------------------------------------
-    // Gunakan helper fetchData di dalam useEffect
+    // Gunakan helper fetchData, readBy di dalam useEffect
     // -------------------------------------------------------------------------
     useEffect(() => {
         const fetchIcs202Data = async () => {
