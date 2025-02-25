@@ -23,7 +23,7 @@ export default function Input() {
     const apiUrl = `http://${hostName}:8000/api/`;
 
     // -------------------------------------------------------------------------
-    // Fetch data Incident & Resources Unit Leader
+    // Fetch data
     // -------------------------------------------------------------------------
     const fetchIncidentData = async () => {
         try {
