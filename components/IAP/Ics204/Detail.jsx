@@ -22,11 +22,11 @@ export default function Detail() {
     const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
         operational_period_id: null,
-        operation_section_chief_id: null, // Untuk Operations Personnel
-        prepared_operation_section_chief_id: null, // Untuk Prepared by
+        operation_section_chief_id: null,
+        prepared_operation_section_chief_id: null,
         resources_unit_leader_id: null,
         is_prepared_ru_leader: false,
-        is_prepared_os_chief: false, // Jika OS Chief yang prepared
+        is_prepared_os_chief: false,
         branch_director_name: "",
         branch_director_number: "",
         division_supervisor_name: "",
