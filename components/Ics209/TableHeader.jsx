@@ -6,8 +6,8 @@ export default function TableHeader({ sortConfig, requestSort }) {
         { key: 'id', label: 'No' },
         { key: 'incident_name', label: 'Incident Name' },
         { key: 'operational_period_range', label: 'Operational Period' },
-        { key: 'objectives', label: 'Objectives' },
-        { key: 'command_emphasis', label: 'Command Emphasis' },
+        { key: 'report_version', label: 'Report Version' },
+        { key: 'report_number', label: 'Report Number' },
         { key: 'approved', label: 'Is Approved' },
     ];
     const headerActions = "Actions";
