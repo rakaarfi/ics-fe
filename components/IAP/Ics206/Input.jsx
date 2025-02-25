@@ -8,7 +8,7 @@ import MedicalAidStations from './MedicalAidStations';
 import Transportation from './Transportation';
 import Hospital from './Hospital';
 import dayjs from 'dayjs';
-import { fetchOperationalPeriodByIncident } from '@/utils/api';
+import { fetchData, fetchOperationalPeriodByIncident } from '@/utils/api';
 
 
 export default function Input() {
@@ -56,6 +56,40 @@ export default function Input() {
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
+    // -------------------------------------------------------------------------
+    // Fetch data
+    // -------------------------------------------------------------------------
+    const fetchIncidentData = async () => {
+        try {
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
+
+    const fetchMULeader = async () => {
+        try {
+            const response = await fetchData('logistic-section/medical-unit-leader');
+            setMULeaderData(response);
+        } catch (error) {
+            console.error('Error fetching Medical Unit Leader data:', error);
+            setError('Failed to fetch Medical Unit Leader data');
+        }
+    };
+
+    useEffect(() => {
+        fetchMULeader();
+    }, []);
+
+    // -------------------------------------------------------------------------
+    // Handler dropdown Incident & Operational Period
+    // -------------------------------------------------------------------------
     const handleIncidentChange = async (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
@@ -80,7 +114,6 @@ export default function Input() {
         }
     };
 
-
     const handleOperationalPeriodChange = (e) => {
         const operational_period_id = parseInt(e.target.value, 10);
         setFormData(prevState => ({
@@ -89,6 +122,9 @@ export default function Input() {
         }));
     };
 
+    // -------------------------------------------------------------------------
+    // Handler umum untuk text/checkbox
+    // -------------------------------------------------------------------------
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData({
@@ -97,7 +133,9 @@ export default function Input() {
         });
     };
 
-    // Functions to handle changes in child components
+    // -------------------------------------------------------------------------
+    // Handler Medicals
+    // -------------------------------------------------------------------------
     const handleMedicalChange = (index, updates) => {
         setFormData(prevData => {
             const newMedicals = [...prevData.medicalAidStation];
@@ -106,23 +144,6 @@ export default function Input() {
         });
     };
 
-    const handleTransportationChange = (index, updates) => {
-        setFormData(prevData => {
-            const newTransportations = [...prevData.transportation];
-            newTransportations[index] = { ...newTransportations[index], ...updates };
-            return { ...prevData, transportation: newTransportations };
-        });
-    };
-
-    const handleHospitalChange = (index, updates) => {
-        setFormData(prevData => {
-            const newHospitals = [...prevData.hospital];
-            newHospitals[index] = { ...newHospitals[index], ...updates };
-            return { ...prevData, hospital: newHospitals };
-        });
-    };
-
-    // Functions to add/remove rows in child components
     const addMedicalsRow = () => {
         setFormData(prevData => ({
             ...prevData,
@@ -140,6 +161,17 @@ export default function Input() {
             ...prevData,
             medicalAidStation: prevData.medicalAidStation.filter((_, i) => i !== index),
         }));
+    };
+
+    // -------------------------------------------------------------------------
+    // Handler Transportation
+    // -------------------------------------------------------------------------
+    const handleTransportationChange = (index, updates) => {
+        setFormData(prevData => {
+            const newTransportations = [...prevData.transportation];
+            newTransportations[index] = { ...newTransportations[index], ...updates };
+            return { ...prevData, transportation: newTransportations };
+        });
     };
 
     const addTransportationsRow = () => {
@@ -160,6 +192,17 @@ export default function Input() {
             ...prevData,
             transportation: prevData.transportation.filter((_, i) => i !== index),
         }));
+    };
+
+    // -------------------------------------------------------------------------
+    // Handler Transportation
+    // -------------------------------------------------------------------------
+    const handleHospitalChange = (index, updates) => {
+        setFormData(prevData => {
+            const newHospitals = [...prevData.hospital];
+            newHospitals[index] = { ...newHospitals[index], ...updates };
+            return { ...prevData, hospital: newHospitals };
+        });
     };
 
     const addHospitalsRow = () => {
@@ -186,7 +229,9 @@ export default function Input() {
         }));
     };
 
-    // Handle Submit
+    // -------------------------------------------------------------------------
+    // Submit data (POST)
+    // -------------------------------------------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -260,35 +305,6 @@ export default function Input() {
             alert(`Failed to submit data: ${error.response?.data?.message || error.message}`);
         }
     };
-
-    const fetchIncidentData = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
-    };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchMULeader = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}logistic-section/medical-unit-leader/read/`);
-            setMULeaderData(response.data);
-            console.log("Medical Unit Leader Data:", response.data);
-        } catch (error) {
-            console.error('Error fetching Medical Unit Leader data:', error);
-            setError('Failed to fetch Medical Unit Leader data');
-        }
-    };
-
-    useEffect(() => {
-        fetchMULeader();
-    }, []);
 
     return (
         <FormContainer title="Input ICS 206 - Medical Plan" >
