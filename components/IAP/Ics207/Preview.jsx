@@ -7,6 +7,7 @@ import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import React, { useEffect, useRef, useState } from 'react';
 import FormContainer from '@/components/FormContainer';
+import { fetchData, readBy } from '@/utils/api';
 
 
 export default function Preview() {
@@ -20,15 +21,17 @@ export default function Preview() {
 
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
-    const routeUrl = "ics-203/main";
 
+    // --------------------------------------------
+    // Fetch Data
+    // --------------------------------------------
     useEffect(() => {
         const fetchICS203Data = async () => {
             try {
-                const response = await axios.get(`${apiUrl}${routeUrl}/read/`);
-                const ics203List = await Promise.all(response.data.map(async (item) => {
-                    const operationalPeriodResponse = await axios.get(`${apiUrl}operational-period/read/${item.operational_period_id}`);
-                    const incidentResponse = await axios.get(`${apiUrl}incident-data/read/${operationalPeriodResponse.data.incident_id}`);
+                const response = await fetchData('ics-203/main');
+                const ics203List = await Promise.all(response.map(async (item) => {
+                    const operationalPeriodResponse = await readBy({ routeUrl: 'operational-period/read', id: item.operational_period_id });
+                    const incidentResponse = await readBy({ routeUrl: 'incident-data/read', id: operationalPeriodResponse.incident_id });
                     return {
                         id: item.id,
                         operational_period_id: item.operational_period_id,
@@ -59,11 +62,11 @@ export default function Preview() {
                         compensation_claim_unit_leader_id: item.compensation_claim_unit_leader_id,
                         cost_unit_leader_id: item.cost_unit_leader_id,
                         time_unit_leader_id: item.time_unit_leader_id,
-                        dateFrom: operationalPeriodResponse.data.date_from,
-                        dateTo: operationalPeriodResponse.data.date_to,
-                        timeFrom: operationalPeriodResponse.data.time_from,
-                        timeTo: operationalPeriodResponse.data.time_to,
-                        incidentName: incidentResponse.data.name,
+                        dateFrom: operationalPeriodResponse.date_from,
+                        dateTo: operationalPeriodResponse.date_to,
+                        timeFrom: operationalPeriodResponse.time_from,
+                        timeTo: operationalPeriodResponse.time_to,
+                        incidentName: incidentResponse.name,
                     };
                 }));
                 setICS203Data(ics203List);
@@ -74,18 +77,27 @@ export default function Preview() {
         fetchICS203Data();
     }, []);
 
-    useEffect(() => {
-        const fetchRULeader = async () => {
-            try {
-                const response = await axios.get(`${apiUrl}planning-section/resources-unit-leader/read/`);
-                setRULeaderData(response.data);
-            } catch (error) {
-                console.error('Error fetching Resources Unit Leader data:', error);
-            }
-        };
-        fetchRULeader();
-    }, []);
+    const fetchRULeader = async (RULeaderId) => {
+        try {
+            const response = await readBy({
+                routeUrl: 'planning-section/resources-unit-leader/read',
+                id: RULeaderId
+            });
+            setRULeaderData(response);
+        } catch (error) {
+            console.error('Error fetching Resources Unit Leader data:', error);
+        }
+    };
 
+    useEffect(() => {
+        if (preparationData) {
+            fetchRULeader(preparationData.resources_unit_leader_id);
+        }
+    }, [preparationData]);
+
+    // ------------------------------------------------
+    // Handle ICS203 Selection
+    // ------------------------------------------------
     const handleSelectChange = async (event) => {
         const ics203Id = event.target.value;
         setSelectedICS203Id(ics203Id);
@@ -94,9 +106,8 @@ export default function Preview() {
             const selectedItem = ICS203Data.find(item => item.id == ics203Id);
             if (!selectedItem) return;
             setSelectedICS203(selectedItem);
-
-            const preparationResponse = await axios.get(`${apiUrl}ics-203/preparation/read-by-ics-203-id/${ics203Id}`);
-            setPreparationData(preparationResponse.data.length > 0 ? preparationResponse.data[0] : null);
+            const preparationResponse = await readBy({ routeUrl: 'ics-203/preparation/read-by-ics-203-id', id: ics203Id });
+            setPreparationData(preparationResponse.length > 0 ? preparationResponse[0] : null);
 
             setChartData(selectedItem);
         } catch (error) {
@@ -104,6 +115,9 @@ export default function Preview() {
         }
     };
 
+    // ------------------------------------------------
+    // Handle iframe
+    // ------------------------------------------------
     useEffect(() => {
         const iframe = iframeRef.current;
 
@@ -123,6 +137,9 @@ export default function Preview() {
         }
     }, [chartData]);
 
+    // ------------------------------------------------
+    // Handle Export Button
+    // ------------------------------------------------
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
@@ -149,7 +166,6 @@ export default function Preview() {
             console.error('Error exporting document:', error);
         }
     };
-
 
     return (
         <div>
@@ -266,7 +282,7 @@ export default function Preview() {
                                     <strong>4. Prepared by:</strong>
                                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                                         <div style={{ marginLeft: '5rem' }}>
-                                            {RULeaderData.find((RULeader) => RULeader.id === preparationData?.resources_unit_leader_id)?.name || "N/A"}
+                                            {RULeaderData?.name || "N/A"}
                                         </div>
                                         <div style={{ marginLeft: '5rem' }}>
                                             Position: Resources Unit Leader
