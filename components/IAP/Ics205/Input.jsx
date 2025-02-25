@@ -6,7 +6,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import RadioChannel from './RadioChannel';
 import dayjs from 'dayjs';
-import { fetchOperationalPeriodByIncident } from '@/utils/api';
+import { fetchData, fetchOperationalPeriodByIncident } from '@/utils/api';
 
 export default function Input() {
     const [formData, setFormData] = useState({
@@ -35,6 +35,40 @@ export default function Input() {
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
+    // -------------------------------------------------------------------------
+    // Fetch data
+    // -------------------------------------------------------------------------
+    const fetchIncidentData = async () => {
+        try {
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
+
+    const fetchCULeader = async () => {
+        try {
+            const response = await fetchData('logistic-section/communication-unit-leader');
+            setCULeaderData(response);
+        } catch (error) {
+            console.error('Error fetching Communication Unit Leader data:', error);
+            setError('Failed to fetch Communication Unit Leader data');
+        }
+    };
+
+    useEffect(() => {
+        fetchCULeader();
+    }, []);
+
+    // -------------------------------------------------------------------------
+    // Handler dropdown Incident & Operational Period
+    // -------------------------------------------------------------------------
     const handleIncidentChange = async (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
@@ -59,7 +93,6 @@ export default function Input() {
         }
     };
 
-
     const handleOperationalPeriodChange = (e) => {
         const operational_period_id = parseInt(e.target.value, 10);
         setFormData(prevState => ({
@@ -68,6 +101,9 @@ export default function Input() {
         }));
     };
 
+    // -------------------------------------------------------------------------
+    // Handler umum untuk text/checkbox
+    // -------------------------------------------------------------------------
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData({
@@ -76,7 +112,9 @@ export default function Input() {
         });
     };
 
-    // Functions to handle changes in child components
+    // -------------------------------------------------------------------------
+    // Handler Radio Channel
+    // -------------------------------------------------------------------------
     const handleRadioChannelChange = (index, updates) => {
         setFormData(prevData => {
             const newRadioChannels = [...prevData.radioChannel];
@@ -85,7 +123,6 @@ export default function Input() {
         });
     };
 
-    // Functions to add/remove rows in child components
     const addRadioChannelRow = () => {
         setFormData(prevData => ({
             ...prevData,
@@ -109,7 +146,9 @@ export default function Input() {
         }));
     };
 
-    // Handle Submit
+    // -------------------------------------------------------------------------
+    // Submit data (POST)
+    // -------------------------------------------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -160,35 +199,6 @@ export default function Input() {
             alert('Failed to save data');
         }
     };
-
-    const fetchIncidentData = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
-    };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchCULeader = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}logistic-section/communication-unit-leader/read/`);
-            setCULeaderData(response.data);
-            console.log("Communication Unit Leader Data:", response.data);
-        } catch (error) {
-            console.error('Error fetching Communication Unit Leader data:', error);
-            setError('Failed to fetch Communication Unit Leader data');
-        }
-    };
-
-    useEffect(() => {
-        fetchCULeader();
-    }, []);
 
     return (
         <FormContainer title="Input ICS 205 - Radio Communication Plan" >
