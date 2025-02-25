@@ -10,7 +10,7 @@ import Hospital from './Hospital';
 import dayjs from 'dayjs';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { fetchOperationalPeriodByIncident } from '@/utils/api';
+import { fetchData, fetchOperationalPeriodByIncident, readBy } from '@/utils/api';
 
 
 export default function Detail() {
@@ -37,69 +37,31 @@ export default function Detail() {
     const apiUrl = `http://${hostName}:8000/api/`;
     const routeUrl = "ics-206/main";
 
-    const handleIncidentChange = async (e) => {
-        const incident_id = parseInt(e.target.value, 10);
-        if (!incident_id) return;
-
-        setLoading(true);
-        setError(null);
-        setOperationalPeriodData([]);
-        setFormData((prevState) => ({
-            ...prevState,
-            incident_id,
-            operational_period_id: "",
-        }));
-
-        try {
-            const responseData = await fetchOperationalPeriodByIncident(incident_id);
-            setOperationalPeriodData(responseData);
-        } catch (err) {
-            console.error('Failed to fetch operational period data:', err);
-            setError('Failed to fetch operational period data');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
-    const handleOperationalPeriodChange = (e) => {
-        const operational_period_id = parseInt(e.target.value, 10);
-        setFormData(prevState => ({
-            ...prevState,
-            operational_period_id
-        }));
-    };
-
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData({
-            ...formData,
-            [name]: type === "checkbox" ? checked : value,
-        });
-    };
-
+    // -------------------------------------------------------------------------
+    // Gunakan helper readBy, fetchData di dalam useEffect
+    // -------------------------------------------------------------------------
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchIcs206Data = async () => {
             setLoading(true);
             setError(null);
 
             try {
                 // Fetch main data
-                const responseData = await axios.get(`${apiUrl}${routeUrl}/read/${id}`);
-                const mainData = responseData.data;
+                const responseData = await readBy({ routeUrl: "ics-206/main/read", id });
+                const mainData = responseData;
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationResponse, medicalsData, transportationsData, hospitalsData] = await Promise.all([
-                    axios.get(`${apiUrl}operational-period/read`),
-                    axios.get(`${apiUrl}ics-206/preparation/read-by-ics-206-id/${id}`),
+                    fetchData('operational-period'),
+                    readBy({ routeUrl: "ics-206/preparation/read-by-ics-206-id", id }),
                     fetchMedicalsData(mainData.id),
                     fetchTransportationsData(mainData.id),
                     fetchHospitalsData(mainData.id),
                 ]);
 
                 // Extracting data
-                const operationalPeriodData = operationalPeriodResponse.data;
-                const preparationData = preparationResponse.data.length > 0 ? preparationResponse.data[0] : null;
+                const operationalPeriodData = operationalPeriodResponse;
+                const preparationData = preparationResponse.length > 0 ? preparationResponse[0] : null;
 
                 // Find associated incident_id from operational period
                 const selectedOperationalPeriod = operationalPeriodData.find(period => period.id === mainData.operational_period_id);
@@ -157,14 +119,48 @@ export default function Detail() {
         };
 
         if (id) {
-            fetchData();
+            fetchIcs206Data();
         }
     }, [id]);
 
+    // -------------------------------------------------------------------------
+    // Fetch data
+    // -------------------------------------------------------------------------
+    const fetchIncidentData = async () => {
+        try {
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
+
+    const fetchMULeader = async () => {
+        try {
+            const response = await fetchData('logistic-section/medical-unit-leader');
+            setMULeaderData(response);
+        } catch (error) {
+            console.error('Error fetching Medical Unit Leader data:', error);
+            setError('Failed to fetch Medical Unit Leader data');
+        }
+    };
+
+    useEffect(() => {
+        fetchMULeader();
+    }, []);
+
     const fetchMedicalsData = async (ics_206_id) => {
         try {
-            const response = await axios.get(`${apiUrl}ics-206/medical-aid-station/read-by-ics-id/${ics_206_id}`);
-            return response.data;
+            const response = await readBy({
+                routeUrl: "ics-206/medical-aid-station/read-by-ics-id",
+                id: ics_206_id
+            });
+            return response;
         } catch (error) {
             console.error("Error fetching medical aid station data:", error);
             throw error;
@@ -173,8 +169,11 @@ export default function Detail() {
 
     const fetchTransportationsData = async (ics_206_id) => {
         try {
-            const response = await axios.get(`${apiUrl}ics-206/transportation/read-by-ics-id/${ics_206_id}`);
-            return response.data;
+            const response = await readBy({
+                routeUrl: "ics-206/transportation/read-by-ics-id",
+                id: ics_206_id
+            });
+            return response;
         } catch (error) {
             console.error("Error fetching transportation data:", error);
             throw error;
@@ -183,15 +182,67 @@ export default function Detail() {
 
     const fetchHospitalsData = async (ics_206_id) => {
         try {
-            const response = await axios.get(`${apiUrl}ics-206/hospitals/read-by-ics-id/${ics_206_id}`);
-            return response.data;
+            const response = await readBy({
+                routeUrl: "ics-206/hospitals/read-by-ics-id",
+                id: ics_206_id
+            });
+            return response;
         } catch (error) {
             console.error("Error fetching hospital data:", error);
             throw error;
         }
     };
 
-    // Medicals
+    // -------------------------------------------------------------------------
+    // Handler dropdown Incident & Operational Period
+    // -------------------------------------------------------------------------
+    const handleIncidentChange = async (e) => {
+        const incident_id = parseInt(e.target.value, 10);
+        if (!incident_id) return;
+
+        setLoading(true);
+        setError(null);
+        setOperationalPeriodData([]);
+        setFormData((prevState) => ({
+            ...prevState,
+            incident_id,
+            operational_period_id: "",
+        }));
+
+        try {
+            const responseData = await fetchOperationalPeriodByIncident(incident_id);
+            setOperationalPeriodData(responseData);
+        } catch (err) {
+            console.error('Failed to fetch operational period data:', err);
+            setError('Failed to fetch operational period data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const handleOperationalPeriodChange = (e) => {
+        const operational_period_id = parseInt(e.target.value, 10);
+        setFormData(prevState => ({
+            ...prevState,
+            operational_period_id
+        }));
+    };
+
+    // -------------------------------------------------------------------------
+    // Handler umum untuk text/checkbox
+    // -------------------------------------------------------------------------
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData({
+            ...formData,
+            [name]: type === "checkbox" ? checked : value,
+        });
+    };
+
+    // -------------------------------------------------------------------------
+    // Handler Medicals
+    // -------------------------------------------------------------------------
     const handleAddMedicalsRow = () => {
         setFormData(prevData => ({
             ...prevData,
@@ -220,7 +271,9 @@ export default function Detail() {
         });
     }
 
-    // Transportations
+    // -------------------------------------------------------------------------
+    // Handler Transportations
+    // -------------------------------------------------------------------------
     const handleAddTransportationsRow = () => {
         setFormData(prevData => ({
             ...prevData,
@@ -250,7 +303,9 @@ export default function Detail() {
         });
     }
 
-    // Hospitals
+    // -------------------------------------------------------------------------
+    // Handler Hospitals
+    // -------------------------------------------------------------------------
     const handleAddHospitalsRow = () => {
         setFormData(prevData => ({
             ...prevData,
@@ -284,7 +339,9 @@ export default function Detail() {
         });
     }
 
-    // Handle Submit
+    // -------------------------------------------------------------------------
+    // Submit data (PUT / POST)
+    // -------------------------------------------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -434,36 +491,6 @@ export default function Detail() {
             throw error;
         }
     };
-
-
-    const fetchIncidentData = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
-    };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchMULeader = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}logistic-section/medical-unit-leader/read/`);
-            setMULeaderData(response.data);
-            console.log("Medical Unit Leader Data:", response.data);
-        } catch (error) {
-            console.error('Error fetching Medical Unit Leader data:', error);
-            setError('Failed to fetch Medical Unit Leader data');
-        }
-    };
-
-    useEffect(() => {
-        fetchMULeader();
-    }, []);
 
     return (
         <FormContainer title="ICS 206 - Medical Plan Detail" >
