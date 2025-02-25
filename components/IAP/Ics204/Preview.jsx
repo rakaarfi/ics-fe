@@ -11,7 +11,7 @@ import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import FormContainer from '@/components/FormContainer';
 import { TableHead } from '@mui/material';
-import { fetchData, readBy } from '@/utils/api';
+import { readBy } from '@/utils/api';
 
 dayjs.extend(customParseFormat);
 
@@ -44,8 +44,8 @@ export default function Preview({
         idsToDeletePersonnels: [],
         idsToDeleteEquipments: [],
     });
-    const [incidentData, setIncidentData] = useState([]);
-    const [operationalPeriodData, setOperationalPeriodData] = useState([]);
+    const [incidentDetails, setIncidentDetails] = useState(null);
+    const [selectedOperationalPeriod, setSelectedOperationalPeriod] = useState(null)
     const [OSChiefData, setOSChiefData] = useState([]);
     const [RULeaderData, setRULeaderData] = useState([]);
     const [preparationOSChiefData, setPreparationOSChiefData] = useState({
@@ -58,18 +58,15 @@ export default function Preview({
         date_prepared: dayjs().format('YYYY-MM-DD'),
         time_prepared: dayjs().format('HH:mm'),
     });
-    const [operationSectionChiefNumber, setOperationSectionChiefNumber] = useState("");
-    const [preparationOSChiefID, setPreparationOSChiefID] = useState(null);
     const [preparationRULeaderID, setPreparationRULeaderID] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
-    const routeUrl = "ics-204/main";
 
     // -------------------------------------------------------------------------
-    // Gunakan helper readBy, fetchData di dalam useEffect
+    // Gunakan helper readBy di dalam useEffect
     // -------------------------------------------------------------------------
     useEffect(() => {
         const fetchIcs204Data = async () => {
@@ -83,7 +80,7 @@ export default function Preview({
 
                 // Fetch additional data in parallel
                 const [operationalPeriodResponse, preparationOSChiefResponse, preparationRULeaderResponse, personnelsData, equipmentsData] = await Promise.all([
-                    fetchData('operational-period'),
+                    readBy({ routeUrl: 'operational-period/read', id: mainData.operational_period_id }),
                     readBy({ routeUrl: 'ics-204/preparation-os-chief/read-by-ics-204-id', id }),
                     readBy({ routeUrl: 'ics-204/preparation-ru-leader/read-by-ics-204-id', id }),
                     fetchPersonnelsData(mainData.id),
@@ -91,18 +88,15 @@ export default function Preview({
                 ]);
 
                 // Extracting data
-                const operationalPeriodData = operationalPeriodResponse;
                 const preparationOSChiefData = preparationOSChiefResponse.length > 0 ? preparationOSChiefResponse[0] : null;
                 const preparationRULeaderData = preparationRULeaderResponse.length > 0 ? preparationRULeaderResponse[0] : null;
 
-                setPreparationOSChiefID(preparationOSChiefData ? preparationOSChiefData.id : null);
-                setPreparationRULeaderID(preparationRULeaderData ? preparationRULeaderData.id : null);
+                setSelectedOperationalPeriod(operationalPeriodResponse);
                 setPreparationOSChiefData(preparationOSChiefData);
                 setPreparationRULeaderData(preparationRULeaderData);
 
                 // Find associated incident_id from operational period
-                const selectedOperationalPeriod = operationalPeriodData.find(period => period.id === mainData.operational_period_id);
-                const incidentId = selectedOperationalPeriod ? selectedOperationalPeriod.incident_id : null;
+                const incidentId = operationalPeriodResponse ? operationalPeriodResponse.incident_id : null;
 
                 // Update FormData with fetched data
                 setFormData(prevFormData => ({
@@ -138,12 +132,8 @@ export default function Preview({
                 }));
 
                 // Set state
-                setOperationalPeriodData(operationalPeriodData);
-                if (preparationOSChiefData) {
-                    setPreparationOSChiefID(preparationOSChiefData.id);
-                }
                 if (preparationRULeaderData) {
-                    setPreparationRULeaderID(preparationRULeaderData.id);
+                    setPreparationRULeaderID(preparationRULeaderData.resources_unit_leader_id);
                 }
 
             } catch (err) {
@@ -162,23 +152,32 @@ export default function Preview({
     // -------------------------------------------------------------------------
     // Fetch data
     // -------------------------------------------------------------------------
-    const fetchIncidentData = async () => {
+    // Fetch Incident Data by incident_id
+    const fetchIncidentById = async (incidentId) => {
         try {
-            const response = await fetchData('incident-data');
-            setIncidentData(response);
+            const response = await readBy({
+                routeUrl: 'incident-data/read',
+                id: incidentId
+            });
+            setIncidentDetails(response);
         } catch (error) {
-            console.error('Error fetching incident data:', error);
             setError('Failed to fetch incident data');
         }
     };
 
     useEffect(() => {
-        fetchIncidentData();
-    }, []);
+        if (formData.incident_id) {
+            fetchIncidentById(formData.incident_id);
+        }
+    }, [formData.incident_id]);
 
-    const fetchRULeader = async () => {
+    // Fetch Resources Unit Leader
+    const fetchRULeader = async (RULeaderId) => {
         try {
-            const response = await fetchData('planning-section/resources-unit-leader');
+            const response = await readBy({
+                routeUrl: 'planning-section/resources-unit-leader/read',
+                id: RULeaderId
+            })
             setRULeaderData(response);
         } catch (error) {
             console.error('Error fetching Resources Unit Leader data:', error);
@@ -187,13 +186,21 @@ export default function Preview({
     };
 
     useEffect(() => {
-        fetchRULeader();
-    }, []);
+        if (preparationRULeaderID) { // Check if preparationRULeaderID is defined
+            fetchRULeader(preparationRULeaderID);
+        }
+    }, [preparationRULeaderID]);
 
-    const fetchOSChief = async () => {
+    // Fetch Operation Section Chief
+    const fetchOSChief = async (OSChiefId) => {
         try {
-            const response = await fetchData('main-section/operation-section-chief');
+            const response = await readBy({
+                routeUrl: 'main-section/operation-section-chief/read',
+                id: OSChiefId
+            })
             setOSChiefData(response);
+            console.log("Operation Section Chief Data:", response);
+            
         } catch (error) {
             console.error('Error fetching Operation Section Chief data:', error);
             setError('Failed to fetch Operation Section Chief data');
@@ -201,8 +208,10 @@ export default function Preview({
     };
 
     useEffect(() => {
-        fetchOSChief();
-    }, []);
+        if (formData.operation_section_chief_id) { // Check if operation_section_chief_id is defined
+            fetchOSChief(formData.operation_section_chief_id);
+        }
+    }, [formData.operation_section_chief_id]);
 
     const fetchPersonnelsData = async (ics_204_id) => {
         try {
@@ -238,17 +247,9 @@ export default function Preview({
     const preparedDateRULeader = preparationRULeaderData?.date_prepared || "N/A";
     const preparedTimeRULeader = preparationRULeaderData?.time_prepared || "N/A";
 
-    const preparedByOSChief = preparationOSChiefData && OSChiefData.find((chief) => chief.id === preparationOSChiefID);
-    const preparedByRULeader = preparationRULeaderData && RULeaderData.find((leader) => leader.id === preparationRULeaderID);
-
-    const incidentDetails = incidentData.find(
-        (incident) => incident.id === formData.incident_id
-    );
-
-    const selectedOperationalPeriod = operationalPeriodData.find(
-        (period) => period.id === formData.operational_period_id
-    );
-
+    // -------------------------------------------------------------------------
+    // Handler Export
+    // -------------------------------------------------------------------------
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
@@ -275,49 +276,6 @@ export default function Preview({
             console.error('Error exporting document:', error);
         }
     };
-
-    useEffect(() => {
-        if (formData.operation_section_chief_id) {
-            // Cari chief yang sesuai berdasarkan operation_section_chief_id
-            const selectedChief = OSChiefData.find(chief => chief.id === parseInt(formData.operation_section_chief_id, 10));
-            if (selectedChief) {
-                // Update operationSectionChiefNumber dengan mobile_phone dari chief yang dipilih
-                setOperationSectionChiefNumber(selectedChief.mobile_phone);
-            } else {
-                // Reset jika tidak ada chief yang dipilih
-                setOperationSectionChiefNumber("");
-            }
-        } else {
-            // Reset jika operation_section_chief_id kosong
-            setOperationSectionChiefNumber("");
-        }
-    }, [formData.operation_section_chief_id, OSChiefData]);
-
-    useEffect(() => {
-        if (formData.is_prepared_os_chief) {
-            // Jika OS Chief disiapkan, otomatis gunakan yang dipilih di Operations Personnel
-            setFormData(prev => ({
-                ...prev,
-                prepared_operation_section_chief_id: prev.operation_section_chief_id || ""
-            }));
-        } else {
-            // Jika hanya Resources Unit Leader yang prepared, kosongkan OS Chief di "Prepared by"
-            setFormData(prev => ({
-                ...prev,
-                prepared_operation_section_chief_id: ""
-            }));
-        }
-    }, [formData.is_prepared_os_chief, formData.operation_section_chief_id]);
-
-    useEffect(() => {
-        if (!formData.is_prepared_os_chief) {
-            // Jika Operation Section Chief tidak menjadi "Prepared by", hapus dari state
-            setFormData(prev => ({
-                ...prev,
-                operation_section_chief_id: null
-            }));
-        }
-    }, [formData.is_prepared_os_chief]);
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p className="text-red-500">{error}</p>;
@@ -403,10 +361,10 @@ export default function Preview({
                                         Operation Section Chief
                                     </TableCell>
                                     <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>
-                                        {OSChiefData.find(chief => chief.id === formData.operation_section_chief_id)?.name || 'Unknown Operation Section Chief'}
+                                        {OSChiefData.name || 'Unknown Operation Section Chief'}
                                     </TableCell>
                                     <TableCell sx={{ border: '1px solid #ccc', height: '24px' }}>
-                                        {operationSectionChiefNumber}
+                                        {OSChiefData.mobile_phone || 'Unknown Contact Number'}
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -665,10 +623,10 @@ export default function Preview({
                             <TableCell colSpan={3} sx={{ padding: '1rem' }}>
                                 <strong>9. Prepared by:</strong>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {preparedByRULeader && (
+                                    {RULeaderData && preparationRULeaderData && (
                                         <div style={{ display: 'flex', flexDirection: 'row' }}>
                                             <div style={{ marginLeft: '5rem' }}>
-                                                {preparedByRULeader.name || "N/A"}
+                                                {RULeaderData.name || "N/A"}
                                             </div>
                                             <div style={{ marginLeft: '5rem' }}>
                                                 Position: Resources Unit Leader
@@ -685,10 +643,10 @@ export default function Preview({
                                         </div>
                                     )}
 
-                                    {preparedByOSChief && (
+                                    {OSChiefData && formData.is_prepared_os_chief && (
                                         <div style={{ display: 'flex', flexDirection: 'row' }}>
                                             <div style={{ marginLeft: '5rem' }}>
-                                                {preparedByOSChief.name || "N/A"}
+                                                {OSChiefData.name || "N/A"}
                                             </div>
                                             <div style={{ marginLeft: '5rem' }}>
                                                 Position: Operation Section Chief
