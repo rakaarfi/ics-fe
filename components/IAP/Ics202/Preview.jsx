@@ -10,7 +10,7 @@ import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import FormContainer from '@/components/FormContainer';
-import { fetchData, readBy } from '@/utils/api';
+import { readBy } from '@/utils/api';
 
 dayjs.extend(customParseFormat);
 
@@ -36,7 +36,7 @@ export default function Preview() {
         weather_tides_currents: false,
     });
     const [incidentDetails, setIncidentDetails] = useState(null);
-    const [operationalPeriodData, setOperationalPeriodData] = useState([]);
+    const [selectedOperationalPeriod, setSelectedOperationalPeriod] = useState(null)
     const [ICData, setICData] = useState([]);
     const [approvalData, setApprovalData] = useState({
         incident_commander_id: "",
@@ -71,24 +71,6 @@ export default function Preview() {
                 setData(mainData);
                 setFormData(mainData);
 
-                // Simpan ID operational period untuk pemakaian berikutnya
-                const operationalPeriodId = mainData.operational_period_id;
-
-                // Ambil semua data operational period - pakai fetchData
-                const allOperationalPeriods = await fetchData('operational-period');
-                setOperationalPeriodData(allOperationalPeriods);
-
-                // Cari operational period yang sesuai
-                const selectedOperationalPeriod = allOperationalPeriods.find(
-                    (period) => period.id === operationalPeriodId
-                );
-                if (selectedOperationalPeriod) {
-                    setFormData((prevFormData) => ({
-                        ...prevFormData,
-                        incident_id: selectedOperationalPeriod.incident_id,
-                    }));
-                }
-
                 // Kalau ada id, baru fetch preparation data - pakai readBy
                 if (id) {
                     const prepResponse = await readBy({
@@ -112,17 +94,9 @@ export default function Preview() {
     }, [id]);
 
     // -------------------------------------------------------------------------
-    // Fetch data Incident & Planning Section Chief & 
-    // Preparation & Incident Commander & Approval
+    // Fetch data
     // -------------------------------------------------------------------------
-
-    useEffect(() => {
-        if (preparationData.planning_section_chief_id) {
-            fetchPSChief(preparationData.planning_section_chief_id);
-        }
-    }, [preparationData]);
-
-
+    // Fetch Planning Section Chief by planning_section_chief_id
     const fetchPSChief = async (chiefId) => {
         try {
             const response = await readBy({
@@ -135,6 +109,12 @@ export default function Preview() {
             setError(`Error fetching Planning Section Chief data`)
         }
     };
+
+    useEffect(() => {
+        if (preparationData.planning_section_chief_id) {
+            fetchPSChief(preparationData.planning_section_chief_id);
+        }
+    }, [preparationData]);
 
     // Fetch Incident Commander
     const fetchIC = async (incindentId) => {
@@ -151,10 +131,12 @@ export default function Preview() {
     }
 
     useEffect(() => {
-        fetchIC(approvalData.incident_commander_id);
+        if (approvalData.incident_commander_id) {
+            fetchIC(approvalData.incident_commander_id)
+        };
     }, [approvalData]);
 
-    // Fetch Approval
+    // Fetch Approval by ics_202_id
     useEffect(() => {
         const fetchApprovalData = async (ics_202_id) => {
             try {
@@ -176,7 +158,32 @@ export default function Preview() {
         }
     }, [id]);
 
-    // Fetch Incident Data
+    // Fetch Operational Period by operational_period_id
+    const fetchOperationalPeriodById = async (operationalId) => {
+        try {
+            const response = await readBy({
+                routeUrl: 'operational-period/read',
+                id: operationalId
+            })
+            setSelectedOperationalPeriod(response);
+            if (response) {
+                setFormData((prevFormData) => ({
+                    ...prevFormData,
+                    incident_id: response.incident_id,
+                }));
+            }
+        } catch (error) {
+            setError('Failed to fetch operational period data');
+        }
+    };
+
+    useEffect(() => {
+        if (formData.operational_period_id) {
+            fetchOperationalPeriodById(formData.operational_period_id);
+        }
+    }, [formData.operational_period_id]);
+
+    // Fetch Incident Data by incident_id
     const fetchIncidentById = async (incidentId) => {
         try {
             const response = await readBy({
@@ -188,7 +195,7 @@ export default function Preview() {
             setError('Failed to fetch incident data');
         }
     };
-    
+
     useEffect(() => {
         if (formData.incident_id) {
             fetchIncidentById(formData.incident_id);
@@ -199,10 +206,9 @@ export default function Preview() {
     const preparedDate = preparationData ? preparationData.date_prepared : null;
     const preparedTime = preparationData ? preparationData.time_prepared : null;
 
-    const selectedOperationalPeriod = operationalPeriodData.find(
-        (period) => period.id === formData.operational_period_id
-    );
-
+    // --------------------------------------------------------------------------
+    // Handle Export
+    // --------------------------------------------------------------------------
     const handleExportButtonClick = async () => {
         try {
             const response = await axios.post(
