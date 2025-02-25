@@ -10,7 +10,6 @@ import { ButtonDelete, ButtonDetail, ButtonPreview, InputButton } from '@/compon
 import { SearchQuery } from '@/components/SearchQuery';
 import TableHeader from './TableHeader';
 import Pagination from '@/components/Pagination';
-import axios from 'axios';
 
 dayjs.extend(customParseFormat);
 
@@ -70,8 +69,8 @@ export default function List() {
 
     const medicalAidStations = async () => {
         try {
-            const response = await axios.get(`${apiUrl}ics-206/medical-aid-station/read/`);
-            setMedicalAidStationsData(response.data);
+            const response = await fetchData('ics-206/medical-aid-station');
+            setMedicalAidStationsData(response);
         } catch (error) {
             console.error('Error fetching operation section chief data:', error);
         }
@@ -79,9 +78,8 @@ export default function List() {
 
     const transportations = async () => {
         try {
-            const response = await axios.get(`${apiUrl}ics-206/transportation/read/`);
-            setTransportationsData(response.data);
-            console.log("Transportation Data:", response.data);
+            const response = await fetchData('ics-206/transportation');
+            setTransportationsData(response);
         } catch (error) {
             console.error('Error fetching operation section chief data:', error);
         }
@@ -89,8 +87,8 @@ export default function List() {
 
     const hospitals = async () => {
         try {
-            const response = await axios.get(`${apiUrl}ics-206/hospitals/read/`);
-            setHospitalsData(response.data);
+            const response = await fetchData('ics-206/hospitals');
+            setHospitalsData(response);
         } catch (error) {
             console.error('Error fetching operation section chief data:', error);
         }
