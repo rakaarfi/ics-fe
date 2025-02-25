@@ -6,7 +6,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import dayjs from 'dayjs';
 import UploadFile from '@/components/UploadFile';
-import { fetchOperationalPeriodByIncident } from '@/utils/api';
+import { fetchData, fetchOperationalPeriodByIncident } from '@/utils/api';
 
 
 export default function Input() {
@@ -20,14 +20,50 @@ export default function Input() {
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
 
-    // Fungsi untuk menangani perubahan nama file yang diunggah
+    // -------------------------------------------------------------------------
+    // Fetch data
+    // -------------------------------------------------------------------------
+    const fetchIncidentData = async () => {
+        try {
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
+
+    const fetchSafetyOfficer = async () => {
+        try {
+            const response = await fetchData('main-section/safety-officer');
+            setSafetyOfficerData(response);
+        } catch (error) {
+            console.error('Error fetching Planning Section Chief data:', error);
+            setError('Failed to fetch Planning Section Chief data');
+        }
+    };
+
+    useEffect(() => {
+        fetchSafetyOfficer();
+    }, []);
+
+    // --------------------------------------------------------------------------
+    // Handler upload file
+    // --------------------------------------------------------------------------
     const handleFileUpload = (filename) => {
         setFormData(prevData => ({
             ...prevData,
-            site_safety_plan: filename, // Simpan nama file ke state formData
+            site_safety_plan: filename,
         }));
     };
 
+    // -------------------------------------------------------------------------
+    // Handler dropdown Incident & Operational Period
+    // -------------------------------------------------------------------------
     const handleIncidentChange = async (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
@@ -62,6 +98,9 @@ export default function Input() {
         }));
     };
 
+    // -------------------------------------------------------------------------
+    // Handler umum untuk text/checkbox
+    // -------------------------------------------------------------------------
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData({
@@ -70,6 +109,9 @@ export default function Input() {
         });
     };
 
+    // -------------------------------------------------------------------------
+    // Submit data (POST)
+    // -------------------------------------------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -115,39 +157,8 @@ export default function Input() {
         }
     };
 
-    const fetchIncidentData = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-            console.log("Incident Data:", response.data);
-
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
-    };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchSafetyOfficer = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}main-section/safety-officer/read/`);
-            setSafetyOfficerData(response.data);
-            console.log("Planning Section Chief Data:", response.data);
-        } catch (error) {
-            console.error('Error fetching Planning Section Chief data:', error);
-            setError('Failed to fetch Planning Section Chief data');
-        }
-    };
-
-    useEffect(() => {
-        fetchSafetyOfficer();
-    }, []);
-
     return (
-        <FormContainer title="Input ICS 208 - Safety Message/Plan" >
+        <FormContainer title="Input ICS 208 - Safety Message/Plan" error={error} >
             <div className="mb-4 flex flex-row">
                 <select
                     className="flex-1 block w-[400px] rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
