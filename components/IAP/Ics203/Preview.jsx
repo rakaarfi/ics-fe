@@ -13,7 +13,7 @@ import TableHead from '@mui/material/TableHead';
 import FormContainer from '@/components/FormContainer';
 import useFetchDynamicOptions from '@/components/ImtRoster/useFetchDynamicOptions';
 import { MainSection, PlanningSection, LogisticSection, FinanceSection, OperationSectionList } from '@/components/ImtRoster/inputFields';
-import { fetchData, readBy } from '@/utils/api';
+import { readBy } from '@/utils/api';
 
 dayjs.extend(customParseFormat);
 
@@ -58,8 +58,8 @@ export default function Preview({
         date_prepared: "",
         time_prepared: "",
     });
-    const [incidentData, setIncidentData] = useState([]);
-    const [operationalPeriodData, setOperationalPeriodData] = useState([]);
+    const [incidentDetails, setIncidentDetails] = useState(null);
+    const [selectedOperationalPeriod, setSelectedOperationalPeriod] = useState(null)
     const [RULeaderData, setRULeaderData] = useState([]);
     const [preparationData, setPreparationData] = useState({
         is_prepared: false,
@@ -74,7 +74,7 @@ export default function Preview({
     const apiUrl = `http://${hostName}:8000/api/`;
 
     // -------------------------------------------------------------------------
-    // Gunakan helper readBy, fetchData di dalam useEffect
+    // Gunakan helper readBy di dalam useEffect
     // -------------------------------------------------------------------------
     useEffect(() => {
         const fetchIcs203Data = async () => {
@@ -85,24 +85,6 @@ export default function Preview({
                 // Ambil detail ICS 203 (main data) - pakai readBy
                 const mainData = await readBy({ routeUrl: "ics-203/main/read", id });
                 setFormData(mainData);
-
-                // Simpan ID operational period untuk pemakaian berikutnya
-                const operationalPeriodId = mainData.operational_period_id;
-
-                // Ambil semua data operational period - pakai fetchData
-                const allOperationalPeriods = await fetchData('operational-period');
-                setOperationalPeriodData(allOperationalPeriods);
-
-                // Cari operational period yang sesuai
-                const selectedOperationalPeriod = allOperationalPeriods.find(
-                    (period) => period.id === operationalPeriodId
-                );
-                if (selectedOperationalPeriod) {
-                    setFormData((prevFormData) => ({
-                        ...prevFormData,
-                        incident_id: selectedOperationalPeriod.incident_id,
-                    }));
-                }
 
                 // Kalau ada id, baru fetch preparation data - pakai readBy
                 if (id) {
@@ -119,6 +101,7 @@ export default function Preview({
                             time_prepared: prepResponse[0].time_prepared
                         }));
                         setPreparationID(prepResponse[0].id);
+                        setPreparationData(prepResponse[0]);
                     }
                 }
             } catch (err) {
@@ -136,42 +119,57 @@ export default function Preview({
     // Fetch data Incident & Resources Unit Leader
     // -------------------------------------------------------------------------
 
-    // Fetch preparation data
-    useEffect(() => {
-        const fetchPreparationData = async () => {
-            try {
-                const response = await readBy({
-                    routeUrl: 'ics-203/preparation/read-by-ics-203-id',
-                    id
-                })
-                if (response && response.length > 0) {
-                    setPreparationData(response);
-                }
-            } catch (error) {
-                console.error('Error fetching preparation data:', error);
-            }
-        };
-
-        fetchPreparationData();
-    }, [id]);
-
-    const fetchIncidentData = async () => {
+    // Fetch Operational Period by operational_period_id
+    const fetchOperationalPeriodById = async (operationalId) => {
         try {
-            const response = await fetchData('incident-data');
-            setIncidentData(response);
+            const response = await readBy({
+                routeUrl: 'operational-period/read',
+                id: operationalId
+            })
+            setSelectedOperationalPeriod(response);
+            if (response) {
+                setFormData((prevFormData) => ({
+                    ...prevFormData,
+                    incident_id: response.incident_id,
+                }));
+            }
         } catch (error) {
-            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch operational period data');
+        }
+    };
+
+    useEffect(() => {
+        if (formData.operational_period_id) {
+            fetchOperationalPeriodById(formData.operational_period_id);
+        }
+    }, [formData.operational_period_id]);
+
+    // Fetch Incident Data by incident_id
+    const fetchIncidentById = async (incidentId) => {
+        try {
+            const response = await readBy({
+                routeUrl: 'incident-data/read',
+                id: incidentId
+            });
+            setIncidentDetails(response);
+        } catch (error) {
             setError('Failed to fetch incident data');
         }
     };
 
     useEffect(() => {
-        fetchIncidentData();
-    }, []);
+        if (formData.incident_id) {
+            fetchIncidentById(formData.incident_id);
+        }
+    }, [formData.incident_id]);
 
-    const fetchRULeader = async () => {
+    // Fetch Resources Unit Leader
+    const fetchRULeader = async (RULeaderId) => {
         try {
-            const response = await fetchData('planning-section/resources-unit-leader');
+            const response = await readBy({
+                routeUrl: 'planning-section/resources-unit-leader/read',
+                id: RULeaderId
+            });
             setRULeaderData(response);
         } catch (error) {
             console.error('Error fetching Resources Unit Leader data:', error);
@@ -180,24 +178,18 @@ export default function Preview({
     };
 
     useEffect(() => {
-        fetchRULeader();
-    }, []);
+        if (preparationID) {
+            fetchRULeader(preparationID);
+        }
+    }, [preparationID]);
 
     // -------------------------------------------------------------------------
     // Data yang dibutuhkan
     // -------------------------------------------------------------------------
 
-    const isPrepared = preparationData.length > 0 ? preparationData[0].is_prepared : false;
-    const preparedDate = preparationData.length > 0 ? preparationData[0].date_prepared : null;
-    const preparedTime = preparationData.length > 0 ? preparationData[0].time_prepared : null;
-
-    const incidentDetails = incidentData.find(
-        (incident) => incident.id === formData.incident_id
-    );
-
-    const selectedOperationalPeriod = operationalPeriodData.find(
-        (period) => period.id === formData.operational_period_id
-    );
+    const isPrepared = preparationData ? preparationData.is_prepared : false;
+    const preparedDate = preparationData ? preparationData.date_prepared : null;
+    const preparedTime = preparationData ? preparationData.time_prepared : null;
 
     // --------------------------------------------------------------------------
     // Handle Export
@@ -409,7 +401,7 @@ export default function Preview({
                                 <strong>8. Prepared by:</strong>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
                                     <div style={{ marginLeft: '5rem' }}>
-                                        {RULeaderData.find((RULeader) => RULeader.id === preparationID)?.name || "N/A"}
+                                        {RULeaderData?.name || "N/A"}
                                     </div>
                                     <div style={{ marginLeft: '5rem' }}>
                                         Position: Resources Unit Leader
