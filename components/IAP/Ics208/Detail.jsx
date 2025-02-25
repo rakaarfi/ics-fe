@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import dayjs from 'dayjs';
 import { useParams } from 'next/navigation';
 import UploadFile from '@/components/UploadFile';
-import { fetchOperationalPeriodByIncident } from '@/utils/api';
+import { fetchData, fetchOperationalPeriodByIncident, readBy } from '@/utils/api';
 
 
 export default function Detail() {
@@ -22,76 +22,124 @@ export default function Detail() {
 
     const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
     const apiUrl = `http://${hostName}:8000/api/`;
-    const routeUrl = "ics-208/main";
 
+    // -------------------------------------------------------------------------
+    // Gunakan helper fetchData, readBy di dalam useEffect
+    // -------------------------------------------------------------------------
     useEffect(() => {
-        setLoading(true);
-        setError(null);
+        const fetchIcs208Data = async () => {
+            setLoading(true);
+            setError(null);
 
-        let operationalPeriodId = null;
+            try {
+                // Ambil detail ICS 208 (main data) - pakai readBy
+                const mainData = await readBy({ routeUrl: "ics-208/main/read", id });
+                setFormData(mainData);
 
-        // Ambil data detail
-        axios
-            .get(`${apiUrl}${routeUrl}/read/${id}`)
-            .then(async (response) => {
-                setFormData(response.data);
-                operationalPeriodId = response.data.operational_period_id;
-
-                // Ambil data file jika ada
-                if (response.data.site_safety_plan) {
-                    const fileData = await fetchFileData(response.data.site_safety_plan);
+                if (mainData.site_safety_plan) {
+                    const fileData = await fetchFileData(mainData.site_safety_plan);
                     setFormData(prevFormData => ({
                         ...prevFormData,
                         site_safety_plan: fileData
                     }))
                 }
 
-                return axios.get(`${apiUrl}operational-period/read`);
-            })
-            .then((response) => {
-                setOperationalPeriodData(response.data);
+                // Simpan ID operational period untuk pemakaian berikutnya
+                const operationalPeriodId = mainData.operational_period_id;
 
-                const selectedOperationalPeriod = response.data.find(
+                // Ambil semua data operational period - pakai fetchData
+                const allOperationalPeriods = await fetchData('operational-period');
+                setOperationalPeriodData(allOperationalPeriods);
+
+                // Cari operational period yang sesuai
+                const selectedOperationalPeriod = allOperationalPeriods.find(
                     (period) => period.id === operationalPeriodId
                 );
-
                 if (selectedOperationalPeriod) {
                     setFormData((prevFormData) => ({
                         ...prevFormData,
                         incident_id: selectedOperationalPeriod.incident_id,
                     }));
                 }
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-                setError('Failed to fetch data');
-            })
-            .finally(() => {
+
+                // Kalau ada id, baru fetch preparation data - pakai readBy
+                if (id) {
+                    const preparationData = await readBy({ routeUrl: "ics-208/preparation/read-by-ics-208-id", id });
+                    setPreparationID(preparationData[0].id);
+                    setFormData(prevFormData => ({
+                        ...prevFormData,
+                        is_prepared: preparationData[0].is_prepared,
+                        safety_officer_id: preparationData[0].safety_officer_id,
+                        date_prepared: dayjs(preparationData[0].date_prepared).format('YYYY-MM-DD'),
+                        time_prepared: dayjs(preparationData[0].time_prepared).format('HH:mm'),
+                    }));
+
+                }
+            } catch (error) {
+                console.error('Error fetching ICS 208 data:', error);
+                setError('Failed to fetch ICS 208 data');
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
 
-        if (id) {
-            axios.get(`${apiUrl}ics-208/preparation/read-by-ics-208-id/${id}`)
-                .then((response) => {
-                    if (response.data.length > 0) {
-                        setFormData((prevFormData) => ({
-                            ...prevFormData,
-                            is_prepared: response.data[0].is_prepared,
-                            safety_officer_id: response.data[0].safety_officer_id,
-                            date_prepared: response.data[0].date_prepared,
-                            time_prepared: response.data[0].time_prepared
-                        }));
-                        setPreparationID(response.data[0].id);
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error fetching Preparation data:', error);
-                    setError('Failed to fetch Preparation data');
-                });
-        }
-
+        fetchIcs208Data();
     }, [id]);
 
+    // -------------------------------------------------------------------------
+    // Fetch data
+    // -------------------------------------------------------------------------
+    const fetchIncidentData = async () => {
+        try {
+            const response = await fetchData('incident-data');
+            setIncidentData(response);
+        } catch (error) {
+            console.error('Error fetching incident data:', error);
+            setError('Failed to fetch incident data');
+        }
+    };
+
+    useEffect(() => {
+        fetchIncidentData();
+    }, []);
+
+    const fetchSafetyOfficer = async () => {
+        try {
+            const response = await fetchData('main-section/safety-officer');
+            setSafetyOfficerData(response);
+        } catch (error) {
+            console.error('Error fetching Safety Officer data:', error);
+            setError('Failed to fetch Safety Officer data');
+        }
+    };
+
+    useEffect(() => {
+        fetchSafetyOfficer();
+    }, []);
+
+    const fetchFileData = async (filename) => {
+        if (filename) {
+            try {
+                const response = await axios.get(
+                    `http://localhost:8000/api/file/get/${filename}`, {
+                    responseType: 'blob',
+                    headers: {
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+                );
+                return filename;
+            } catch (error) {
+                console.error('Error fetching map sketch:', error);
+                return null;
+            }
+        }
+        return null;
+    };
+
+    // -------------------------------------------------------------------------
+    // Handler file
+    // -------------------------------------------------------------------------
     const handleFileUpload = async (filename) => {
         try {
             await axios.put(`${apiUrl}ics-208/main/update/${id}`, {
@@ -114,27 +162,9 @@ export default function Detail() {
         }));
     };
 
-    const fetchFileData = async (filename) => {
-        if (filename) {
-            try {
-                const response = await axios.get(
-                    `http://localhost:8000/api/file/get/${filename}`, {
-                    responseType: 'blob',
-                    headers: {
-                        "Access-Control-Allow-Origin": "*",
-                    },
-                }
-                );
-                return filename;
-            } catch (error) {
-                console.error('Error fetching map sketch:', error);
-                return null;
-            }
-        }
-        return null;
-    };
-
-
+    // -------------------------------------------------------------------------
+    // Handler dropdown Incident & Operational Period
+    // -------------------------------------------------------------------------
     const handleIncidentChange = async (e) => {
         const incident_id = parseInt(e.target.value, 10);
         if (!incident_id) return;
@@ -169,6 +199,9 @@ export default function Detail() {
         }));
     };
 
+    // -------------------------------------------------------------------------
+    // Handler umum untuk text/checkbox
+    // -------------------------------------------------------------------------
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData({
@@ -176,7 +209,9 @@ export default function Detail() {
             [name]: type === "checkbox" ? checked : value,
         });
     };
-
+    // -------------------------------------------------------------------------
+    // Submit data (POST/PUT)
+    // -------------------------------------------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -221,35 +256,6 @@ export default function Detail() {
             alert(`Failed to submit data: ${error.response?.data?.message || error.message}`);
         }
     };
-
-    const fetchIncidentData = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}incident-data/read`);
-            setIncidentData(response.data);
-
-        } catch (error) {
-            console.error('Error fetching incident data:', error);
-            setError('Failed to fetch incident data');
-        }
-    };
-
-    useEffect(() => {
-        fetchIncidentData();
-    }, []);
-
-    const fetchSafetyOfficer = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}main-section/safety-officer/read/`);
-            setSafetyOfficerData(response.data);
-        } catch (error) {
-            console.error('Error fetching Planning Section Chief data:', error);
-            setError('Failed to fetch Planning Section Chief data');
-        }
-    };
-
-    useEffect(() => {
-        fetchSafetyOfficer();
-    }, []);
 
     return (
         <FormContainer title="ICS 208 - Safety Message/Plan Detail" >
@@ -372,7 +378,7 @@ export default function Detail() {
                                     required
                                 >
                                     <option value="" disabled>
-                                        Select Planning Section Chief
+                                        Select Safety Officer
                                     </option>
                                     {safetyOfficerData.map(officer => (
                                         <option key={officer.id} value={officer.id}>
