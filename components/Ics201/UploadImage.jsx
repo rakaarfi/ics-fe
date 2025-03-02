@@ -340,7 +340,7 @@ export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, i
 
             {/* Status upload */}
             {uploadStatus && (
-                <p className={`mt-4 text-sm ${uploadStatus.includes("berhasil") ? "text-green-600" : "text-red-600"}`}>
+                <p className={`mt-4 text-sm ${uploadStatus.includes("successfully") ? "text-green-600" : "text-red-600"}`}>
                     {uploadStatus}
                 </p>
             )}
