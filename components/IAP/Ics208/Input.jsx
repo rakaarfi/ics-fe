@@ -116,7 +116,7 @@ export default function Input() {
         e.preventDefault();
 
         try {
-            if (formData.is_required) {
+            if (formData.is_required && !formData.site_safety_plan) {
                 alert("Please upload the file first!");
                 return;
             }
