@@ -19,6 +19,7 @@ export const Navbar = () => {
         { name: "Operational Period", link: "/dashboard/operational-period/detail" },
         { name: "ICS 201 - Incident Briefing", link: "/dashboard/ics-201/detail" },
         { name: "Incident Action Plan (IAP)", link: "/dashboard/iap/" },
+        { name: "ICS 209 - Incident Status Summary", link: "/dashboard/ics-209/detail"}
     ]
 
     return (
