@@ -82,7 +82,7 @@ export default function Detail() {
     };
 
     return (
-        <FormContainer title="Input Incident Data">
+        <FormContainer title="Update Incident Data">
             <form onSubmit={handleSubmit}>
                 <table className="table-auto border-collapse w-full">
                     <tbody>
