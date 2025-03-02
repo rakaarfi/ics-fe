@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import { useState, useRef, useEffect } from "react";
-import { CloudUpload } from "lucide-react"
+import { AiOutlineCloudUpload } from "react-icons/ai";
 
 export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, titleName = 'Upload File', disabled = false }) {
     const [file, setFile] = useState(null);
@@ -225,7 +225,7 @@ export default function UploadFile({ onFileUpload, onDeleteFile, currentFile, ti
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <CloudUpload size={30} className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" />
+                                <AiOutlineCloudUpload size={30} className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" />
                                 <p className={`text-sm ${disabled ? "text-red-500" : "text-gray-500"}`}>
                                     {disabled ? "Checkbox must be checked" : "Click to upload or drag and drop"}
                                 </p>
