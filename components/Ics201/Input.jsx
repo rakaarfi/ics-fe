@@ -386,7 +386,7 @@ export default function Input() {
                                     className="border border-gray-300 rounded-md p-3"
                                     style={{
                                         maxHeight: '800px',
-                                        maxWidth: '1300px',
+                                        maxWidth: '1150px',
                                         overflowX: 'scroll',
                                         position: 'relative'
                                     }}
