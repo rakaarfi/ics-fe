@@ -2,11 +2,8 @@
 
 import axios from "axios";
 import { useState, useEffect, useRef } from "react";
-import { Upload, Trash2, Grid, List, Pencil, Eye } from "lucide-react"; // Ikon modern
-// import dynamic from "next/dynamic";
-// import { DocViewerRenderers, MSDocRenderer } from "@cyntler/react-doc-viewer";
-
-// const DocViewer = dynamic(() => import("@cyntler/react-doc-viewer"), { ssr: false });
+import { FaEye, FaListUl } from "react-icons/fa";
+import { MdGridOn, MdOutlineFileUpload  } from "react-icons/md";
 
 export default function UploadPage() {
     const [file, setFile] = useState(null);
@@ -256,7 +253,7 @@ export default function UploadPage() {
                         onClick={() => fileInputRef.current.click()}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center gap-2 hover:bg-blue-600"
                     >
-                        <Upload size={18} />
+                        <MdOutlineFileUpload size={18} />
                         Pilih File
                     </button>
                     <button
@@ -289,14 +286,14 @@ export default function UploadPage() {
                         }`}
                     onClick={() => setViewMode("grid")}
                 >
-                    <Grid size={18} /> Grid View
+                    <MdGridOn size={18} /> Grid View
                 </button>
                 <button
                     className={`px-3 py-2 ml-2 rounded-lg flex items-center gap-2 ${viewMode === "list" ? "bg-blue-500 text-white" : "bg-gray-300 text-gray-700"
                         }`}
                     onClick={() => setViewMode("list")}
                 >
-                    <List size={18} /> List View
+                    <FaListUl size={18} /> List View
                 </button>
             </div>
 
@@ -319,7 +316,7 @@ export default function UploadPage() {
                                 />
                             ) : (
                                 <button onClick={() => handlePreview(fileName)} className="px-3 py-2 bg-gray-500 text-white rounded-lg flex items-center gap-2">
-                                    <Eye size={18} /> Preview
+                                    <FaEye size={18} /> Preview
                                 </button>
                             )}
                             <p className="text-sm text-gray-700">{fileName.length > 25 ? `${fileName.substring(0, 25)}...` : fileName}</p>
