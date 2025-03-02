@@ -14,14 +14,26 @@ export const FormTemplate = ({ formData, onChange }) => (
                     />
                 )}
                 {field.type === "tel" && (
-                    <input
-                        type="tel"
-                        name={field.name}
-                        value={formData[field.name] || ""}
-                        onChange={onChange}
-                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
-                    />
+                    <div>
+                        <input
+                            type="tel"
+                            name={field.name}
+                            value={formData[field.name] || ""}
+                            onChange={(e) => {
+                                let phone = e.target.value.replace(/[^\d+-]/g, ''); // Hanya angka, + dan -
+                                onChange({ target: { name: field.name, value: phone } });
+                            }}
+                            className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
+                            required
+                        />
+                        {(formData[field.name] && (formData[field.name].length < 9 || formData[field.name].length > 13)) && (
+                            <p className="text-red-500 text-sm mt-1">
+                                Must be 9-13 digits.
+                            </p>
+                        )}
+                    </div>
                 )}
+
                 {field.type === "date" && (
                     <input
                         type="date"
@@ -69,15 +81,26 @@ export const FormTemplateInput = ({ formData, onChange }) => (
                     />
                 )}
                 {field.type === "tel" && (
-                    <input
-                        type="tel"
-                        name={field.name}
-                        value={formData[field.name] || ""}
-                        onChange={onChange}
-                        className="block w-full rounded-md bg-[#e1e5e7] px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
-                        required
-                    />
+                    <div>
+                        <input
+                            type="tel"
+                            name={field.name}
+                            value={formData[field.name] || ""}
+                            onChange={(e) => {
+                                let phone = e.target.value.replace(/[^\d+-]/g, ''); // Hanya angka, + dan -
+                                onChange({ target: { name: field.name, value: phone } });
+                            }}
+                            className="block w-full rounded-md bg-[#e1e5e7] px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#55c0b8] sm:text-sm/6"
+                            required
+                        />
+                        {(formData[field.name] && (formData[field.name].length < 7 || formData[field.name].length > 10)) && (
+                            <p className="text-red-500 text-sm mt-1">
+                                Must be 9-13 digits.
+                            </p>
+                        )}
+                    </div>
                 )}
+
                 {field.type === "date" && (
                     <input
                         type="date"
