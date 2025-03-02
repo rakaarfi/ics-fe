@@ -669,7 +669,7 @@ export default function FormPreview({
                                         {SULeaderData?.name || 'Unknown'}
                                     </div>
                                     <div style={{ marginLeft: '5rem' }}>
-                                        Position: Planning Section Chief
+                                        Position: Situation Unit Leader
                                     </div>
                                     <div style={{ marginLeft: '5rem' }}>
                                         Signature: {isPrepared ? '✓' : '✗'}
