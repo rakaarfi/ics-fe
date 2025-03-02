@@ -1,8 +1,8 @@
 'use client'
 
 import axios from "axios";
-import { CloudUpload } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { AiOutlineCloudUpload } from "react-icons/ai";
 
 export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, id }) {
     const [file, setFile] = useState(null);
@@ -272,7 +272,7 @@ export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, i
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <CloudUpload size={30} className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" />
+                                <AiOutlineCloudUpload size={30} className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" />
                                 <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
                                     <span className="font-semibold">Click to upload</span> or drag and drop
                                 </p>
@@ -295,7 +295,7 @@ export default function UploadImage({ onFileUpload, onDeleteFile, currentFile, i
                     accept="image/jpg,image/jpeg,image/png"
                 />
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">PNG, JPG or JPEG (MAX.5MB).</p>
-                
+
                 {/* Preview Gambar */}
                 {imageUrl && (
                     <img
