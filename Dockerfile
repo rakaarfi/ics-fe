@@ -1,5 +1,5 @@
-# FROM node:22.12.0-alpine
-FROM oven/bun:latest
+FROM node:22.12.0-alpine
+# FROM oven/bun:latest
 
 # Set working directory
 WORKDIR /app
@@ -8,8 +8,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-# RUN npm install
-RUN bun install
+RUN npm install
+# RUN bun install
 
 # Copy the rest of the application
 COPY . .
@@ -22,4 +22,5 @@ RUN bun run build
 EXPOSE 3000
 
 # Start the application
-CMD ["bun", "run", "start"]
+CMD ["npm", "run", "start"]
+# CMD ["bun", "run", "start"]
